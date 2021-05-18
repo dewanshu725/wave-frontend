@@ -2,13 +2,13 @@
 @import '~@angular/material/theming';
 
 $custom-typography: mat-typography-config(
-  $font-family: 'Lato, Poppins, sans-serif'
+  $font-family: 'Lato, sans-serif'
 );
 
 @include mat-core($custom-typography);
 
 html, body { height: 100%; }
-body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
+body { margin: 0; font-family: "Lato", sans-serif;}
 
 :root{
     --pacific-blue: #233E49;
@@ -53,6 +53,10 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
 
 .highlight {
   background: linear-gradient(180deg,rgba(255,255,255,0.2) 90%, #BA0C2E 0%);
+}
+
+.pointer{
+  cursor: pointer;
 }
 
 .gray-background{
@@ -124,6 +128,15 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
 .disabled-form-field .mat-form-field-disabled .mat-form-field-underline{
   background-image: none !important;
   background-color: rgba(0,0,0,0) !important;
+}
+
+.mat-checkbox-checked.mat-accent .mat-checkbox-background {
+  background-color: var(--pacific-blue);
+}
+
+.mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element,
+.mat-checkbox:active:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
+  background: var(--pacific-blue);
 }
 
 .form-field-loading-spinner{
@@ -239,8 +252,12 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
 }
 
 .button-style-4{
+  color: var(--gray-text);
   background-color: var(--white-smokes);
-  border-radius: 5px;
+}
+.button-style-4:active{
+  color: var(--white-smokes);
+  background-color: var(--gray-text);
 }
 
 .button-style-5{
@@ -249,13 +266,23 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
 }
 
 .button-error-style{
-  background-color: var(--rich-red);
-  color: white;
+  background-color: var(--white-smokes);
+  color: var(--rich-red);
 }
 
 .button-error-style:active{
+  background-color: var(--rich-red);
+  color: var(--white-smokes);
+}
+
+.button-error-style-2{
+  background-color: var(--rich-red);
+  color: var(--white-smokes);
+}
+
+.button-error-style-2:active{
   background-color: var(--white-smokes);
-  color: var(--pacific-blue);
+  color: var(--rich-red);
 }
 
 .button-active{
@@ -266,6 +293,11 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
   background-color: var(--pacific-blue) !important;
   color: white !important;
   box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+}
+
+.button-active-4{
+  color: var(--white-smokes);
+  background-color: var(--gray-text);
 }
 
 .mat-error{
@@ -408,7 +440,6 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: hsla(0,0%,70%,0.4);
   z-index: 50;
 }
 
@@ -417,6 +448,7 @@ body { margin: 0; font-family: "Poppins", "Lato", sans-serif;}
 }
 
 .frosted-glass-blur{
+  background-color: hsla(0,0%,70%,0.4);
   box-shadow: inset 0 0 0 200px rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
 }

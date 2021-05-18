@@ -1,7 +1,7 @@
 <ng-container *ngIf="!linkPreviewResultSuccess">
   <form class="d-flex justify-content-center" (ngSubmit)="onLinkSubmit($event)" disabled="true">
     <input name="webLink" cdkOverlayOrigin #webLinkInput="cdkOverlayOrigin" id="web-link-input" (input)="inputChange()"
-    autocorrect="off" spellcheck="off" type="url" placeholder="Enter a web link" class="mr-3" [disabled]="webLinkDistabled"
+    autocorrect="off" spellcheck="off" type="text" placeholder="Enter a web link" class="mr-3" [disabled]="webLinkDistabled"
     [ngClass]="{'w-50': !isMobile, 'w-100': isMobile}"
     >
     <button class="button-style-1 w-25" mat-raised-button disableRipple type="submit" [disabled]="webLinkDistabled">
@@ -14,7 +14,7 @@
   [cdkConnectedOverlayOrigin]="webLinkInput"
   [cdkConnectedOverlayOpen]="webLinkInputError"
 >
-  <mat-error class="ml-1 mt-2">Enter a <strong>valid URL</strong></mat-error>
+  <mat-error class="ml-1 mt-2">Enter a <strong class="my-mat-error">valid URL</strong></mat-error>
 </ng-template>
 </ng-container>
 
@@ -60,7 +60,8 @@
     </ng-container>
 
     <ng-container *ngIf="linkPreviewResultSuccess">
-      <app-vue [linkPreview]="linkPreview" [createVue]="true" class="position-relative mt-2" (vueSubmited)="vueSubmited.emit(true)"
+      <app-vue [linkPreview]="linkPreview" [createVue]="true" [currentSelectedInterest]="currentSelectedInterest"
+      class="position-relative mt-2" (vueSubmited)="vueSubmited.emit(true)"
       >
       </app-vue>
     </ng-container>

@@ -1,6 +1,6 @@
 <mat-toolbar class="nav-color-2 mat-elevation-z0 app-status-bar justify-content-between">
   <p class="mat-body-2 space-gray-color-text mb-0"><strong>Vue Saved</strong></p>
-  <p class="mat-caption rich-black-color-text mb-0"><strong>0</strong></p>
+  <p class="mat-caption rich-black-color-text mb-0"><strong>{{vueSavedArray.length}}</strong></p>
   <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" style="visibility: hidden;">
     <mat-icon style="line-height: 22px;">add</mat-icon>
   </button>
@@ -8,7 +8,7 @@
 
 
 <div class="app-container-style" style="max-height: max-content" [style.background-image]="vue_backgorund_url">
-  <div *ngIf="loading || vueError || vueEmpty; else VueSave" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
+  <div *ngIf="loading || vueError || vueEmpty || noMatchFound; else VueSave" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
     <ng-container *ngIf="loading">
       <app-loading></app-loading>
     </ng-container>
@@ -22,7 +22,7 @@
           </strong>
         </p>
       </div>
-      <button class="button-style-1 w-25 mt-3" mat-raised-button disableRipple type="button" (click)="getVueFeed()">
+      <button class="button-style-1 w-25 mt-3" mat-raised-button disableRipple type="button" (click)="getVueSaved()">
         Try Again
       </button>
     </ng-container>
@@ -32,9 +32,52 @@
         You haven't saved any <strong>Vue</strong> yet!
       </p>
     </ng-container>
+
+    <ng-container *ngIf="noMatchFound">
+      <p class="mat-title" style="color:var(--gray-text); font-family: 'Poppins';">
+        No Match Found, <strong>Sorry!</strong>
+      </p>
+    </ng-container>
   </div>
 </div>
 
 <ng-template #VueSave>
+  <div *ngIf="!loading && vueEmpty === false && !noMatchFound" [style.min-height]="appContainerHeight">
+    <div *ngIf="masonryLoading" class="d-flex justify-content-center align-items-center" style="position:absolute;"
+    [style.min-height]="appContainerHeight" [style.min-width]="appRightContainerWidth"
+    >
+      <app-loading></app-loading>
+    </div>
 
+    <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      (savedVueRemoved)="updateVueLayout($event)" *ngFor="let VueData of vueSavedArray"
+      >
+      </app-vue>
+    </ngx-masonry>
+
+    <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      (savedVueRemoved)="updateVueLayout($event)" *ngFor="let VueData of vueSavedArray"
+      >
+      </app-vue>
+    </ngx-masonry>
+
+    <div *ngIf="!interestSelected" [style.visibility]="(fetchMoreLoading || fetchMoreError || !fetchMore) && !masonryLoading ? 'visible' : 'hidden'"
+    style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
+    >
+      <app-loading *ngIf="fetchMoreLoading"></app-loading>
+      <span *ngIf="fetchMoreError" class="my-mat-error mat-subheading-1" style="font-family: Poppins;">
+        <strong>Something Went Wrong!</strong>
+      </span>
+      <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+        <strong>That's All, For Now!</strong>
+      </span>
+    </div>
+
+  </div>
 </ng-template>

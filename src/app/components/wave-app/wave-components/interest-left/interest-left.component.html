@@ -37,20 +37,20 @@
     >
       Vue Feed
     </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navMyvueState ? null : appNav('myvue')"
-    [ngClass]="{'button-active-2':navMyvueState}"
+    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuehistoryState ? null : appNav('vuehistory')"
+    [ngClass]="{'button-active-2':navVuehistoryState}"
     >
-      Your Vues
+      Vue History
     </button>
     <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navSavedvueState ? null : appNav('savedvue')"
     [ngClass]="{'button-active-2':navSavedvueState}"
     >
-      Vue later
+      Saved Vue
     </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuehistoryState ? null : appNav('vuehistory')"
-    [ngClass]="{'button-active-2':navVuehistoryState}"
+    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navMyvueState ? null : appNav('myvue')"
+    [ngClass]="{'button-active-2':navMyvueState}"
     >
-      History
+      Your Vues
     </button>
   </mat-action-list>
 </div>

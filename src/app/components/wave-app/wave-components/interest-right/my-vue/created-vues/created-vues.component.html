@@ -1,4 +1,4 @@
-<div *ngIf="loading || myVueError || myVueEmpty; else myVueList" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
+<div *ngIf="loading || myVueError || myVueEmpty || noMatchFound; else myVueList" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
   <ng-container *ngIf="loading">
     <app-loading></app-loading>
   </ng-container>
@@ -17,7 +17,7 @@
     </button>
   </ng-container>
 
-  <ng-container *ngIf="myVueEmpty=== true">
+  <ng-container *ngIf="myVueEmpty === true">
     <p class="mat-title" style="color:var(--gray-text)">
       all Your Vues will appear here. Start with your very <strong style="color:var(--rich-black);">first</strong>
     </p>
@@ -25,33 +25,50 @@
       <mat-icon style="line-height: 22px;">add</mat-icon>
     </button>
   </ng-container>
+
+  <ng-container *ngIf="noMatchFound">
+    <p class="mat-title" style="color:var(--gray-text); font-family: 'Poppins';">
+      No Match Found, <strong>Sorry!</strong>
+    </p>
+  </ng-container>
 </div>
 
 <ng-template #myVueList>
-  <div *ngIf="!loading && myVueEmpty === false" [style.min-height]="appContainerHeight">
+  <div *ngIf="!loading && myVueEmpty === false && !noMatchFound" [style.min-height]="appContainerHeight">
     <div *ngIf="masonryLoading" class="d-flex justify-content-center align-items-center" style="position:absolute;"
     [style.min-height]="appContainerHeight" [style.min-width]="appRightContainerWidth"
     >
       <app-loading></app-loading>
     </div>
 
-    <ngx-masonry [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoading = false" style="margin: 0 auto;">
-      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="myVueData" [editVue]="true" *ngFor="let myVueData of myVueDataArray"
-      (vueDeleted)="updateVueLayout($event)"
+    <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="myVueData" [editVue]="true"
+      *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
       >
       </app-vue>
     </ngx-masonry>
 
-    <div *ngIf="(fetchMore || fetchMoreError) && !masonryLoading" class="d-flex justify-content-center mt-4">
-      <button class="button-style-2 button-load-style" style="width: 20rem;" mat-raised-button disableRipple type="button"
-      (click)="getMyVue(true)" [ngClass]="fetchMoreError ? 'button-error-style' : 'button-style-2' "
+    <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="myVueData" [editVue]="true" [createVue]="false"
+      *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
       >
-        <mat-spinner *ngIf="fetchMoreLoading; else loadMore" class="button-loading-spinner blue-loading-spinner">
-        </mat-spinner>
-        <ng-template #loadMore>
-          <mat-icon>autorenew</mat-icon> {{fetchMoreError ? 'Try Again' : 'Load More'}}
-        </ng-template>
-      </button>
+      </app-vue>
+    </ngx-masonry>
+
+    <div *ngIf="!interestSelected" [style.visibility]="(fetchMoreLoading || fetchMoreError || !fetchMore) && !masonryLoading ? 'visible' : 'hidden'"
+    style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
+    >
+      <app-loading *ngIf="fetchMoreLoading"></app-loading>
+      <span *ngIf="fetchMoreError" class="my-mat-error mat-subheading-1" style="font-family: Poppins;">
+        <strong>Something Went Wrong!</strong>
+      </span>
+      <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+        <strong>That's All, For Now!</strong>
+      </span>
     </div>
 
   </div>

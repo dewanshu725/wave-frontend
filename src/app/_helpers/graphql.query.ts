@@ -497,9 +497,6 @@ mutation publish($vueJson:String!){
     vueJson: $vueJson
   }){
     result
-    vue{
-      id
-    }
   }
 }
 `
@@ -524,6 +521,7 @@ query myvue($first:Int, $after:String){
         conversationDisabled
         siteName
         image
+        imageHeight
         create
         vueinterestSet{
           edges{
@@ -588,6 +586,14 @@ mutation{
 }
 `
 
+export const GENERATE_VUE_FEED = gql`
+mutation{
+  generateVueFeed(input:{}){
+    result
+  }
+}
+`
+
 export const VUE_FEED = gql`
 query vue_feed($first:Int, $after:String){
   vueFeed(first: $first, after: $after, opened: false, saved: false){
@@ -597,9 +603,12 @@ query vue_feed($first:Int, $after:String){
       endCursor
     }
     edges{
+      cursor
       node{
         id
         priority
+        opened
+        saved
         vue{
           id
           truncatedTitle
@@ -608,6 +617,7 @@ query vue_feed($first:Int, $after:String){
           url
           siteName
           image
+          imageHeight
           create
           country
           region
@@ -637,17 +647,18 @@ query vue_feed($first:Int, $after:String){
 `
 
 export const VUE_HISTORY = gql`
-query vue_feed($first:Int, $after:String){
-  vueFeed(first: $first, after: $after, opened: true){
+query vue_history($first:Int, $after:String){
+  vueOpened(first: $first, after: $after){
     pageInfo{
       hasNextPage
       startCursor
       endCursor
     }
     edges{
+      cursor
       node{
         id
-        priority
+        saved
         vue{
           id
           truncatedTitle
@@ -656,10 +667,15 @@ query vue_feed($first:Int, $after:String){
           url
           siteName
           image
+          imageHeight
           create
           country
           region
+          institution
+          locationPreference
           age
+          agePreference
+          conversationPoint
           conversationDisabled
           newConversationDisabled
           autoConversationDisabled
@@ -681,17 +697,18 @@ query vue_feed($first:Int, $after:String){
 `
 
 export const VUE_SAVED = gql`
-query vue_feed($first:Int, $after:String){
-  vueFeed(first: $first, after: $after, saved: true){
+query vue_saved($first:Int, $after:String){
+  vueSaved(first: $first, after: $after){
     pageInfo{
       hasNextPage
       startCursor
       endCursor
     }
     edges{
+      cursor
       node{
         id
-        priority
+        opened
         vue{
           id
           truncatedTitle
@@ -700,10 +717,15 @@ query vue_feed($first:Int, $after:String){
           url
           siteName
           image
+          imageHeight
           create
           country
           region
+          institution
+          locationPreference
           age
+          agePreference
+          conversationPoint
           conversationDisabled
           newConversationDisabled
           autoConversationDisabled
@@ -720,6 +742,50 @@ query vue_feed($first:Int, $after:String){
         }
       }
     }
+  }
+}
+`
+
+export const UPDATE_VUE_FEED = gql`
+mutation update_vue_feed(
+  $vueId: ID!,
+  $opened: Boolean,
+  $saved: Boolean,
+  $disliked: Boolean
+){
+  updateVueFeed(input:{
+    vueId: $vueId
+    opened: $opened
+    saved: $saved
+    disliked: $disliked
+  }){
+    result
+  }
+}
+`
+
+export const REPORT_VUE = gql`
+mutation report_vue(
+  $vueId: ID!,
+  $adultSite: Boolean!,
+  $shoppingSite: Boolean!,
+  $gamblingSite: Boolean!,
+  $misleading: Boolean!,
+  $clickbait: Boolean!,
+  $dangerous: Boolean!,
+  $others: Boolean!
+){
+  reportVue(input:{
+    vueId: $vueId,
+    adultSite: $adultSite,
+    gamblingSite: $gamblingSite,
+    shoppingSite: $shoppingSite,
+    misleading: $misleading,
+    dangerous: $dangerous,
+    clickbait: $clickbait,
+    others: $others
+  }){
+    result
   }
 }
 `

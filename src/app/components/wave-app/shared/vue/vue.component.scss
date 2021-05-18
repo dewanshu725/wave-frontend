@@ -7,6 +7,16 @@
   box-shadow: var(--shadow-dense);
 }
 
+.vue-option-overlay{
+  position:absolute;
+  overflow-y: auto;
+  border-radius: 10px 10px 0px 0px;
+  background-color: hsla(0,0%,70%,0.4);
+  box-shadow: inset 0 0 0 200px rgba(255,255,255,0.05);
+  width: 100%;
+  z-index: 10;
+}
+
 .box-side-padding{
   padding: 0.3rem 0.5rem;
 }
@@ -50,4 +60,24 @@ img {
 .vue-action-icon{
   font-size: 20px;
   width: 20px;
+}
+
+.vue-report-form{
+  padding: 5px 16px;
+  background-color: var(--white-smokes);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px!important;
+  height: 5px!important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,.4);
+  border-radius: 10px;
+}
+
+* {
+  scrollbar-color: rgba(0,0,0,.4) hsla(0,0%,100%,.1);
+  scrollbar-width: thin;
 }

@@ -3,8 +3,9 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 import { timeSince } from 'src/app/_helpers/functions.utils';
 import { PAGE_INFO, LINK_PREVIEW, INTEREST_KEYWORD, USER_PREFERENCE } from './../../../../../_helpers/constents';
 import { take } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { VUE_FEED } from './../../../../../_helpers/graphql.query';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AppDataShareService } from './../../../../../_services/app-data-share.service';
 import { GraphqlService } from './../../../../../_services/graphql.service';
 
@@ -13,7 +14,7 @@ import { GraphqlService } from './../../../../../_services/graphql.service';
   templateUrl: './vue-feed.component.html',
   styleUrls: ['./vue-feed.component.scss']
 })
-export class VueFeedComponent implements OnInit {
+export class VueFeedComponent implements OnInit, OnDestroy {
 
   constructor(
     private appDataShareService: AppDataShareService,
@@ -24,7 +25,7 @@ export class VueFeedComponent implements OnInit {
   appContainerHeight:string;
   appRightContainerWidth:string;
   vue_backgorund_url:string;
-  userPreference:USER_PREFERENCE;
+  vueDisplayContext = 'vues';
 
   loading = true;
 
@@ -35,10 +36,18 @@ export class VueFeedComponent implements OnInit {
   fetchMoreLoading = false;
   fetchMoreError = false;
 
-  vueFeedLength = 30;
+  vueFeedLength = 5;
   vueFeedArray:LINK_PREVIEW[] = [];
+  isVueFeedFetching = false;
+
+  selectedInterest:INTEREST_KEYWORD[] = [];
+  interestSelected = false;
+  noMatchFound = false;
 
   masonryLoading = true;
+
+  scrollEndUnsub:Subscription;
+  selectedInterestUnsub:Subscription;
 
   masonryOption: NgxMasonryOptions = {
     gutter: 70,
@@ -51,26 +60,40 @@ export class VueFeedComponent implements OnInit {
     this.appContainerHeight = (this.appDataShareService.appContainerHeight - 59 - 10 - 10) + 'px';
     this.appRightContainerWidth = (this.appDataShareService.appRightContainerWidth - 20) + 'px';
     this.vue_backgorund_url = this.appDataShareService.vue_background;
+    this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
+    this.appDataShareService.vueFeedPageInfo ? this.fetchMore = this.appDataShareService.vueFeedPageInfo.hasNextPage : null;
 
-    if (this.appDataShareService.vueFeedArray.length != 0){
-      this.appDataShareService.vueFeedPageInfo ? this.fetchMore = this.appDataShareService.vueFeedPageInfo.hasNextPage : null;
-      this.vueFeedArray = this.appDataShareService.vueFeedArray;
+    if (this.appDataShareService.vueFeedArray.length >= this.vueFeedLength){
+      this.arrangeVueFeedArray();
       this.loading = false;
       this.vueEmpty = false;
+      this.noMatch();
+    }
+    else if (this.appDataShareService.vueFeedArray.length > 0 && this.appDataShareService.vueFeedArray.length < this.vueFeedLength){
+      this.arrangeVueFeedArray();
+      this.loading = false;
+      this.vueEmpty = false;
+      this.noMatch();
+      this.fetchMore ? this.getVueFeed(true) : null;
     }
     else{
-      const user_obj = this.userDataService.getItem({userObject:true}).userObject;
-      this.userPreference = {
-        country: user_obj.location.country_name,
-        region: user_obj.location.region,
-        institution:user_obj.institution === null ? null : {uid: user_obj.institution.uid, name: user_obj.institution.name},
-        locationPreference: user_obj.locationPreference,
-        agePreference: user_obj.agePreference,
-        conversationPoints: user_obj.conversationPoints,
-        age: user_obj.age
-      }
       this.getVueFeed();
     }
+
+    this.scrollEndUnsub = this.appDataShareService.scrollEndReached()
+    .subscribe(result => {
+      if (this.fetchMore && !this.interestSelected && !this.isVueFeedFetching){
+        this.isVueFeedFetching = true;
+        this.getVueFeed(true);
+      }
+    });
+
+    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest()
+    .subscribe(result =>{
+      this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
+      this.arrangeVueFeedArray();
+      this.noMatch();
+    });
   }
 
   getVueFeed(fetchMore=false){
@@ -112,10 +135,13 @@ export class VueFeedComponent implements OnInit {
             if (!fetchMore){
               this.loading = false;
               this.vueError = true;
+              this.masonryLoading = false;
             }
             else{
               this.fetchMoreLoading = false;
               this.fetchMoreError = true;
+              this.isVueFeedFetching = false;
+              this.masonryLoading = false;
             }
           }
         )
@@ -124,10 +150,13 @@ export class VueFeedComponent implements OnInit {
         if (!fetchMore){
           this.loading = false;
           this.vueError = true;
+          this.masonryLoading = false;
         }
         else{
           this.fetchMoreLoading = false;
           this.fetchMoreError = true;
+          this.isVueFeedFetching = false;
+          this.masonryLoading = false;
         }
       }
     })();
@@ -136,8 +165,21 @@ export class VueFeedComponent implements OnInit {
   createVueArray(pageInfo:PAGE_INFO, vueFeed){
     this.appDataShareService.vueFeedPageInfo = pageInfo;
     this.fetchMore = this.appDataShareService.vueFeedPageInfo.hasNextPage;
+    const user_obj = this.userDataService.getItem({userObject:true}).userObject;
+    const userPreference:USER_PREFERENCE = {
+      country: user_obj.location.country_name,
+      region: user_obj.location.region,
+      institution:user_obj.institution === null ? null : {uid: user_obj.institution.uid, name: user_obj.institution.name},
+      locationPreference: user_obj.locationPreference,
+      agePreference: user_obj.agePreference,
+      conversationPoints: user_obj.conversationPoints,
+      age: user_obj.age
+    }
+
+    let lastItemSame = false;
 
     vueFeed.forEach(element => {
+      const vueFeedArray = this.appDataShareService.vueFeedArray;
       let conversation_disabled = false;
       const vue_interest_tags:INTEREST_KEYWORD[] = [];
       const author_preference:USER_PREFERENCE = {
@@ -149,6 +191,29 @@ export class VueFeedComponent implements OnInit {
         agePreference: element.node.vue.agePreference,
         age: element.node.vue.age
       }
+
+      if (vueFeedArray.length > 0 && this.appDataShareService.vueFeedArrayUpdated){
+        let sameElement = false;
+
+        for (let vueFeedElement of vueFeedArray){
+          if (vueFeedElement.vue_feed_id === element.node.id){
+            console.log('same');
+            vueFeedElement.cursor = element.cursor;
+            sameElement = true;
+            break;
+          }
+        }
+
+        if (sameElement){
+          if (vueFeed[vueFeed.length - 1].node.id === element.node.id){
+            lastItemSame = true;
+            console.log('last riched');
+          }
+
+          return;
+        }
+      }
+
 
       element.node.vue.vueinterestSet.edges.forEach(interest => {
         vue_interest_tags.push({
@@ -164,31 +229,37 @@ export class VueFeedComponent implements OnInit {
         conversation_disabled = true;
       }
       else{
-        conversation_disabled = this.isVueConverseDisable(this.userPreference, author_preference);
+        conversation_disabled = !this.isVueConverseDisable(userPreference, author_preference);
       }
 
-      this.appDataShareService.vueFeedArray.push({
+      vueFeedArray.push({
+        vue_feed_id: element.node.id,
         id: element.node.vue.id,
         image: element.node.vue.image,
+        image_height: element.node.vue.imageHeight,
         truncated_title: element.node.vue.truncatedTitle,
-        url: element.node.url,
+        url: element.node.vue.url,
         domain_name: element.node.vue.domainName,
         site_name: element.node.vue.siteName,
         description: element.node.vue.description,
         interest_keyword: vue_interest_tags,
         created: element.node.vue.create,
         friendly_date: timeSince(new Date(element.node.vue.create)),
-        location: this.locationName(this.userPreference, author_preference),
+        location: this.locationName(userPreference, author_preference),
         age: element.node.vue.age,
         conversation_disabled: conversation_disabled,
+        cursor: element.cursor,
+        user_opened: element.node.opened,
+        user_saved: element.node.saved
       });
     });
 
-    this.vueFeedArray = this.appDataShareService.vueFeedArray;
-    console.log(this.vueFeedArray);
+    this.appDataShareService.vueFeedLastIndex = this.appDataShareService.vueFeedArray.length - 1;
+    this.appDataShareService.vueFeedArrayUpdated = false;
+    lastItemSame === false ? this.arrangeVueFeedArray() : this.getVueFeed(true);
     this.loading = false;
-    this.fetchMoreLoading = false;
     this.vueEmpty = false;
+    this.noMatch();
   }
 
   isVueConverseDisable(user_preference:USER_PREFERENCE, author_preference:USER_PREFERENCE): boolean{
@@ -198,6 +269,9 @@ export class VueFeedComponent implements OnInit {
 
     let user_conversation_point:number;
     let author_conversation_point:number;
+
+    let higher_conversation_point:number;
+    let lower_conversation_point:number;
 
     if (author_preference.locationPreference === 'country'){
       author_preference.country === user_preference.country ? locationCheckPassed = true : null;
@@ -216,22 +290,37 @@ export class VueFeedComponent implements OnInit {
         ageCheckPassed = true;
     }
 
-    if (user_preference.conversationPoints >= 90){
+
+    if (user_preference.conversationPoints >= 100){
       user_conversation_point = 100;
     }
     else{
-      user_conversation_point = user_preference.conversationPoints + 10;
+      user_conversation_point = user_preference.conversationPoints;
     }
 
-    if (author_preference.conversationPoints >= 90){
+    if (author_preference.conversationPoints >= 100){
       author_conversation_point = 100;
     }
     else{
-      author_conversation_point = author_preference.conversationPoints + 10;
+      author_conversation_point = author_preference.conversationPoints;
     }
 
-    if (Math.abs(author_conversation_point-user_conversation_point) <= 10){
+    if (user_conversation_point > author_conversation_point){
+      higher_conversation_point = user_conversation_point;
+      lower_conversation_point = author_conversation_point;
+    }
+    else if (author_conversation_point > user_conversation_point){
+      higher_conversation_point = author_conversation_point;
+      lower_conversation_point = user_conversation_point;
+    }
+    else{
       conversationCheckPassed = true;
+    }
+
+    if (!conversationCheckPassed){
+      if (higher_conversation_point-lower_conversation_point <= 10 || higher_conversation_point-(lower_conversation_point+10) <= 10){
+        conversationCheckPassed = true;
+      }
     }
 
     if (locationCheckPassed && ageCheckPassed && conversationCheckPassed){
@@ -252,6 +341,51 @@ export class VueFeedComponent implements OnInit {
     else{
       return user_preference.institution.name
     }
+  }
+
+  arrangeVueFeedArray(){
+    if (this.selectedInterest.length === 0){
+      this.vueFeedArray = this.appDataShareService.vueFeedArray;
+      this.interestSelected = false;
+    }
+    else{
+      this.vueFeedArray = [];
+      const selectedInterestLength = this.selectedInterest.length;
+      this.appDataShareService.vueFeedArray.forEach(element => {
+        let interestMatch = 0;
+        element.interest_keyword.forEach(element_interest => {
+          this.selectedInterest.forEach(selected_interest => {
+            if (element_interest.id === selected_interest.id){
+              interestMatch += 1;
+              return;
+            }
+          });
+        });
+        selectedInterestLength === interestMatch ? this.vueFeedArray.push(element) : null;
+      });
+      this.interestSelected = true;
+    }
+  }
+
+  masonryLoaded(){
+    this.fetchMoreLoading = false;
+    this.isVueFeedFetching = false;
+    this.masonryLoading = false;
+  }
+
+  noMatch(){
+    if (!this.loading && !this.vueError && !this.vueEmpty && this.vueFeedArray.length === 0){
+      this.noMatchFound = true;
+    }
+    else{
+      this.noMatchFound = false;
+    }
+  }
+
+  ngOnDestroy(){
+    if (this.scrollEndUnsub) this.scrollEndUnsub.unsubscribe();
+    if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
+    this.appDataShareService.isVueConstructed.next(false);
   }
 
 }

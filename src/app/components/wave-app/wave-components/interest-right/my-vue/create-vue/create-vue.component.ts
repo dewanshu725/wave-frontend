@@ -1,10 +1,11 @@
+import { INTEREST_KEYWORD } from './../../../../../../_helpers/constents';
 import { ResponsiveService } from './../../../../../../_services/responsive.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { take } from 'rxjs/operators';
 import { LINK_VALIDATION_MUTATION } from './../../../../../../_helpers/graphql.query';
 import { GraphqlService } from './../../../../../../_services/graphql.service';
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { AppDataShareService } from './../../../../../../_services/app-data-share.service';
 import { LINK_ERROR, LINK_PREVIEW } from 'src/app/_helpers/constents';
 import { getDomain, truncate } from 'src/app/_helpers/functions.utils';
@@ -14,7 +15,7 @@ import { getDomain, truncate } from 'src/app/_helpers/functions.utils';
   templateUrl: './create-vue.component.html',
   styleUrls: ['./create-vue.component.scss']
 })
-export class CreateVueComponent implements OnInit {
+export class CreateVueComponent implements OnInit, OnDestroy {
 
   constructor(
     private appDataShareService:AppDataShareService,
@@ -29,10 +30,14 @@ export class CreateVueComponent implements OnInit {
   webLinkInputError = false;
   webLinkDistabled = false;
 
+
   linkValidationLoading = false;
   @Output() linkResultStatus = new EventEmitter();
   @Output() vueConstructed = new EventEmitter();
   @Output() vueSubmited = new EventEmitter();
+
+  currentSelectedInterest:INTEREST_KEYWORD[] = [];
+  selectedInterestUnsub: Subscription;
 
   linkError:LINK_ERROR = {
     error:false,
@@ -44,6 +49,7 @@ export class CreateVueComponent implements OnInit {
   linkPreview:LINK_PREVIEW;
   linkPreviewResult = new BehaviorSubject<boolean>(null);
   linkPreviewResultSuccess = false;
+  createVue = true;
 
   inputChange(){
     this.webLinkInputError = this.webLinkInputError ? false : false;
@@ -60,6 +66,7 @@ export class CreateVueComponent implements OnInit {
 
       this.linkPreview = {
         image: data.image ? data.image : null,
+        image_height: null,
         title: data.title ? data.title : null,
         truncated_title: data.title ? truncate(data.title, 34) : null,
         url: link,
@@ -95,6 +102,7 @@ export class CreateVueComponent implements OnInit {
 
         this.linkPreview = {
           image: null,
+          image_height: null,
           title: null,
           truncated_title: null,
           url: link,
@@ -121,6 +129,7 @@ export class CreateVueComponent implements OnInit {
 
         this.linkPreview = {
           image: data.image[0].url,
+          image_height: null,
           title: data.title,
           truncated_title: truncate(data.title, 34),
           url: postData.id,
@@ -163,7 +172,7 @@ export class CreateVueComponent implements OnInit {
 
   onLinkSubmit(event){
     const webLink = event.target.webLink.value;
-    const validURL = webLink.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g);
+    const validURL = webLink.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,10}(:[0-9]{1,10})?(\/.*)?$/g);
     if (validURL){
       this.webLinkDistabled = true;
       this.linkValidationLoading = true;
@@ -283,6 +292,18 @@ export class CreateVueComponent implements OnInit {
     this.appContainerHeight = (this.appDataShareService.appContainerHeight - 59 - 10 - 10 - 16 - 45) + 'px';
 
     this.isMobile = this.responsiveService.isMobile;
+
+    this.currentSelectedInterest = this.appDataShareService.currentSelectedInterestArray;
+
+      this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest()
+      .subscribe(result =>{
+        this.currentSelectedInterest = this.appDataShareService.currentSelectedInterestArray;
+      });
+  }
+
+  ngOnDestroy(){
+    this.selectedInterestUnsub.unsubscribe();
+    this.currentSelectedInterest = [];
   }
 
 }

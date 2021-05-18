@@ -27,7 +27,7 @@
 
 <div class="app-container-style" style="max-height: max-content" [style.background-image]="vue_backgorund_url">
   <app-created-vues class="w-100" *ngIf="navCreatedVuesState" (createVueRequest)="navStateChange('createvue')"
-  (myVueEmptyEvent)="VueEmptyEvent($event)"
+  (myVueEmptyEvent)="vueEmptyEvent($event)" (reInitCreatedVue)="reInitCreatedVue($event)" (myVueArrayLength)="vueArrayLengthEvent($event)"
   >
   </app-created-vues>
   <app-create-vue class="w-100" *ngIf="navCreateVueState" (linkResultStatus)="createVueStatus($event)"

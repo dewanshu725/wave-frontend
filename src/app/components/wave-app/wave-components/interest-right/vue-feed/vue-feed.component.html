@@ -8,7 +8,7 @@
 
 
 <div class="app-container-style" style="max-height: max-content" [style.background-image]="vue_backgorund_url">
-  <div *ngIf="loading || vueError || vueEmpty; else VueFeed" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
+  <div *ngIf="loading || vueError || vueEmpty || noMatchFound; else VueFeed" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
     <ng-container *ngIf="loading">
       <app-loading></app-loading>
     </ng-container>
@@ -32,20 +32,52 @@
         Your <strong>Vue Feed</strong> is empty at this moment!
       </p>
     </ng-container>
+
+    <ng-container *ngIf="noMatchFound">
+      <p class="mat-title" style="color:var(--gray-text); font-family: 'Poppins';">
+        No Match Found, <strong>Sorry!</strong>
+      </p>
+    </ng-container>
   </div>
 </div>
 
 <ng-template #VueFeed>
-  <div *ngIf="!loading && vueEmpty === false" [style.min-height]="appContainerHeight">
+  <div *ngIf="!loading && vueEmpty === false && !noMatchFound" [style.min-height]="appContainerHeight">
     <div *ngIf="masonryLoading" class="d-flex justify-content-center align-items-center" style="position:absolute;"
     [style.min-height]="appContainerHeight" [style.min-width]="appRightContainerWidth"
     >
       <app-loading></app-loading>
     </div>
 
-    <ngx-masonry [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoading = false" style="margin: 0 auto;">
-      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" *ngFor="let VueData of vueFeedArray"></app-vue>
+    <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      *ngFor="let VueData of vueFeedArray"
+      >
+      </app-vue>
     </ngx-masonry>
+
+    <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
+    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+    >
+      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      *ngFor="let VueData of vueFeedArray"
+      >
+      </app-vue>
+    </ngx-masonry>
+
+    <div *ngIf="!interestSelected" [style.visibility]="(fetchMoreLoading || fetchMoreError || !fetchMore) && !masonryLoading ? 'visible' : 'hidden'"
+    style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
+    >
+      <app-loading *ngIf="fetchMoreLoading"></app-loading>
+      <span *ngIf="fetchMoreError" class="my-mat-error mat-subheading-1" style="font-family: Poppins;">
+        <strong>Something Went Wrong!</strong>
+      </span>
+      <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+        <strong>That's All, For Now!</strong>
+      </span>
+    </div>
 
   </div>
 </ng-template>

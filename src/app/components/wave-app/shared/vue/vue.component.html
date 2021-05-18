@@ -1,9 +1,56 @@
-<div class="box vue-box">
-  <img alt="preview" *ngIf="img_display" [src]="linkPreview.image" (error)="imgError($event)">
-  <div class="box-side-padding is-clipped">
-    <p class="mat-body-2 mb-1"><strong>{{linkPreview.truncated_title}}</strong></p>
-    <div *ngIf="!createVue && !editVueDescription; else vueDescription" class="mat-body-2 mb-2">
-      {{linkPreview.description}}
+<div #vueBox class="box">
+  <div *ngIf="vueMenu" class="vue-option-overlay custom-scrollbar frosted-glass-blur d-flex justify-content-center align-items-center"
+  [style.height]="vueOptionOverlayHeight+'px'"
+  >
+    <div *ngIf="vueReported === false" class="d-flex flex-column w-75">
+      <button mat-flat-button disableRipple class="d-flex mb-2" (click)="vueOptions(true)" [ngClass]="vueDisliked ? 'button-active-4' : 'button-style-4'">
+        <mat-icon class="mr-4">{{vueDisliked ? 'thumb_down_alt' : 'thumb_down_off_alt'}}</mat-icon> <strong>Dislike</strong>
+      </button>
+      <button mat-flat-button disableRipple class="d-flex mb-2" (click)="vueOptions(false,true)" [ngClass]="vueMisleaded ? 'button-active-4' : 'button-style-4'">
+        <mat-icon class="mr-4">dangerous</mat-icon> <strong>Misleading</strong>
+      </button>
+      <button mat-flat-button disableRipple class="d-flex button-error-style mb-2" (click)="vueOptions(false,false,true)">
+      <mat-icon class="mr-4">report</mat-icon>  <strong>Report</strong>
+      </button>
+    </div>
+
+    <form *ngIf="vueReported === true" novalidate [formGroup]="vueReportForm" (ngSubmit)="vueReportSubmit()"
+    class="d-flex flex-column w-100 vue-report-form"
+    [style.margin-top]="vueReportFromHeight>vueOptionOverlayHeight ? (vueReportFromHeight-vueOptionOverlayHeight)+'px' : '0px'"
+    >
+      <mat-label class="mat-body-2" style="font-family: Poppins;">Choose the appropriate options and submit.</mat-label>
+      <mat-divider class="mb-1"></mat-divider>
+      <mat-checkbox formControlName="adult"><strong>Adult Content</strong></mat-checkbox>
+      <mat-checkbox formControlName="shopping"><strong>Shopping Content</strong></mat-checkbox>
+      <mat-checkbox formControlName="gambling"><strong>Gambling Content</strong></mat-checkbox>
+      <mat-checkbox formControlName="dangerous"><strong>Dangerous Content</strong></mat-checkbox>
+      <mat-checkbox formControlName="clickbait"><strong>Clickbaits</strong></mat-checkbox>
+      <mat-checkbox formControlName="others"><strong>Others</strong></mat-checkbox>
+      <button mat-flat-button disableRipple type="submit" class="button-error-style-2 mt-1">
+        <strong>Submit</strong>
+      </button>
+    </form>
+
+    <div *ngIf="vueReported === null" class="d-flex flex-column justify-content-center align-items-center w-100 vue-report-form">
+      <mat-icon class="my-mat-success mb-4" style="margin-right: 12.5px; font-size: 2.5rem;">check_circle_outline</mat-icon>
+      <p class="mat-body-2 text-center text-black-50">
+        <strong>
+          Thank you for letting us know. We will verify and take action accordingly.
+        </strong>
+      </p>
+    </div>
+  </div>
+  <img alt="preview" *ngIf="img_display" [src]="linkPreview.image"
+  [style.height]="!createVue && linkPreview.image_height != null ? (linkPreview.image_height+'px') : '150px'"
+  (load)="createVue ? imgLoaded($event) : null" (error)="imgError($event)" [ngClass]="!createVue && !editVue ? 'pointer' : null"
+  (click)="vueOpened(linkPreview.url, true)"
+  >
+  <div class="box-side-padding is-clipped" matRipple [matRippleDisabled]="editVue || createVue" [matRippleTrigger]="clickTriger">
+    <div #clickTriger [ngClass]="!createVue && !editVue ? 'pointer' : null" (click)="vueOpened(linkPreview.url)">
+      <p class="mat-body-2 mb-1"><strong>{{linkPreview.truncated_title}}</strong></p>
+      <div *ngIf="!createVue && !editVueDescription; else vueDescription" class="mat-body-2 mb-2">
+        {{linkPreview.description}}
+      </div>
     </div>
 
     <ng-template #vueDescription>
@@ -21,12 +68,27 @@
       </form>
     </ng-template>
 
+    <!---------------------------------------------------- Vue interest section -------------------------------------------->
 
-    <drag-scroll class="disable-select vue-interest-scroll" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
-      <ng-container *ngIf="!createVue; else vueInterest">
+    <drag-scroll *ngIf="!createVue" class="disable-select vue-interest-scroll" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
         <mat-chip class="preview_tags ml-2 mr-2" *ngFor="let interest of linkPreview.interest_keyword">{{interest.name}}</mat-chip>
-      </ng-container>
     </drag-scroll>
+
+    <drag-scroll *ngIf="createVue" class="disable-select vue-interest-scroll" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
+      <ng-container *ngIf="currentSelectedInterest.length > 0; else noInterestSelected">
+        <mat-chip class="preview_tags ml-2 mr-2" *ngFor="let interest of currentSelectedInterest">{{interest.name}}</mat-chip>
+      </ng-container>
+
+      <ng-template #noInterestSelected>
+        <span class="mat-caption">Select your interest</span>
+      </ng-template>
+    </drag-scroll>
+
+    <!---------------------------------------------------- Vue interest section -------------------------------------------->
+
+
+
+    <!---------------------------------------------------- Vue User Info section -------------------------------------------->
 
     <div *ngIf="editVue" class="d-flex justify-content-between" style="height: 20px;">
       <div>
@@ -40,10 +102,11 @@
       </div>
     </div>
 
-    <div *ngIf="!editVue" class="d-flex justify-content-between" style="height: 20px;">
+
+    <div *ngIf="!editVue && !createVue" class="d-flex justify-content-between" style="height: 20px;">
       <div>
         <mat-icon class="gray-color-text" style="font-size: 14px; height: 14px; width: 14px;">place</mat-icon>
-        <span class="mat-caption" style="position: relative; bottom: 2.3px; margin-left: 4px;">{{linkPreview.country}}</span>
+        <span class="mat-caption" style="position: relative; bottom: 2.3px; margin-left: 4px;">{{linkPreview.location}}</span>
       </div>
       <span class="mat-caption">{{linkPreview.friendly_date}}</span>
       <div>
@@ -52,9 +115,13 @@
       </div>
     </div>
 
+    <!---------------------------------------------------- Vue User Info section -------------------------------------------->
+
   </div>
 
 
+
+  <!---------------------------------------------------- Vue Bottom section -------------------------------------------->
 
   <div *ngIf="createVue" class="d-flex justify-content-between align-items-center vue-action"
   [ngClass]="disableNewConversation ? 'vue-conversation-disabled' : 'vue-conversation-enabled'"
@@ -85,7 +152,8 @@
     <drag-scroll class="disable-select ml-2 nowrap" style="height: 100%; width: 40%;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
       <span style="line-height: 2.3;">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</span>
     </drag-scroll>
-    <div>
+
+    <div class="d-flex">
       <button mat-icon-button
       [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation' " matTooltipShowDelay="500"
       (click)="vueConversationUpdate()"
@@ -102,16 +170,22 @@
       <button *ngIf="editVueDescription" mat-icon-button (click)="vueDescriptionUpdate()" [disabled]="vueForm.invalid" type="button"
       matTooltip="Save description" matTooltipShowDelay="500"
       >
-        <mat-icon class="vue-action-icon" [ngClass]="{'my-mat-success': vueForm.valid}">check_circle</mat-icon>
+        <mat-icon class="vue-action-icon">check_circle</mat-icon>
       </button>
 
-      <button *ngIf="!vueDeleteLoading" mat-icon-button (click)="vueDelete()">
+      <button *ngIf="!vueDeleteLoading" mat-icon-button (click)="vueDelete()" matTooltip="Delete Vue" matTooltipShowDelay="500">
         <mat-icon class="vue-action-icon">delete_outline</mat-icon>
       </button>
 
-      <mat-spinner class="vue-loading-spinner d-inline-block" style="top: 2.5px; right: 8px; margin-left: 20px;"
+      <mat-spinner class="vue-loading-spinner d-inline-block" style="top: 12.5px; right: 12.5px; margin-left: 20px;"
       *ngIf="vueDeleteLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner' ">
       </mat-spinner>
+
+      <button mat-icon-button (click)="openVue(linkPreview.url)" type="button"
+      matTooltip="Open Vue" matTooltipShowDelay="500"
+      >
+        <mat-icon class="vue-action-icon">send</mat-icon>
+      </button>
 
     </div>
   </div>
@@ -124,27 +198,36 @@
     <span style="line-height: 2.3;">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</span>
   </drag-scroll>
     <div>
-      <button mat-icon-button>
+      <button *ngIf="!linkPreview.conversation_disabled" mat-icon-button matTooltip="Start Conversation" matTooltipShowDelay="500">
         <mat-icon class="vue-action-icon">forum</mat-icon>
       </button>
-      <button mat-icon-button>
-        <mat-icon class="vue-action-icon">favorite_border</mat-icon>
+
+      <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button [matTooltip]="vueSaved ? 'saved' : 'Save'" matTooltipShowDelay="500"
+      (click)="updateVueFeed(false, true, false)"
+      >
+        <mat-icon class="vue-action-icon">{{vueSaved ? 'favorite' : 'favorite_border'}}</mat-icon>
       </button>
-      <button mat-icon-button>
-        <mat-icon class="vue-action-icon">more_vert</mat-icon>
+
+      <ng-container *ngIf="vueDisplayContext === 'savedvue'">
+        <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" matTooltipShowDelay="500"
+        (click)="removeSavedVue()"
+        >
+          <mat-icon class="vue-action-icon">remove_circle_outline</mat-icon>
+        </button>
+
+        <mat-spinner class="vue-loading-spinner d-inline-block" style="top: 4px; right: 8px; margin-left: 20px;"
+        *ngIf="removeSavedVueLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner'">
+        </mat-spinner>
+      </ng-container>
+
+      <button mat-icon-button (click)="vueMenuAction()">
+        <mat-icon class="vue-action-icon">
+          {{vueMenu ? vueDisliked || vueMisleaded ? 'done' : 'close' : 'more_vert'}}
+        </mat-icon>
       </button>
     </div>
   </div>
 
+  <!---------------------------------------------------- Vue Bottom section -------------------------------------------->
+
 </div>
-
-
-<ng-template #vueInterest>
-  <ng-container *ngIf="currentSelectedInterest.length > 0; else noInterestSelected">
-    <mat-chip class="preview_tags ml-2 mr-2" *ngFor="let interest of currentSelectedInterest">{{interest.name}}</mat-chip>
-  </ng-container>
-
-  <ng-template #noInterestSelected>
-    <span class="mat-caption">Select your interest</span>
-  </ng-template>
-</ng-template>

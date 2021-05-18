@@ -92,8 +92,10 @@ export interface LINK_ERROR{
 }
 
 export interface LINK_PREVIEW{
+  vue_feed_id?:string,
   id?:string,
   image?:string,
+  image_height?:number,
   title?:string,
   truncated_title?:string,
   url:string,
@@ -110,7 +112,12 @@ export interface LINK_PREVIEW{
   location?:string,
   age?:number,
   conversation_disabled?:boolean,
-  priority?:string
+  priority?:string,
+  user_opened?:boolean,
+  user_saved?:boolean,
+  user_disliked?:boolean,
+  user_reported?:boolean
+
 }
 
 export interface ALERT_BOX{

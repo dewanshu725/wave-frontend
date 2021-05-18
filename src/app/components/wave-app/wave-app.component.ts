@@ -149,6 +149,14 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  onScroll(scrollEvent){
+    let element = scrollEvent.target;
+
+    if ((element.offsetHeight+element.scrollTop) > (element.scrollHeight - 59)){
+      this.appDataShareService.scrollEnd.next(true);
+    }
+  }
+
   ngOnDestroy(){
     this.responsiveUnsub.unsubscribe();
     this.alertBoxUnsub.unsubscribe();

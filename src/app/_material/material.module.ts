@@ -21,6 +21,8 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatRippleModule} from '@angular/material/core';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 const MaterialComponents = [
   MatGridListModule,
@@ -44,7 +46,9 @@ const MaterialComponents = [
   MatSlideToggleModule,
   MatExpansionModule,
   MatProgressSpinnerModule,
-  MatTooltipModule
+  MatTooltipModule,
+  MatRippleModule,
+  MatCheckboxModule
 ];
 
 @NgModule({

@@ -18,6 +18,7 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
     ) { }
 
   studentInterests:INTEREST_KEYWORD[] = [];
+  selectedInterest:INTEREST_KEYWORD[] = [];
   interestSelectedCounter = 0;
 
   navVuesState = false;
@@ -32,8 +33,9 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
     if (!interest.selected && this.interestSelectedCounter < 3){
       interest.selected = true;
       this.interestSelectedCounter++;
+      this.selectedInterest.push(interest);
+      this.appDataShareService.currentSelectedInterestArray = this.selectedInterest;
       this.appDataShareService.currentSelectedInterestSubject.next(interest);
-      this.appDataShareService.currentSelectedInterestArray = this.studentInterests;
     }
     else if (!interest.selected && this.interestSelectedCounter === 3){
       this.snackBar.open("Only 3 interest can be selected at once",'',{duration:2000});
@@ -41,8 +43,14 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
     else{
       interest.selected = false;
       this.interestSelectedCounter--;
+
+      const objIndex = this.selectedInterest.findIndex(obj => obj.id === interest.id);
+      if (objIndex > -1) {
+        this.selectedInterest.splice(objIndex, 1);
+      }
+
+      this.appDataShareService.currentSelectedInterestArray = this.selectedInterest;
       this.appDataShareService.currentSelectedInterestSubject.next(interest);
-      this.appDataShareService.currentSelectedInterestArray = this.studentInterests;
     }
   }
 
@@ -98,11 +106,13 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
         this.isVueConstructed = result;
         if (!result){
           this.studentInterests.forEach(element =>{
-            if (!element.saved && element.selected){
+            if (element.selected){
               element.selected = false;
               this.interestSelectedCounter-- ;
             }
           });
+          this.appDataShareService.currentSelectedInterestArray = [];
+          this.selectedInterest = [];
         }
         this.Ref.detectChanges();
       }

@@ -16,7 +16,7 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   vue_backgorund_url:string;
   myVueEmpty:boolean;
-  myVueArrayLength = 0;
+  myVueArrayLength = 5;
 
   navCreatedVuesState = false;
   navCreateVueState = false;
@@ -25,7 +25,7 @@ export class MyVueComponent implements OnInit, OnDestroy {
   createVueStatusMessage:string;
 
   navStateChange(state:string){
-    if (state=== 'createdvues'){
+    if (state === 'createdvues'){
       this.navCreatedVuesState = true;
       this.navCreateVueState = false;
     }
@@ -51,7 +51,7 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   backToMyvue(){
     if (this.isVueConstructed){
-      this.appDataShareService.alertInput.next('Do you want to navigate back. You current Vue will be lost!');
+      this.appDataShareService.alertInput.next('Do you want to navigate back? Your current Vue will be lost!');
       this.appDataShareService.alertResponse().pipe(take(1))
       .subscribe((response:boolean) =>{
         if (response){
@@ -73,15 +73,26 @@ export class MyVueComponent implements OnInit, OnDestroy {
     this.appDataShareService.isVueConstructed.next(false);
   }
 
-  VueEmptyEvent(value){
+  vueEmptyEvent(value){
     this.myVueEmpty = value;
-    this.myVueEmpty === false ? this.myVueArrayLength = this.appDataShareService.myVueArray.length : this.myVueArrayLength = 0;
+
     this.Ref.detectChanges();
+  }
+
+  reInitCreatedVue(value){
+    if (value){
+      this.navCreatedVuesState = false;
+      this.appDataShareService.isVueConstructed.next(false);
+      setTimeout(() => this.navCreatedVuesState = true, 500);
+    }
+  }
+
+  vueArrayLengthEvent(value){
+    this.myVueArrayLength = value;
   }
 
   ngOnDestroy(){
     this.appDataShareService.isVueConstructed.next(false);
-    console.log("destroyed");
   }
 
 }

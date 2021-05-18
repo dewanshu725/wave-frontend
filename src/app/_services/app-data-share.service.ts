@@ -19,19 +19,32 @@ export class AppDataShareService {
   settingsOption = new BehaviorSubject<string>(null);
 
   studentInterest:INTEREST_KEYWORD[] = []
-
   currentSelectedInterestArray:INTEREST_KEYWORD[] = [];
+
+  // ------------------------------------------------  Selected Interest Subject --------------------------------------------------
   currentSelectedInterestSubject = new Subject<INTEREST_KEYWORD>();
 
   currentSelectedInterest(): Observable<INTEREST_KEYWORD> {
     return this.currentSelectedInterestSubject.asObservable();
   }
+  // ------------------------------------------------  Selected Interest Subject --------------------------------------------------
 
+  // ------------------------------------------------  Alert Box Subject --------------------------------------------------
   alertInput = new Subject<boolean | string>();
 
   alertResponse(): Observable<boolean | string> {
     return this.alertInput.asObservable();
   }
+  // ------------------------------------------------  Alert Box Subject --------------------------------------------------
+
+
+  // --------------------------------------------------Scroll End Subject ----------------------------------------------------
+  scrollEnd = new Subject<boolean>();
+
+  scrollEndReached(): Observable<boolean> {
+    return this.scrollEnd.asObservable();
+  }
+  // --------------------------------------------------Scroll End Subject ----------------------------------------------------
 
   appContainerHeight:number;
   appContainerWidth:number;
@@ -43,17 +56,44 @@ export class AppDataShareService {
 
   myVueArray:LINK_PREVIEW[] = [];
   myVuePageInfo:PAGE_INFO;
+  myVueArrayUpdated = false;
+  resetMyVue(){
+    this.myVueArray = [];
+    this.myVuePageInfo = null;
+    this.myVueArrayUpdated = false;
+  }
 
   vueFeedArray:LINK_PREVIEW[] = [];
   vueFeedPageInfo:PAGE_INFO;
+  vueFeedLastIndex:number;
+  vueFeedArrayUpdated = false;
+  resetVueFeed(){
+    this.vueFeedArray = [];
+    this.vueFeedPageInfo = null;
+    this.vueFeedLastIndex = null;
+    this.vueFeedArrayUpdated = false;
+  }
 
   vueHistoryArray:LINK_PREVIEW[] = [];
   vueHistoryPageInfo:PAGE_INFO;
+  vueHistoryArrayUpdated = false;
+  resetVueHistory(){
+    this.vueHistoryArray = [];
+    this.vueHistoryPageInfo = null;
+    this.vueHistoryArrayUpdated = false;
+  }
 
-  vueSaveArray:LINK_PREVIEW[] = [];
-  vueSavePageInfo:PAGE_INFO;
+  vueSavedArray:LINK_PREVIEW[] = [];
+  vueSavedPageInfo:PAGE_INFO;
+  vueSavedArrayUpdated = false;
+  resetVueSaved(){
+    this.vueSavedArray = [];
+    this.vueSavedPageInfo = null;
+    this.vueSavedArrayUpdated = false;
+  }
 
   isVueConstructed = new BehaviorSubject<boolean>(null);
+  isVueFeedGenerated:boolean;
 
   reset(){
     this.initialSetup.next(null);
@@ -62,6 +102,21 @@ export class AppDataShareService {
     this.studentInterest = [];
     this.currentSelectedInterestArray = [];
     this.myVueArray = [];
+    this.appContainerHeight = null;
+    this.appContainerWidth = null;
+    this.appRightContainerWidth = null;
+    this.locationEdited = null;
+
+    this.resetMyVue();
+
+    this.resetVueFeed();
+
+    this.resetVueHistory();
+
+    this.resetVueSaved();
+
+    this.isVueConstructed.next(null);
+    this.isVueFeedGenerated = null;
   }
 
 }

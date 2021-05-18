@@ -18,6 +18,12 @@ export class InterestRightComponent implements OnInit, OnDestroy {
     this.interestOptionUnsub = this.appDataShareService.interestOption.subscribe(result =>{this.interestOption = result;});
   }
 
+  reInitVueSaved(){
+    this.interestOption = null;
+    this.appDataShareService.isVueConstructed.next(false);
+    setTimeout(() => this.interestOption = 'savedvue', 500);
+  }
+
   ngOnDestroy(){
     this.interestOptionUnsub.unsubscribe();
   }
