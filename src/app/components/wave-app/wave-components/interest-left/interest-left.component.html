@@ -1,5 +1,5 @@
 <div class="p-2 h-100 d-flex flex-column justify-content-between">
-  <div>
+  <div class="poppins-font">
     <mat-chip-list [multiple]="true" [selectable]="true" *ngIf="studentInterests.length != 0; else emptyInterest">
       <ng-container *ngFor="let studentInterest of studentInterests">
         <mat-chip disableRipple *ngIf="studentInterest.saved"
@@ -35,22 +35,22 @@
     <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuesState ? null : appNav('vues')"
     [ngClass]="{'button-active-2':navVuesState}"
     >
-      Vue Feed
+    <mat-icon class="mr-4">dashboard</mat-icon> <span class="poppins-font">Vue Feed</span>
     </button>
     <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuehistoryState ? null : appNav('vuehistory')"
     [ngClass]="{'button-active-2':navVuehistoryState}"
     >
-      Vue History
+    <mat-icon class="mr-4">history</mat-icon> <span class="poppins-font">Vue History</span>
     </button>
     <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navSavedvueState ? null : appNav('savedvue')"
     [ngClass]="{'button-active-2':navSavedvueState}"
     >
-      Saved Vue
+    <mat-icon class="mr-4">favorite</mat-icon> <span class="poppins-font">Saved Vue</span>
     </button>
     <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navMyvueState ? null : appNav('myvue')"
     [ngClass]="{'button-active-2':navMyvueState}"
     >
-      Your Vues
+    <mat-icon class="mr-4">present_to_all</mat-icon> <span class="poppins-font">Your Vues</span>
     </button>
   </mat-action-list>
 </div>

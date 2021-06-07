@@ -49,7 +49,7 @@ export class CreatedVuesComponent implements OnInit, OnDestroy {
 
 
   public masonryOption: NgxMasonryOptions = {
-    gutter: 70,
+    gutter: 80,
     horizontalOrder: true,
     columnWidth: 260,
     fitWidth: true

@@ -112,6 +112,7 @@ export interface LINK_PREVIEW{
   location?:string,
   age?:number,
   conversation_disabled?:boolean,
+  conversation_started?:boolean,
   priority?:string,
   user_opened?:boolean,
   user_saved?:boolean,
@@ -130,6 +131,20 @@ export interface PAGE_INFO{
   hasPreviousPage:boolean,
   startCursor:string,
   endCursor:string
+}
+
+export interface STUDENT_INFO_CARD_DATA{
+  imgUrl:string,
+  titleText:string,
+  contactStatus:{
+    text:string,
+    highPriority:boolean
+  }
+  messageText:string,
+  messageStatus:{
+    text:string,
+    highPriority:boolean
+  }
 }
 
 export const dev_prod = {

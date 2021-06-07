@@ -1,6 +1,6 @@
 import { AppDataShareService } from './app-data-share.service';
-import { INTEREST_CATEGORY, INTEREST_KEYWORD, LOCATION, dev_prod, state_language, INSTITUTION } from './../_helpers/constents';
-import { ALL_INTEREST_CATEGORY, USER_LOCATION, STUDENT_INTEREST_SNAPSHOT, GENERATE_VUE_FEED } from './../_helpers/graphql.query';
+import { INTEREST_CATEGORY, INTEREST_KEYWORD, dev_prod, INSTITUTION } from './../_helpers/constents';
+import { ALL_INTEREST_CATEGORY, STUDENT_INTEREST_SNAPSHOT } from './../_helpers/graphql.query';
 import { UserDataService } from './user-data.service';
 import { Injectable, isDevMode } from '@angular/core';
 import { Apollo } from 'apollo-angular';
@@ -195,7 +195,6 @@ export class GraphqlService {
                       this.initialTokenRefresh = false;
                       this.onLoginChange(true);
                       this.studentInterestSnapshot();
-                      this.generateVueFeed();
                     }
                     else{
                       this.onLoginChange(false);
@@ -348,10 +347,6 @@ export class GraphqlService {
     });
   }
 
-  public generateVueFeed(){
-    this.graphqlMutation(GENERATE_VUE_FEED).pipe(take(1))
-    .subscribe((result:any) => { this.appDataShareService.isVueFeedGenerated = result});
-  }
 
   public isTokenValid(): Promise<boolean>{
     return new Promise<boolean>((resolve, reject) => {

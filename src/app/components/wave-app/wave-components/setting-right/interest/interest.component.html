@@ -1,7 +1,7 @@
 <mat-toolbar class="app-status-bar justify-content-between" style="background-color: white;">
   <p *ngIf="initialSetup else editeInterest" class="mat-body-2 space-gray-color-text mb-0"><strong>Select what interests you</strong></p>
   <ng-template #editeInterest>
-    <p class="mat-body-2 space-gray-color-text mb-0"><strong style="font-family: Lato;">Edit your interests</strong></p>
+    <p class="mat-body-2 space-gray-color-text mb-0"><strong style="font-family: Roboto, sans-serif;">Edit your interests</strong></p>
   </ng-template>
   <p class="mat-caption rich-black-color-text mb-0"><strong>{{chipSelectionCounter}}</strong><span class="gray-color-text">/10</span></p>
   <button class="button-style-1 button-load-style" style="width: 18%;" mat-raised-button disableRipple [disabled]="chipSelectionCounter>0 && chipChanged ? false : true" type="button"

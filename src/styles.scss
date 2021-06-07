@@ -2,17 +2,23 @@
 @import '~@angular/material/theming';
 
 $custom-typography: mat-typography-config(
-  $font-family: 'Lato, sans-serif'
+  $font-family: 'Inter, sans-serif'
 );
 
 @include mat-core($custom-typography);
 
 html, body { height: 100%; }
-body { margin: 0; font-family: "Lato", sans-serif;}
+body {
+   margin: 0;
+   font-family: "Inter", sans-serif;
+   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  }
 
 :root{
     --pacific-blue: #233E49;
-    --light-pacific-blue: #1ca9c9;
+    --light-pacific-blue: #2f5362;
+    --light-visible-pacific-blue:#498299;
     --gray-text: #767681;
     --rich-yellow: #F3D060;
     --rich-red: #BA0C2E;
@@ -76,6 +82,11 @@ body { margin: 0; font-family: "Lato", sans-serif;}
   color: var(--rich-red);
 }
 
+.mat-tab-label-active{
+  color: var(--pacific-blue) !important;
+  opacity: 1 !important;
+  }
+
 .mat-tab-group.mat-primary .mat-ink-bar{
     background-color: var(--pacific-blue);
 }
@@ -100,6 +111,32 @@ body { margin: 0; font-family: "Lato", sans-serif;}
   }
 }
 
+.nav-header-tab{
+  > mat-tab-header{
+    border-bottom: none !important;
+    background-color: var(--gray-background);
+  }
+
+  > .mat-tab-body-wrapper{
+    margin-top: 0.5rem;
+    height: 100%;
+
+    > mat-tab-body{
+      > .mat-tab-body-content{
+        scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+        scrollbar-width: thin;
+        overflow-y: auto;
+      }
+      .mat-tab-body-content::-webkit-scrollbar{
+        width: 8px!important;
+        height: 8px!important;
+      }
+      .mat-tab-body-content::-webkit-scrollbar-thumb{
+        background-color: rgba(0,0,0,.2);
+      }
+    }
+  }
+}
 
 .mat-form-field.mat-focused .mat-form-field-ripple{
     background-color: var(--pacific-blue);
@@ -252,8 +289,8 @@ body { margin: 0; font-family: "Lato", sans-serif;}
 }
 
 .button-style-4{
-  color: var(--gray-text);
-  background-color: var(--white-smokes);
+  color: var(--gray-text) !important;
+  background-color: var(--white-smokes) !important;
 }
 .button-style-4:active{
   color: var(--white-smokes);
@@ -322,11 +359,7 @@ body { margin: 0; font-family: "Lato", sans-serif;}
     outline: 0;
     border: none;
 }
-/*
-.mat-horizontal-stepper-content{
-  visibility: ;
-}
-*/
+
 .stepper-form-next-button .mat-figure{
     justify-content: flex-end !important;
 }
@@ -448,8 +481,11 @@ body { margin: 0; font-family: "Lato", sans-serif;}
 }
 
 .frosted-glass-blur{
+  /*
   background-color: hsla(0,0%,70%,0.4);
   box-shadow: inset 0 0 0 200px rgba(255,255,255,0.05);
+  */
+  background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
 }
 

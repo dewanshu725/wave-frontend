@@ -40,7 +40,8 @@ import { ProfileWidgetComponent } from './profile-widget/profile-widget.componen
     AlertBoxComponent,
     ImageUploadWidgetComponent,
     LoadingComponent,
-    ProfileWidgetComponent
+    ProfileWidgetComponent,
+    InfoCardWidgetComponent
   ]
 })
 export class SharedModule { }

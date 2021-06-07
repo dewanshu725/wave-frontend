@@ -14,12 +14,12 @@
       <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" (click)="backToMyvue()">
         <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
       </button>
-      &nbsp;&nbsp;<span class="mat-body-2">Your Vues</span>
+      &nbsp;&nbsp;<span class="mat-body-2 space-gray-color-text mb-0"><strong>Create Your Vue</strong></span>
     </div>
 
     <span class="mat-caption">{{createVueStatusMessage}}</span>
 
-    <p class="mat-body-2 space-gray-color-text mb-0"><strong>Create Your Vue</strong></p>
+    <p [hidden]="true" class="mat-body-2 space-gray-color-text mb-0"><strong>Create Your Vue</strong></p>
 
   </ng-container>
 

@@ -128,7 +128,6 @@ export class AuthenticationService {
               this.graphqlService.initialTokenRefresh = false;
               this.loginFormErrorSubject.next(false);
               this.graphqlService.studentInterestSnapshot();
-              this.graphqlService.generateVueFeed();
             }
             else{
               this.loginFormErrorSubject.next(true);

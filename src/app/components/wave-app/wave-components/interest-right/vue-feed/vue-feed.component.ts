@@ -1,6 +1,6 @@
 import { UserDataService } from './../../../../../_services/user-data.service';
 import { NgxMasonryOptions } from 'ngx-masonry';
-import { timeSince } from 'src/app/_helpers/functions.utils';
+import { isVueConverseDisable, locationName, timeSince } from 'src/app/_helpers/functions.utils';
 import { PAGE_INFO, LINK_PREVIEW, INTEREST_KEYWORD, USER_PREFERENCE } from './../../../../../_helpers/constents';
 import { take } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
@@ -50,7 +50,7 @@ export class VueFeedComponent implements OnInit, OnDestroy {
   selectedInterestUnsub:Subscription;
 
   masonryOption: NgxMasonryOptions = {
-    gutter: 70,
+    gutter: 80,
     horizontalOrder: true,
     columnWidth: 260,
     fitWidth: true
@@ -222,14 +222,11 @@ export class VueFeedComponent implements OnInit, OnDestroy {
         });
       });
 
-      if (element.node.vue.newConversationDisabled || element.node.vue.autoConversationDisabled){
-        conversation_disabled = true;
-      }
-      else if (element.node.vue.conversationDisabled){
+      if (element.node.vue.conversationDisabled || element.node.conversationStarted){
         conversation_disabled = true;
       }
       else{
-        conversation_disabled = !this.isVueConverseDisable(userPreference, author_preference);
+        conversation_disabled = !isVueConverseDisable(userPreference, author_preference);
       }
 
       vueFeedArray.push({
@@ -245,9 +242,10 @@ export class VueFeedComponent implements OnInit, OnDestroy {
         interest_keyword: vue_interest_tags,
         created: element.node.vue.create,
         friendly_date: timeSince(new Date(element.node.vue.create)),
-        location: this.locationName(userPreference, author_preference),
+        location: locationName(userPreference, author_preference),
         age: element.node.vue.age,
         conversation_disabled: conversation_disabled,
+        conversation_started: element.node.conversationStarted,
         cursor: element.cursor,
         user_opened: element.node.opened,
         user_saved: element.node.saved
@@ -260,87 +258,6 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     this.loading = false;
     this.vueEmpty = false;
     this.noMatch();
-  }
-
-  isVueConverseDisable(user_preference:USER_PREFERENCE, author_preference:USER_PREFERENCE): boolean{
-    let locationCheckPassed = false
-    let ageCheckPassed = false
-    let conversationCheckPassed = false
-
-    let user_conversation_point:number;
-    let author_conversation_point:number;
-
-    let higher_conversation_point:number;
-    let lower_conversation_point:number;
-
-    if (author_preference.locationPreference === 'country'){
-      author_preference.country === user_preference.country ? locationCheckPassed = true : null;
-    }
-    else if (author_preference.locationPreference === 'region'){
-      author_preference.region === user_preference.region && author_preference.country === user_preference.country ? locationCheckPassed = true : null;
-    }
-    else if (author_preference.locationPreference === 'institution'){
-      author_preference.institution.uid === user_preference.institution.uid ? locationCheckPassed = true : null;
-    }
-
-    if (
-        user_preference.age >= (author_preference.age-author_preference.agePreference) &&
-        user_preference.age <= (author_preference.age+author_preference.agePreference)
-      ){
-        ageCheckPassed = true;
-    }
-
-
-    if (user_preference.conversationPoints >= 100){
-      user_conversation_point = 100;
-    }
-    else{
-      user_conversation_point = user_preference.conversationPoints;
-    }
-
-    if (author_preference.conversationPoints >= 100){
-      author_conversation_point = 100;
-    }
-    else{
-      author_conversation_point = author_preference.conversationPoints;
-    }
-
-    if (user_conversation_point > author_conversation_point){
-      higher_conversation_point = user_conversation_point;
-      lower_conversation_point = author_conversation_point;
-    }
-    else if (author_conversation_point > user_conversation_point){
-      higher_conversation_point = author_conversation_point;
-      lower_conversation_point = user_conversation_point;
-    }
-    else{
-      conversationCheckPassed = true;
-    }
-
-    if (!conversationCheckPassed){
-      if (higher_conversation_point-lower_conversation_point <= 10 || higher_conversation_point-(lower_conversation_point+10) <= 10){
-        conversationCheckPassed = true;
-      }
-    }
-
-    if (locationCheckPassed && ageCheckPassed && conversationCheckPassed){
-      return true;
-    }
-    else{
-      return false;
-    }
-  }
-
-  locationName(user_preference:USER_PREFERENCE, author_preference:USER_PREFERENCE){
-    if (user_preference.locationPreference === 'global'){
-      return author_preference.country
-    }
-    else if (user_preference.locationPreference === 'country' || user_preference.locationPreference === 'region'){
-      return author_preference.region
-    }
-    else{
-      return user_preference.institution.name
-    }
   }
 
   arrangeVueFeedArray(){

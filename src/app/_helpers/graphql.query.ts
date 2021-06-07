@@ -586,14 +586,6 @@ mutation{
 }
 `
 
-export const GENERATE_VUE_FEED = gql`
-mutation{
-  generateVueFeed(input:{}){
-    result
-  }
-}
-`
-
 export const VUE_FEED = gql`
 query vue_feed($first:Int, $after:String){
   vueFeed(first: $first, after: $after, opened: false, saved: false){
@@ -609,6 +601,7 @@ query vue_feed($first:Int, $after:String){
         priority
         opened
         saved
+        conversationStarted
         vue{
           id
           truncatedTitle
@@ -689,6 +682,13 @@ query vue_history($first:Int, $after:String){
               }
             }
           }
+          vuestudentsSet{
+            edges{
+              node{
+                conversationStarted
+              }
+            }
+          }
         }
       }
     }
@@ -736,6 +736,13 @@ query vue_saved($first:Int, $after:String){
                   id
                   word
                 }
+              }
+            }
+          }
+          vuestudentsSet{
+            edges{
+              node{
+                conversationStarted
               }
             }
           }

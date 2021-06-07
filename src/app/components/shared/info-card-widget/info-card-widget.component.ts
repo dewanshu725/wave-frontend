@@ -1,4 +1,7 @@
+import { STUDENT_INFO_CARD_DATA } from './../../../_helpers/constents';
 import { Component, Input, OnInit } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { identicon } from 'minidenticons';
 
 @Component({
   selector: 'app-info-card-widget',
@@ -7,11 +10,14 @@ import { Component, Input, OnInit } from '@angular/core';
 })
 export class InfoCardWidgetComponent implements OnInit {
 
-  constructor() { }
+  constructor(private domSanitizer: DomSanitizer) { }
 
-  @Input() imgUrl:string;
-  @Input() titleText:string;
-  @Input() subtitleText:string;
+  @Input() infoCardData:STUDENT_INFO_CARD_DATA;
+
+
+  svg(username:string): SafeHtml{
+    return this.domSanitizer.bypassSecurityTrustHtml(identicon(username));
+  }
 
 
   ngOnInit(): void {

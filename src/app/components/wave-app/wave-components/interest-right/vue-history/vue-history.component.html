@@ -52,7 +52,7 @@
     <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
     style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
     >
-      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      <app-vue ngxMasonryItem class="mb-5" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
       *ngFor="let VueData of vueHistoryArray"
       >
       </app-vue>
@@ -61,7 +61,7 @@
     <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
     style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
     >
-      <app-vue ngxMasonryItem class="mb-4" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
+      <app-vue ngxMasonryItem class="mb-5" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
       *ngFor="let VueData of vueHistoryArray"
       >
       </app-vue>

@@ -1,0 +1,54 @@
+<div class="h-100">
+  <mat-tab-group disableRipple mat-align-tabs="center" class="nav-header-tab h-100">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="mr-2" >groups</mat-icon>
+        Circle
+      </ng-template>
+
+      <ng-template matTabContent>
+        <!--
+        <div class="p-2 d-flex align-items-center" style="height: inherit;">
+          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
+            All your <strong>student circle</strong> will appear here
+          </p>
+        </div>
+        -->
+        <div style="height: inherit;">
+          <app-info-card-widget [infoCardData]="data"></app-info-card-widget>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="nav-header-font mr-2">forum</mat-icon>
+        Converse
+      </ng-template>
+
+      <ng-template matTabContent>
+        <div class="p-2 d-flex align-items-center" style="height: inherit;">
+          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
+            You will find all your <strong>conversations</strong> listed here
+          </p>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="nav-header-font mr-2">drafts</mat-icon>
+        Draft
+      </ng-template>
+
+      <ng-template matTabContent>
+        <div class="p-2 d-flex align-items-center" style="height: inherit;">
+          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
+            You will find your <strong>unsend conversation</strong> listed here
+          </p>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

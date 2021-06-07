@@ -32,6 +32,14 @@
     color: var(--pacific-blue);
 }
 
+.nav-link-opacity{
+  opacity: 0.8;
+}
+
+.nav-link-opacity:hover{
+  opacity: 1;
+}
+
 .footer{
   height: 80px;
   flex-flow: nowrap;

@@ -19,17 +19,17 @@
             >
             </app-profile-widget>
             <div [hidden]="profileState">
-              <button mat-icon-button class="button-style-3" (click)="navInterestState ? null : appNav('interest')"
+              <button mat-icon-button class="button-style-3 mr-2" (click)="navInterestState ? null : appNav('interest')"
               [ngClass]="{'button-active': navInterestState, 'mat-elevation-z3': navInterestState}"
               >
                 <mat-icon>insert_link</mat-icon>
               </button>
-              <button mat-icon-button class="button-style-3" (click)="navContactState ? null : appNav('contact')"
+              <button mat-icon-button class="button-style-3 mr-2" (click)="navContactState ? null : appNav('contact')"
               [ngClass]="{'button-active': navContactState, 'mat-elevation-z3': navContactState}"
               >
                 <mat-icon style="font-size: 18px;">contacts</mat-icon>
               </button>
-              <button mat-icon-button class="button-style-3" (click)="navChatState ? null : appNav('chat')"
+              <button mat-icon-button class="button-style-3 mr-2" (click)="navChatState ? null : appNav('chat')"
               [ngClass]="{'button-active': navChatState, 'mat-elevation-z3': navChatState}"
               >
                 <mat-icon style="font-size: 19px;">chat</mat-icon>
@@ -61,6 +61,11 @@
           [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"
           >
           </app-interest-left>
+
+          <app-contact-left *ngIf="navContactState" class="component-style custom-scrollbar"
+          [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"
+          >
+          </app-contact-left>
 
           <app-setting-left #settingLeft *ngIf="navSettingsState" class="component-style custom-scrollbar"
           [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"

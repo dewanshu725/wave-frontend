@@ -17,7 +17,7 @@
     [style.border-radius]="borderRadius"
     [src]="imgURL">
 
-    <div *ngIf="imgURL && imgPickOverlay" class="img-picker-overlay">
+    <div *ngIf="imgURL && imgPickOverlay" class="img-picker-overlay frosted-glass-blur">
         <mat-icon class="initials" [style.font-size]="smallWidget ? '20px' : '25px'">add_photo_alternate</mat-icon>
         <p *ngIf="!smallWidget" class="mt-2 mat-caption mb-0">CHANGE PROFILE PHOTO</p>
     </div>

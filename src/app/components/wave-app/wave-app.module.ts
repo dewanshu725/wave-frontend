@@ -23,6 +23,7 @@ import { ProfileComponent } from './wave-components/profile/profile.component';
 import { VueFeedComponent } from './wave-components/interest-right/vue-feed/vue-feed.component';
 import { VueSaveComponent } from './wave-components/interest-right/vue-save/vue-save.component';
 import { VueHistoryComponent } from './wave-components/interest-right/vue-history/vue-history.component';
+import { ContactLeftComponent } from './wave-components/contact-left/contact-left.component';
 
 
 @NgModule({
@@ -46,7 +47,8 @@ import { VueHistoryComponent } from './wave-components/interest-right/vue-histor
     ProfileComponent,
     VueFeedComponent,
     VueSaveComponent,
-    VueHistoryComponent
+    VueHistoryComponent,
+    ContactLeftComponent
   ]
 })
 

@@ -1,17 +1,47 @@
 <div class="outer-container">
-    <div class="inner-container">
-        <div class="img-container" 
-        [style.background-image]="'url('+ imgUrl +')'"
-        [style.display]="imgUrl ? 'inherit' : 'none'"
-        >
-        </div>
-        <div class="text-container">
-            <div class="title-text" [style.display]="titleText ? 'inherit' : 'none'">
-                <span class="mat-body-2">{{titleText}}</span>
-            </div>
-            <div class="subtitle-text" [style.display]="subtitleText ? 'inherit' : 'none'">
-                <span class="mat-caption">{{subtitleText}}</span>
-            </div>
-        </div>
+  <div class="img-container">
+    <div class="img-circle">
+      <div *ngIf="infoCardData.imgUrl === null" [innerHTML]="svg(infoCardData.titleText)"
+      style="background-color: var(--white-smokes); border-radius: 50%;"
+      >
+      </div>
+      <img *ngIf="infoCardData.imgUrl != null" class="img" [src]="infoCardData.imgUrl" (error)="infoCardData.imgUrl=null">
     </div>
+  </div>
+
+  <div class="body-container">
+    <div class="header-container">
+      <div class="title-container">
+        <span class="title-span">
+          <span class="title-text">{{infoCardData.titleText}}</span>
+        </span>
+      </div>
+
+      <div *ngIf="infoCardData.contactStatus != null" class="contact-status"
+      [ngClass]="infoCardData.contactStatus.highPriority ? 'contactStatus-high-priority' : 'contactStatus-low-priority'"
+      >
+        <ng-container *ngIf="infoCardData.contactStatus.highPriority; else contactStatusLowPriority">
+          <strong>{{infoCardData.contactStatus.text}}</strong>
+        </ng-container>
+
+        <ng-template #contactStatusLowPriority>
+          {{infoCardData.contactStatus.text}}
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="sub-header-container">
+      <div class="message-container">
+        <span class="message-span">
+          <span class="message-text">{{infoCardData.messageText}}</span>
+        </span>
+      </div>
+
+      <div *ngIf="infoCardData.messageStatus != null" class="message-status"
+      [ngClass]="infoCardData.messageStatus.highPriority ? 'messageStatus-high-priority' : 'messageStatus-low-priority'"
+      >
+        <mat-icon>{{infoCardData.messageStatus.text}}</mat-icon>
+      </div>
+    </div>
+  </div>
 </div>
