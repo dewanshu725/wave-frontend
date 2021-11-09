@@ -1,0 +1,73 @@
+<div *ngIf="!chat.deleted" class="position-relative">
+    <div *ngIf="showMessage && promtDelete" class="d-flex justify-content-center align-items-center position-absolute w-100 h-100 glass-blur" style="z-index: 1;">
+        <span class="mat-body-1 mb-0 pacific-blue-text"><strong>Confirm Deletion</strong></span>
+    </div>
+
+    <div *ngIf="chat.type === 'IMAGE'" class="position-relative">
+
+        <div *ngIf="chatImg.dataset?.imgError" (click)="imgReload(chatImg, chat)"
+        class="d-flex justify-content-center align-items-center position-absolute pointer"
+        [style.width]="chatImg.clientWidth + 'px'" [style.height]="chatImg.clientHeight + 'px'"
+        >
+            <div class="d-flex justify-content-center align-items-center frosted-glass-blur"
+            style="border-radius: 50%; width: 40px; height: 40px;"
+            >
+                <mat-icon class="image-action-icon">refresh</mat-icon>
+            </div>
+        </div>
+    
+        <img #chatImg class="message-image pointer lazy" (load)="imgLoaded($event, chat)" (error)="imgError($event, chat)" 
+        [src]="chat.image?.thumnail" [width]="chat.image?.width" [height]="chat.image?.height" (click)="openImageViewer(chatImg)"
+        [ngClass]="chat.body != null ? 'mb-1' : null">
+    </div>
+
+    <ng-container *ngIf="chat.type === 'LINK'">
+        <div *ngIf="chat.body != null" class="d-flex w-100 mb-1 pointer disable-select" (click)="openLink(chat.link.url)"
+        style="background-color: var(--gray-background); min-width: 300px;"
+        >
+            <img *ngIf="chat.link.image != null" class="short-link-image lazy" [src]="chat.link.image.thumnail"
+            (load)="imgLinkLoaded($event, chat)" (error)="imgLinkError($event, chat)"
+            [width]="chat.link.image.width" [height]="chat.link.image.height">
+    
+            <div class="d-flex flex-column justify-content-between w-100" style="padding: 0px 5px;">
+                <p *ngIf="chat.link.title" class="mat-body-1 mb-0"><strong>{{chat.link.title}}</strong></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="mat-caption">{{chat.link.site_name ? chat.link.site_name : chat.link.domain_name}}</span>
+                    <mat-icon>link</mat-icon>
+                </div>
+            </div>
+        </div>
+    
+        <div *ngIf="chat.body === null" class="d-flex flex-column w-100 pointer disable-select" (click)="openLink(chat.link.url)"
+        [ngClass]="showMessage ? chat.sender_user ? 'from-me' : 'from-them' : sender_user ? 'from-me' : 'from-them'"
+        >
+            <img *ngIf="chat.link.image != null" class="long-link-image mb-1 lazy" [src]="chat.link.image.thumnail"
+            (load)="imgLinkLoaded($event, chat)" (error)="imgLinkError($event, chat)"
+            [width]="chat.link.image.width" [height]="chat.link.image.height">
+            <p *ngIf="chat.link.title" class="mat-body-1 mb-0">{{chat.link.title}}</p>
+            <div class="d-flex align-items-center">
+                <mat-icon class="mr-1">link</mat-icon>
+                <span class="mat-caption">{{chat.link.site_name ? chat.link.site_name : chat.link.domain_name}}</span>
+            </div>
+        </div>
+    </ng-container>
+
+    <p #messageText *ngIf="chat.body != null" class="mat-body-1 mb-0" style="white-space: pre-line;" 
+    [ngClass]="showMessage ? chat.sender_user ? 'from-me' : 'from-them' : sender_user ? 'from-me' : 'from them'"
+    >
+        {{chat.truncatedBody != null ? messageText.dataset?.showMore == 'true' ? chat.body : chat.truncatedBody : chat.body}}
+        <span *ngIf="chat.truncatedBody != null" class="pointer disable-select" (click)="showMoreOrLess(messageText)"
+        [ngClass]="showMessage ? chat.sender_user ? 'white-smokes-color-text' : 'medium-blue-text' : sender_user ? 'white-smokes-color-text' : 'medium-blue-text'"
+        >
+            <br><br>{{messageText.dataset?.showMore ? messageText.dataset.showMore == 'true' ? 'SHOW LESS' : 'SHOW MORE' : 'SHOW MORE'}}
+        </span>
+        <ng-container *ngIf="showMessage">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{chat.sender_user ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : null}}</ng-container>
+    </p>
+</div>
+
+<p *ngIf="chat.deleted" class="mat-body-1 mb-0" style="white-space: pre-line;" 
+[ngClass]="showMessage ? chat.sender_user ? 'from-me' : 'from-them' : sender_user ? 'from-me' : 'from them'"
+>
+    <i>message deleted</i>
+    <ng-container *ngIf="showMessage">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{chat.sender_user ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : null}}</ng-container>
+</p>

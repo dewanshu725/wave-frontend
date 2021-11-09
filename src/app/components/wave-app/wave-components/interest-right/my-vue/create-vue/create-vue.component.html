@@ -1,73 +1,10 @@
-<ng-container *ngIf="!linkPreviewResultSuccess">
-  <form class="d-flex justify-content-center" (ngSubmit)="onLinkSubmit($event)" disabled="true">
-    <input name="webLink" cdkOverlayOrigin #webLinkInput="cdkOverlayOrigin" id="web-link-input" (input)="inputChange()"
-    autocorrect="off" spellcheck="off" type="text" placeholder="Enter a web link" class="mr-3" [disabled]="webLinkDistabled"
-    [ngClass]="{'w-50': !isMobile, 'w-100': isMobile}"
-    >
-    <button class="button-style-1 w-25" mat-raised-button disableRipple type="submit" [disabled]="webLinkDistabled">
-      Submit
-    </button>
-  </form>
+<div class="d-flex justify-content-center align-items-center" style="padding: 10px; height: 100%;">
 
-  <ng-template
-  cdkConnectedOverlay
-  [cdkConnectedOverlayOrigin]="webLinkInput"
-  [cdkConnectedOverlayOpen]="webLinkInputError"
->
-  <mat-error class="ml-1 mt-2">Enter a <strong class="my-mat-error">valid URL</strong></mat-error>
-</ng-template>
-</ng-container>
-
-
-<ng-container *ngIf="linkPreviewResultSuccess">
-  <p class="mat-title text-center">
-    Express yourself with your unique <strong class="highlight">Vue</strong>
-  </p>
-</ng-container>
-
-<div class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight"
-[ngClass]="{'mt-3': !linkPreviewResultSuccess}"
->
-
-  <app-loading *ngIf="linkValidationLoading; else notLoading"></app-loading>
-
-  <ng-template #notLoading>
-    <ng-container *ngIf="!linkError.error && !linkPreviewResultSuccess">
-      <p class="mat-title" style="color:var(--gray-text)">
-        Just submit your <strong style="color:var(--rich-black);">Link</strong>, and leave the rest to us.
-      </p>
-      <p class="mat-caption">
-        Express yourself with your unique <strong class="highlight">Vue</strong>
-      </p>
-    </ng-container>
-
-
-    <ng-container *ngIf="linkError.error">
-      <div>
-        <p class="mat-display-1 mb-0"><strong>Sorry,</strong></p>
-        <p class="mat-subheading-1">{{linkError.sentence_filler}}&nbsp;
-          <strong class="pr-2 pl-2 pt-1 pb-1" style="border:3px solid var(--rich-red); border-radius: 7px;">
-            {{linkError.error_message}}
-          </strong>
-        </p>
-      </div>
-      <span *ngIf="linkError.blacklist" class="mat-caption mt-3">
-        <strong>Warring: </strong>Your account will be suspended, if you try submiting links of Adult, Gambling or Shopping websites.
-      </span>
-      <button class="button-style-1 w-25 mt-3" mat-raised-button disableRipple type="button" (click)="tryAgain()">
-        Try Again
-      </button>
-    </ng-container>
-
-    <ng-container *ngIf="linkPreviewResultSuccess">
-      <app-vue [linkPreview]="linkPreview" [createVue]="true" [currentSelectedInterest]="currentSelectedInterest"
-      class="position-relative mt-2" (vueSubmited)="vueSubmited.emit(true)"
-      >
-      </app-vue>
-    </ng-container>
-
-  </ng-template>
-
+  <app-display-vue style="width: 95%; height: 75%;" [mode]="{create: true, edit: false, display: false}"
+  [currentSelectedInterest]="currentSelectedInterest" (linkValidationStatus)="linkResultStatus.emit($event)"
+  (vueSubmited)="vueSubmited.emit($event)"
+  >
+  </app-display-vue>
 
 </div>
 

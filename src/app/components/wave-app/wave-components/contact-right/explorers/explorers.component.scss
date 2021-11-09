@@ -1,0 +1,35 @@
+.contact-container-style{
+  top: 59px;
+  position: relative;
+  height: calc(100% - 59px);
+}
+
+.profile-container-style{
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.profile-info-container-style{
+  background-color: var(--white-smokes);
+  border-radius: 10px;
+  box-shadow: var(--shadow-dense);
+  padding: 20px;
+}
+
+.profile-display-vue-container{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.nowrap{
+  white-space: nowrap;
+  overflow: hidden;
+  width: 8rem;
+}
+
+*{
+  scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+  scrollbar-width: thin;
+}

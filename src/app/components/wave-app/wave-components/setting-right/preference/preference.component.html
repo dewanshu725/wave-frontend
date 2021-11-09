@@ -1,0 +1,197 @@
+<mat-toolbar class="app-status-bar justify-content-between">
+    <p class="mat-subheading-1 space-gray-color-text mb-0"><strong>Edit your Preference</strong></p>
+
+
+    <button *ngIf="!settingsUpdating" mat-icon-button disableRipple matTooltip="save" matTooltipShowDelay="500" class="button-style-6"
+    [disabled]="!settingsChanged" (click)="updateUserSettings()">
+        <mat-icon style="line-height: 22px; font-size: 30px; margin-right: 5px;">save</mat-icon>
+    </button>
+    <mat-spinner *ngIf="settingsUpdating" class="button-loading-spinner blue-loading-spinner" style="margin-left: 15px;">
+    </mat-spinner>
+</mat-toolbar>
+
+<div class="app-container-style">
+    <div class="setting-section-container mt-4 mb-4">
+        <p class="mat-headline mb-2 rich-black-color-text"><strong>Location</strong></p>
+
+        <p class="mat-body-1 mb-1 gray-color-text">
+            You will receive new conversations only from those users who match your location preference. 
+        </p>
+
+        <p class="mat-caption mb-0">
+            <strong>Note: Chances you make don’t affect your existing connections.</strong>
+        </p>
+
+        <div class="d-flex justify-content-center align-items-center mt-4">
+            <mat-button-toggle-group #locationToggle="matButtonToggleGroup" class="location-toggle" 
+            [value]="settings.locationPreference" (change)="updateSettings({locationPreference:locationToggle.value})">
+                <mat-button-toggle value="global">
+                    <mat-icon class="mr-2">public</mat-icon>
+                    <span class="mat-body-1 mb-0 mt-1">Global</span>
+                </mat-button-toggle>
+
+                <mat-button-toggle value="country">
+                    <mat-icon class="mr-2">flag</mat-icon>
+                    <span class="mat-body-1 mb-0 mt-1">{{userObj.location.country_name.substring(0, 10)}}</span>
+                </mat-button-toggle>
+
+                <mat-button-toggle value="region">
+                    <mat-icon class="mr-2">location_city</mat-icon>
+                    <span class="mat-body-1 mb-0 mt-1">{{userObj.location.region.substring(0, 10)}}</span>
+                </mat-button-toggle>
+
+                <mat-button-toggle *ngIf="userObj.institution?.verified === true" value="institution">
+                    <mat-icon class="mr-2">school</mat-icon>
+                    <span class="mat-body-1 mb-0 mt-1">
+                        {{userObj.institution.abbreviation != null ? userObj.institution.abbreviation : userObj.institution.name.substring(0, 10)}}
+                    </span>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+    </div>
+
+    <div class="setting-section-container mt-4 mb-4">
+        <p class="mat-headline mb-2 rich-black-color-text"><strong>Age</strong></p>
+
+        <p class="mat-body-1 mb-1 gray-color-text">
+            You will receive new conversations only from those users who come under the age bracket you have selected.
+        </p>
+
+        <p class="mat-caption mb-0">
+            <strong>Note: Chances you make don’t affect your existing connections.</strong>
+        </p>
+
+        <div class="d-flex flex-column justify-content-center align-items-center mt-4 age-slider-container">
+            <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+                <span class="mat-caption mb-0 age">Min Age: <strong>{{userObj.age - settings.agePreference}}</strong></span>
+                <span class="mat-caption mb-0 age">Your Age: <strong>{{userObj.age}}</strong></span>
+                <span class="mat-caption mb-0 age">Max Age: <strong>{{userObj.age + settings.agePreference}}</strong></span>
+            </div>
+
+            <mat-slider #ageSlider step="1" min="0" [max]="userObj.age - 1" [value]="settings.agePreference"
+            (input)="updateSettings({agePreference:ageSlider.value})"></mat-slider>
+        </div>
+    </div>
+
+    <div class="setting-section-container mt-4 mb-4">
+        <p class="mat-headline mb-2 rich-black-color-text"><strong>College</strong></p>
+
+        <p class="mat-body-1 mb-1 gray-color-text">
+            If you would like to engage with students from your college, Just add your college to your profile.
+        </p>
+
+        <p class="mat-caption mb-0">
+            <strong>Note: Only those colleges can be added who provide personal college Email ID to there students.</strong>
+        </p>
+
+        <div class="d-flex justify-content-center align-items-center mt-4 mb-4 w-100">
+            <ng-container *ngIf="institutionContent != null">
+                <app-short-content-widget [content]="institutionContent" [noWrap]="false" imgSize="80px" class="pointer" 
+                style="width: 300px; height: max-content; box-shadow: var(--shadow-medium-spread);"></app-short-content-widget>
+
+                <button mat-icon-button class="d-flex justify-content-center align-items-center change-button button-style-1 ml-3"
+                (click)="updateInstituion()">
+                    <mat-icon class="change-symbol">edit</mat-icon>
+                </button>
+            </ng-container>
+
+            <div *ngIf="institutionContent === null" 
+            class="w-75 d-flex flex-column" style="height: 200px;">
+                <div *ngIf="createInstitution.search" class="w-100 d-flex flex-column" style="height: inherit;">
+                    <div class="w-100 d-flex">
+                        <form class="w-100 mr-2 search-form" novalidate>
+                            <input #searchInput matInput placeholder="Search By" type="text" autocorrect="off" spellcheck="false"
+                            class="search-input mb-0">
+                        </form>
+    
+                        <button mat-stroked-button disableRipple class="d-flex justify-content-center align-items-center search-button mr-1"
+                        [ngClass]="searchByName ? 'search-button-active' : 'search-button-inactive'" (click)="this.searchByName = !this.searchByName">
+                            Name
+                        </button>
+                        <button mat-stroked-button disableRipple class="d-flex justify-content-center align-items-center search-button"
+                        [ngClass]="searchByName ? 'search-button-inactive' : 'search-button-active'" (click)="this.searchByName = !this.searchByName;">
+                            Acronym
+                        </button>
+                    </div>
+
+                    <div class="d-flex flex-column align-items-center mt-4 custom-scrollbar-2" style="height: inherit; overflow-y: auto;">
+                        <app-loading *ngIf="searching"></app-loading>
+
+                        <ng-container *ngIf="!searching">
+                            <app-short-content-widget [content]="result" [noWrap]="false" imgSize="80px" class="pointer" 
+                            style="width: 100%; height: max-content; box-shadow: var(--shadow-medium-spread);"
+                            *ngFor="let result of searchResult" (click)="selectInstitution(result.id)">
+                            </app-short-content-widget>
+
+                            <span *ngIf="searchResult.length === 0" class="mat-body-1 mb-0 gray-color-text">No Results Found</span>
+                        </ng-container>
+                    </div>
+                </div>
+
+                <div *ngIf="!createInstitution.search" class="w-100 d-flex flex-column" style="height: inherit;">
+                    <app-short-content-widget [content]="selectedInstitutionContent" [noWrap]="false" imgSize="80px" class="pointer" 
+                    style="width: 100%; height: max-content; box-shadow: var(--shadow-medium-spread);"></app-short-content-widget>
+
+                    <ng-container *ngIf="createInstitution.sendOTP">
+                        <form class="w-100 email-form mt-3" novalidate>
+                            <input #emaiInput matInput placeholder="Enter your college email" type="text" (input)="emailInputChanged()"
+                            autocorrect="off" spellcheck="false" class="email-input mb-0">
+    
+                            <mat-error [style.visibility]="emailValidationError ? 'visible' : 'hidden'">
+                                Email is <strong class="my-mat-error">Invalid</strong>
+                            </mat-error>
+                        </form>
+    
+                        <div class="w-100 d-flex justify-content-between align-items-center mt-3">
+                            <button mat-icon-button disableRipple class="d-flex align-items-center justify-content-center mat-elevation-z3"
+                            [disabled]="emailValidating" [ngClass]="emailValidating ? null : 'back-button'" (click)="createInstitutionChange({search:true})">
+                                <mat-icon style="margin-bottom: 2px; margin-right: 2px;">arrow_back_ios_new</mat-icon>
+                            </button>
+    
+                            <button mat-raised-button disableRipple class="small-button-load-style button-style-1" 
+                            (click)="emailValidation(emaiInput.value)">
+                                <mat-spinner *ngIf="emailValidating" class="small-button-loading-spinner white-loading-spinner">
+                                </mat-spinner>
+                                <ng-container *ngIf="!emailValidating">
+                                    Send OTP
+                                </ng-container>
+                            </button>
+                        </div>
+                    </ng-container>
+
+                    <ng-container *ngIf="createInstitution.verify">
+                        <p class="mat-body-1 mb-0 mt-2 gray-color-text">
+                            An email is been sent to <strong>{{collegeEmail}}</strong>. 
+                            Enter the OTP from the email to the input field and verify.
+                        </p>
+
+                        <form class="w-100 email-form mt-3" novalidate>
+                            <input #otpInput matInput placeholder="Enter OTP" type="number" autocorrect="off" spellcheck="false"
+                            class="email-input mb-0">
+                        </form>
+    
+                        <div class="w-100 d-flex justify-content-between align-items-center mt-3">
+                            <button mat-stroked-button disableRipple class="small-button-load-style" [disabled]="resendOtp"
+                            [ngClass]="resendOtp ? null : 'back-button'" (click)="resendOtpForEmailValidation()">
+                                <mat-spinner *ngIf="resendingOtp" class="small-button-loading-spinner white-loading-spinner">
+                                </mat-spinner>
+                                <ng-container *ngIf="!resendingOtp">
+                                    Resend OTP
+                                </ng-container>
+                            </button>
+    
+                            <button mat-raised-button disableRipple class="small-button-load-style button-style-1"
+                            (click)="verify(otpInput.value)">
+                                <mat-spinner *ngIf="otpVerifying" class="small-button-loading-spinner white-loading-spinner">
+                                </mat-spinner>
+                                <ng-container *ngIf="!otpVerifying">
+                                    Verify
+                                </ng-container>
+                            </button>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

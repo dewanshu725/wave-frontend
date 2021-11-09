@@ -1,0 +1,25 @@
+.vue-feed-container{
+  background-color: var(--white-smokes);
+  position: relative;
+  top: 59px; 
+  overflow-y: auto;
+  height: calc(100% - 59px);
+}
+
+mat-button-toggle-group{
+  border-radius: 10px;
+
+  > .mat-button-toggle-appearance-standard{
+    background: rgba(239,238,233, 0.8);
+  }
+
+  > .mat-button-toggle-checked{
+      background-color: var(--pacific-blue);
+      color: white !important;
+  }
+}
+
+*{
+  scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+  scrollbar-width: thin;
+}

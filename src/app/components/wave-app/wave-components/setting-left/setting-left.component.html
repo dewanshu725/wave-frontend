@@ -1,14 +1,24 @@
 <div class="p-2">
   <mat-action-list style="padding: 0px;">
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navInterest ? null : settingsNav('Interest')"
-    [ngClass]="{'button-active-2': navInterest}"
-    >
-    Interest
-  </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navFieldofstudy ? null : settingsNav('Fieldofstudy')"
-    [ngClass]="{'button-active-2': navFieldofstudy}"
-    >
-    Field Of Study
-  </button>
+
+    <div matRipple mat-list-item class="settings-button button-style-4 mb-2 pointer" [ngClass]="{'button-active-2': nav.interest}" 
+    (click)="nav.interest ? null : settingsNav('Interest')">
+      <mat-icon class="settings-symbol mr-4">interests</mat-icon>
+
+      <div class="d-flex flex-column w-100">
+        <span class="mat-title mb-0">Interest</span>
+        <span class="mat-caption mb-0">Car, Plans, Computers</span>
+      </div>
+    </div>
+
+    <div matRipple mat-list-item class="settings-button button-style-4 mb-2 pointer" [ngClass]="{'button-active-2': nav.preference}" 
+    (click)="nav.preference ? null : settingsNav('Preference')">
+      <mat-icon class="settings-symbol mr-4">person_pin_circle</mat-icon>
+
+      <div class="d-flex flex-column w-100">
+        <span class="mat-title mb-0">Preference</span>
+        <span class="mat-caption mb-0">Age, Location, College</span>
+      </div>
+    </div>
   </mat-action-list>
 </div>

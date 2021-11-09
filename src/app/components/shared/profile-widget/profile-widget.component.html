@@ -1,9 +1,7 @@
-<div class="circle" [ngStyle]="{'background-color': circleColor, 'width': size, 'height': size}"
-[style.display]="showInitials ? 'inline-flex' : 'block'"
+<div class="circle" [ngStyle]="{'width': size, 'height': size}"
+[style.display]="photoUrl ? 'inline-flex' : 'block'" [style.backgroundColor]="bgColor ? 'var(--creme-white)' : 'transparent'"
 >
-    <img *ngIf="!showInitials" src="{{photoUrl}}" [ngStyle]="{'width': size, 'height': size}">
+    <img *ngIf="photoUrl" src="{{photoUrl}}" [ngStyle]="{'width': size, 'height': size}">
 
-    <div *ngIf="showInitials" class="initials">
-        {{ initials }}
-    </div>
+    <div *ngIf="!photoUrl" [innerHTML]="svg(displyText)"></div>
 </div>

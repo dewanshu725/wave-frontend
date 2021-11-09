@@ -32,22 +32,22 @@
   </ng-template>
 
   <mat-action-list class="mt-4" style="padding: 0px;">
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuesState ? null : appNav('vues')"
+    <button mat-list-item class="button-style-4 mb-2" (click)="navVuesState ? null : appNav('vues')"
     [ngClass]="{'button-active-2':navVuesState}"
     >
     <mat-icon class="mr-4">dashboard</mat-icon> <span class="poppins-font">Vue Feed</span>
     </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navVuehistoryState ? null : appNav('vuehistory')"
+    <button mat-list-item class="button-style-4 mb-2" (click)="navVuehistoryState ? null : appNav('vuehistory')"
     [ngClass]="{'button-active-2':navVuehistoryState}"
     >
     <mat-icon class="mr-4">history</mat-icon> <span class="poppins-font">Vue History</span>
     </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navSavedvueState ? null : appNav('savedvue')"
+    <button mat-list-item class="button-style-4 mb-2" (click)="navSavedvueState ? null : appNav('savedvue')"
     [ngClass]="{'button-active-2':navSavedvueState}"
     >
     <mat-icon class="mr-4">favorite</mat-icon> <span class="poppins-font">Saved Vue</span>
     </button>
-    <button disableRipple mat-list-item class="button-style-4 mb-2" (click)="navMyvueState ? null : appNav('myvue')"
+    <button mat-list-item class="button-style-4 mb-2" (click)="navMyvueState ? null : appNav('myvue')"
     [ngClass]="{'button-active-2':navMyvueState}"
     >
     <mat-icon class="mr-4">present_to_all</mat-icon> <span class="poppins-font">Your Vues</span>

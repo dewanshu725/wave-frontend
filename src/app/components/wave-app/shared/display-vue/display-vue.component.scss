@@ -1,0 +1,128 @@
+.display-vue-container{
+    display: flex;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: var(--shadow-dense);
+}
+
+html[dir] .display-vue-align-container {
+    transform: translateZ(0);
+}
+  
+html[dir=ltr] .display-vue-right-container {
+    transform-origin: left top;
+}
+.display-vue-align-container{
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+.display-vue-left-container{
+    flex: 55%;
+    border-right:2px solid #dcdcdc;
+}
+
+.display-vue-right-container{
+    flex: 45%;
+    background-color: white;
+}
+
+.display-title{
+    position: absolute;
+    top: 0px;
+    padding: 10px 10px 0px;
+    width: 100%;
+}
+
+.nowrap {
+    overflow: hidden !important;
+    white-space: nowrap;
+}
+
+
+.vue-image{
+    width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.link-form{
+    padding: 5px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: var(--shadow-dense);
+}
+
+.link-input{
+    height:30px;
+    outline: none;
+    font-size: 13px;
+    border: 0px;
+    color: var(--medium-blue);
+    width: 100%;
+    padding: 0px 10px;
+    background-color: white;
+}
+
+.vue-action{
+    height: 2rem;
+}
+
+.vue-conversation-enabled{
+    background-color: var(--pacific-blue);
+    color: white;
+}
+  
+  .vue-conversation-disabled{
+    background-color: var(--silver);
+    color: va(--rich-black);
+}
+
+.vue-action-icon{
+    font-size: 20px;
+    width: 20px;
+}
+
+.preview_tags{
+    min-height: 20px;
+    font-size: 10px;
+}
+
+.vue-create-form{
+    padding: 5px;
+}
+
+.vue-title-input{
+    height:30px;
+    outline: none;
+    border: 0px;
+    width: 100%;
+    padding: 0px;
+    font-family: 'Poppins', sans-serif;
+    font-size: large;
+    font-weight: bolder;
+}
+
+.vue-description-textarea{
+    resize: none;
+    outline: none;
+    border: 0px;
+    width: 100%;
+    padding-top: 10px;
+}
+
+.vue-title{
+    font-size: large;
+    font-weight: bolder;
+}
+
+.vue-report-form{
+    padding: 5px 16px;
+    border-radius: 5px;
+    background-color: var(--white-smokes);
+}
+
+*{
+    scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+    scrollbar-width: thin;
+  }

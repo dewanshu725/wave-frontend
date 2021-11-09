@@ -1,12 +1,12 @@
 import { NgxMasonryOptions } from 'ngx-masonry';
-import { isVueConverseDisable, locationName, timeSince } from 'src/app/_helpers/functions.utils';
+import { isConversationStarted, isVueConverseDisable, locationName, modifyDateByDay, timeSince } from 'src/app/_helpers/functions.utils';
 import { UserDataService } from './../../../../../_services/user-data.service';
-import { LINK_PREVIEW, INTEREST_KEYWORD, PAGE_INFO, USER_PREFERENCE } from './../../../../../_helpers/constents';
+import { LINK_PREVIEW, INTEREST_KEYWORD, PAGE_INFO, USER_PREFERENCE, IMAGE, dev_prod } from './../../../../../_helpers/constents';
 import { take } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { VUE_SAVED } from './../../../../../_helpers/graphql.query';
+import { VUE_SAVED, VUE_SAVED_CURSOR } from './../../../../../_helpers/graphql.query';
 import { GraphqlService } from './../../../../../_services/graphql.service';
-import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, isDevMode } from '@angular/core';
 import { AppDataShareService } from './../../../../../_services/app-data-share.service';
 
 @Component({
@@ -22,8 +22,6 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     private userDataService: UserDataService
     ) { }
 
-  appContainerHeight:string;
-  appRightContainerWidth:string;
   vue_backgorund_url:string;
   vueDisplayContext = 'savedvue';
 
@@ -36,7 +34,7 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   fetchMoreLoading = false;
   fetchMoreError = false;
 
-  vueSavedLength = 5;
+  vueSavedLength = 3;
   vueSavedArray:LINK_PREVIEW[] = [];
   isVueSavedFetching = false;
 
@@ -46,7 +44,6 @@ export class VueSaveComponent implements OnInit, OnDestroy {
 
   masonryLoading = true;
 
-  scrollEndUnsub:Subscription;
   selectedInterestUnsub:Subscription;
 
   @Output() reInitVueSaved = new EventEmitter();
@@ -58,9 +55,10 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     fitWidth: true
   };
 
+  detailedVueOpened = false;
+  deatiledVueData:LINK_PREVIEW;
+
   ngOnInit(): void {
-    this.appContainerHeight = (this.appDataShareService.appContainerHeight - 59 - 10 - 10) + 'px';
-    this.appRightContainerWidth = (this.appDataShareService.appRightContainerWidth - 20) + 'px';
     this.vue_backgorund_url = this.appDataShareService.vue_background;
     this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
     this.appDataShareService.vueSavedPageInfo ? this.fetchMore = this.appDataShareService.vueSavedPageInfo.hasNextPage : null;
@@ -82,19 +80,50 @@ export class VueSaveComponent implements OnInit, OnDestroy {
       this.getVueSaved();
     }
 
-    this.scrollEndUnsub = this.appDataShareService.scrollEndReached()
-    .subscribe(result => {
+    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
+    .subscribe(result =>{
+      if (this.detailedVueOpened) this.openDetailedVue(false);
+
+      this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
+      this.arrangeVueSavedArray();
+      this.noMatch();
+    });
+  }
+
+  onScroll(scrollEvent){
+    let element = scrollEvent.target;
+
+    if ((element.offsetHeight+element.scrollTop) > (element.scrollHeight - 59)){
       if (this.fetchMore && !this.interestSelected && !this.isVueSavedFetching){
         this.isVueSavedFetching = true;
         this.getVueSaved(true);
       }
-    });
+    }
+  }
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest()
-    .subscribe(result =>{
-      this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
-      this.arrangeVueSavedArray();
-      this.noMatch();
+  getEndCursor(): Promise<boolean>{
+    return new Promise<boolean>((resolve, reject) => {
+      if (this.fetchMore){
+        const vueSavedId = this.appDataShareService.vueSavedArray[this.appDataShareService.vueSavedArray.length - 1].vue_feed_id;
+        this.graphqlService.graphqlMutation(VUE_SAVED_CURSOR, {vueSavedId: vueSavedId}).pipe(take(1))
+        .subscribe(
+          (result:any) =>{
+            if (result.data?.vueSavedCursor?.cursor){
+              this.appDataShareService.vueSavedPageInfo.endCursor = result.data.vueSavedCursor.cursor;
+              resolve(true);
+            }
+            else{
+              resolve(false);
+            }
+          },
+          error =>{
+            resolve(false);
+          } 
+        );
+      }
+      else{
+        resolve(true);
+      }
     });
   }
 
@@ -111,42 +140,45 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     (async () =>{
       const tokenStatus = await this.graphqlService.isTokenValid();
       if (tokenStatus){
-        const mutationArrgs = {
-          'first':this.vueSavedLength,
-          'after':this.appDataShareService.vueSavedPageInfo ? this.appDataShareService.vueSavedPageInfo.endCursor : ""
-        }
-
-        this.graphqlService.graphqlQuery({query:VUE_SAVED, variable:mutationArrgs, fetchPolicy:'network-only'}).valueChanges.pipe(take(1))
-        .subscribe(
-          (result:any) =>{
-
-            if (result.data.vueSaved === null || result.data.vueSaved.edges.length === 0){
+        const getUpdatedCursor = await this.getEndCursor();
+        if (getUpdatedCursor){
+          const mutationArrgs = {
+            'first':this.vueSavedLength,
+            'after':this.appDataShareService.vueSavedPageInfo ? this.appDataShareService.vueSavedPageInfo.endCursor : ""
+          }
+  
+          this.graphqlService.graphqlQuery({query:VUE_SAVED, variable:mutationArrgs, fetchPolicy:'network-only'}).valueChanges.pipe(take(1))
+          .subscribe(
+            (result:any) =>{
+  
+              if (result.data.vueSaved === null || result.data.vueSaved.edges.length === 0){
+                if (!fetchMore){
+                  this.vueEmpty = true;
+                  this.loading = false;
+                }
+                else{
+                  this.fetchMoreLoading = false;
+                  this.fetchMoreError = true;
+                }
+              }
+              else{
+                this.createVueArray(result.data.vueSaved.pageInfo, result.data.vueSaved.edges);
+              }
+            },
+            error =>{
               if (!fetchMore){
-                this.vueEmpty = true;
                 this.loading = false;
+                this.vueError = true;
+                this.masonryLoading = false;
               }
               else{
                 this.fetchMoreLoading = false;
                 this.fetchMoreError = true;
+                this.masonryLoading = false;
               }
             }
-            else{
-              this.createVueArray(result.data.vueSaved.pageInfo, result.data.vueSaved.edges);
-            }
-          },
-          error =>{
-            if (!fetchMore){
-              this.loading = false;
-              this.vueError = true;
-              this.masonryLoading = false;
-            }
-            else{
-              this.fetchMoreLoading = false;
-              this.fetchMoreError = true;
-              this.masonryLoading = false;
-            }
-          }
-        )
+          )
+        }
       }
       else{
         if (!fetchMore){
@@ -170,51 +202,44 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     const user_obj = this.userDataService.getItem({userObject:true}).userObject;
     const userPreference:USER_PREFERENCE = {
       country: user_obj.location.country_name,
+      country_code: user_obj.location.country_code,
       region: user_obj.location.region,
-      institution:user_obj.institution === null ? null : {uid: user_obj.institution.uid, name: user_obj.institution.name},
+      institution:user_obj.institution === null ? null : {uid: user_obj.institution.uid, verified: user_obj.institution.verified},
       locationPreference: user_obj.locationPreference,
       agePreference: user_obj.agePreference,
       conversationPoints: user_obj.conversationPoints,
       age: user_obj.age
     }
 
-    let lastItemSame = false;
-    console.log("running");
-
     vueSaved.forEach(element => {
       const vueSavedArray = this.appDataShareService.vueSavedArray;
       const vue_interest_tags:INTEREST_KEYWORD[] = [];
-      let conversation_disabled = false;
       const author_preference:USER_PREFERENCE = {
-        country: element.node.vue.country,
-        region: element.node.vue.region,
-        institution: {uid: element.node.vue.institution},
-        locationPreference: element.node.vue.locationPreference,
-        conversationPoints: element.node.vue.conversationPoint,
-        agePreference: element.node.vue.agePreference,
-        age: element.node.vue.age
+        country: element.node.vue.author.country,
+        region: element.node.vue.author.region,
+        institution: element.node.vue.author.studentinstitution != null ? {
+          verified: element.node.vue.author.studentinstitution.verified,
+          uid: element.node.vue.author.studentinstitution.institution.uid
+        } : null,
+        locationPreference: element.node.vue.author.locationPreference,
+        conversationPoints: element.node.vue.author.conversationPoints,
+        agePreference: element.node.vue.author.agePreference,
+        age: element.node.vue.author.age,
+        newConversationDisabled: element.node.vue.author.newConversationDisabled,
+        autoConversationDisabled: element.node.vue.author.autoConversationDisabled
       }
 
-      if (vueSavedArray.length > 0 && this.appDataShareService.vueSavedArrayUpdated){
-        console.log(this.appDataShareService.vueSavedArrayUpdated);
-        let sameElement = false;
+      const conversation_started = isConversationStarted(element.node.vue.author.id, this.appDataShareService.allInteraction);
+      let conversation_disabled = false;
+      let image:IMAGE = null;
 
-        for (let vueSavedElement of vueSavedArray){
-          if (vueSavedElement.vue_feed_id === element.node.id){
-            console.log('same');
-            vueSavedElement.cursor = element.cursor;
-            sameElement = true;
-            break;
-          }
-        }
-
-        if (sameElement){
-          if (vueSaved[vueSaved.length - 1].node.id === element.node.id){
-            lastItemSame = true;
-            console.log('last riched');
-          }
-
-          return;
+      if (element.node.vue.image != null){
+        image = {
+          id: element.node.vue.image.id,
+          image: element.node.vue.image.image,
+          thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ element.node.vue.image.thumnail : element.node.vue.image.thumnailUrl,
+          width: element.node.vue.image.width,
+          height: element.node.vue.image.height
         }
       }
 
@@ -225,7 +250,7 @@ export class VueSaveComponent implements OnInit, OnDestroy {
         });
       });
 
-      if (element.node.vue.conversationDisabled || element.node.vue.vuestudentsSet.edges[0].node.conversationStarted){
+      if (element.node.vue.conversationDisabled || conversation_started){
         conversation_disabled = true;
       }
       else{
@@ -235,28 +260,28 @@ export class VueSaveComponent implements OnInit, OnDestroy {
       vueSavedArray.push({
         vue_feed_id: element.node.id,
         id: element.node.vue.id,
-        image: element.node.vue.image,
-        image_height: element.node.vue.imageHeight,
-        truncated_title: element.node.vue.truncatedTitle,
+        image: image,
+        title: element.node.vue.title,
         url: element.node.vue.url,
-        domain_name: element.node.vue.domainName,
-        site_name: element.node.vue.siteName,
+        domain_name: element.node.vue.domain?.domainName,
+        site_name: element.node.vue.domain?.siteName,
         description: element.node.vue.description,
         interest_keyword: vue_interest_tags,
         created: element.node.vue.create,
         friendly_date: timeSince(new Date(element.node.vue.create)),
+        author_id: element.node.vue.author.id,
         location: locationName(userPreference, author_preference),
-        age: element.node.vue.age,
+        age: element.node.vue.author.age,
+        active: new Date(element.node.vue.author.lastSeen) > modifyDateByDay(new Date, 10) ? true : false,
         conversation_disabled: conversation_disabled,
-        conversation_started: element.node.vue.vuestudentsSet.edges[0].node.conversationStarted,
+        conversation_started: conversation_started,
         cursor: element.cursor,
         user_opened: element.node.opened,
         user_saved: true
       });
     });
 
-    this.appDataShareService.vueSavedArrayUpdated = false;
-    lastItemSame === false ? this.arrangeVueSavedArray() : this.getVueSaved(true);
+    this.arrangeVueSavedArray();
     this.loading = false;
     this.vueEmpty = false;
     this.noMatch();
@@ -287,19 +312,17 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   }
 
   updateVueLayout(id){
+    if (this.detailedVueOpened) this.openDetailedVue(false);
+
     const objIndex = this.appDataShareService.vueSavedArray.findIndex(obj => obj.id === id);
     if (objIndex > -1) {
       this.appDataShareService.vueSavedArray.splice(objIndex, 1);
     }
 
-    const objIndex2 = this.vueSavedArray.findIndex(obj => obj.id === id);
-    if (objIndex2 > -1) {
-      this.vueSavedArray.splice(objIndex2, 1);
-    }
-
     if (this.appDataShareService.vueSavedArray.length < this.vueSavedLength && this.fetchMore){
       this.reInitVueSaved.emit(true);
     }
+    else if (this.appDataShareService.vueSavedArray.length === 0) this.vueEmpty = true;
   }
 
   masonryLoaded(){
@@ -317,8 +340,18 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     }
   }
 
+  openDetailedVue(open_Status:boolean, openVueData?:LINK_PREVIEW){
+    if (open_Status){
+      this.deatiledVueData = openVueData;
+      this.detailedVueOpened = true;
+    }
+    else{
+      this.deatiledVueData = null;
+      this.detailedVueOpened = false;
+    }
+  }
+
   ngOnDestroy(){
-    if (this.scrollEndUnsub) this.scrollEndUnsub.unsubscribe();
     if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
     this.appDataShareService.isVueConstructed.next(false);
   }

@@ -1,0 +1,19 @@
+.profile-container{
+    background-color: var(--white-smokes);
+    padding: 10px;
+    overflow-y: auto;
+    height: calc(100% - 59px);
+}
+
+.profile-display-vue-container{
+    top: 59px;
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 59px);
+    z-index: 1;
+}
+
+* {
+    scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+    scrollbar-width: thin;
+  }

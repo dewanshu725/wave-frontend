@@ -1,35 +1,4 @@
-.load-more-button{
-  width: 260px;
-  box-shadow: var(--shadow-whatsapp);
+*{
+  scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+  scrollbar-width: thin;
 }
-
-/*
-.vue-grid{
-  display: block;
-  column-count: 1;
-  column-gap: 70px;
-  margin:0 auto;
-  width: min-content;
-}
-
-.item{
-  display: inline-block;
-  width: 100%;
-	margin: 0 0 30px;
-  box-sizing: border-box;
-  break-inside: avoid;
-}
-
-@media screen and (min-width:930px){
-  .vue-grid{
-    column-count: 2;
-  }
-}
-
-@media screen and (min-width:1500px){
-  .vue-grid{
-    column-count: 3;
-  }
-}
-*/
-

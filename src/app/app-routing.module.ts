@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { AuthGuardService } from './_services/auth-guard.service';
-import { LoginGuardService } from './_services/login-guard.service';
+import { AuthGuard } from './_guards/auth.guard';
+import { LoginGuard } from './_guards/login.guard';
 
 import { LogoutComponent } from './components/logout/logout.component';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
@@ -15,13 +15,13 @@ const routes: Routes = [
   },
   {
     path:"account",
-    canActivate: [LoginGuardService],
+    canActivate: [LoginGuard],
     loadChildren: () => import('./components/account/account.module').then(m => m.AccountModule)
     //component: AccountComponent
   },
   {
     path:"app",
-    canActivate: [AuthGuardService],
+    canActivate: [AuthGuard],
     loadChildren: () => import('./components/wave-app/wave-app.module').then(m => m.WaveAppModule)
     //component: WaveAppComponent
   },

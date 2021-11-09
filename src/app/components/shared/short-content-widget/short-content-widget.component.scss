@@ -1,0 +1,29 @@
+.content-container{
+  position: relative;
+  width: inherit;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.short-image{
+  object-fit: cover;
+}
+
+.close-box{
+  background-color: var(--white-smokes);
+  box-shadow: var(--shadow-dense);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
+}
+
+.close-symbol{
+  height: 15px;
+  width: 15px;
+  font-size: 15px;
+  font-weight: bolder;
+}

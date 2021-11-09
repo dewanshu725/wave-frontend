@@ -23,6 +23,10 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatRippleModule} from '@angular/material/core';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatBadgeModule} from '@angular/material/badge';
+import {MatDialogModule} from '@angular/material/dialog';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatSliderModule} from '@angular/material/slider';
 
 const MaterialComponents = [
   MatGridListModule,
@@ -48,7 +52,11 @@ const MaterialComponents = [
   MatProgressSpinnerModule,
   MatTooltipModule,
   MatRippleModule,
-  MatCheckboxModule
+  MatCheckboxModule,
+  MatBadgeModule,
+  MatDialogModule,
+  MatButtonToggleModule,
+  MatSliderModule
 ];
 
 @NgModule({

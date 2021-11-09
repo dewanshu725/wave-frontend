@@ -1,0 +1,12 @@
+.vue-save-container{
+    background-color: var(--white-smokes);
+    position: relative;
+    top: 59px; 
+    overflow-y: auto;
+    height: calc(100% - 59px);
+}
+
+*{
+    scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+    scrollbar-width: thin;
+}

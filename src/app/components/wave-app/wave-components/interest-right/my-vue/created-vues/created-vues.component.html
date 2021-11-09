@@ -1,75 +1,86 @@
-<div *ngIf="loading || myVueError || myVueEmpty || noMatchFound; else myVueList" class="d-flex flex-column justify-content-center align-items-center" [style.height]="appContainerHeight">
-  <ng-container *ngIf="loading">
-    <app-loading></app-loading>
-  </ng-container>
+<div class="custom-scrollbar-2 h-100" style="overflow-y: auto;" (scroll)="onScroll($event)">
 
-  <ng-container *ngIf="myVueError">
-    <div>
-      <p class="mat-display-1 mb-0 d-inline-block"><strong>Sorry,</strong></p>
-      <p class="mat-subheading-1 d-inline-block">&nbsp;
-        <strong class="pr-2 pl-2 pt-1 pb-1" style="border:3px solid var(--rich-red); border-radius: 7px;">
-          Error Occurred
-        </strong>
+  <div *ngIf="loading || myVueError || myVueEmpty || noMatchFound; else myVueList" style="padding: 10px; height: inherit;"
+  class="d-flex flex-column justify-content-center align-items-center">
+
+    <ng-container *ngIf="loading">
+      <app-loading></app-loading>
+    </ng-container>
+
+    <ng-container *ngIf="myVueError">
+      <div>
+        <p class="mat-display-1 mb-0 d-inline-block"><strong>Sorry,</strong></p>
+        <p class="mat-subheading-1 d-inline-block">&nbsp;
+          <strong class="pr-2 pl-2 pt-1 pb-1" style="border:3px solid var(--rich-red); border-radius: 7px;">
+            Error Occurred
+          </strong>
+        </p>
+      </div>
+      <button class="button-style-1 w-25 mt-3" mat-raised-button disableRipple type="button" (click)="getMyVue()">
+        Try Again
+      </button>
+    </ng-container>
+
+    <ng-container *ngIf="myVueEmpty === true">
+      <p class="mat-title" style="color:var(--gray-text)">
+        all Your Vues will appear here. Start with your very <strong style="color:var(--rich-black);">first</strong>
       </p>
-    </div>
-    <button class="button-style-1 w-25 mt-3" mat-raised-button disableRipple type="button" (click)="getMyVue()">
-      Try Again
-    </button>
-  </ng-container>
+      <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2 mr-2 ml-2" (click)="createVue()">
+        <mat-icon style="line-height: 22px;">add</mat-icon>
+      </button>
+    </ng-container>
 
-  <ng-container *ngIf="myVueEmpty === true">
-    <p class="mat-title" style="color:var(--gray-text)">
-      all Your Vues will appear here. Start with your very <strong style="color:var(--rich-black);">first</strong>
-    </p>
-    <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2 mr-2 ml-2" (click)="createVue()">
-      <mat-icon style="line-height: 22px;">add</mat-icon>
-    </button>
-  </ng-container>
+    <ng-container *ngIf="noMatchFound">
+      <p class="mat-title" style="color:var(--gray-text); font-family: 'Poppins';">
+        No Match Found, <strong>Sorry!</strong>
+      </p>
+    </ng-container>
+  </div>
 
-  <ng-container *ngIf="noMatchFound">
-    <p class="mat-title" style="color:var(--gray-text); font-family: 'Poppins';">
-      No Match Found, <strong>Sorry!</strong>
-    </p>
-  </ng-container>
-</div>
-
-<ng-template #myVueList>
-  <div *ngIf="!loading && myVueEmpty === false && !noMatchFound" [style.min-height]="appContainerHeight">
-    <div *ngIf="masonryLoading" class="d-flex justify-content-center align-items-center" style="position:absolute;"
-    [style.min-height]="appContainerHeight" [style.min-width]="appRightContainerWidth"
-    >
+  <ng-template #myVueList>
+    <div *ngIf="masonryLoading" class="d-flex justify-content-center align-items-center w-100 h-100 position-absolute">
       <app-loading></app-loading>
     </div>
 
-    <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
-    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
-    >
-      <app-vue ngxMasonryItem class="mb-5" [linkPreview]="myVueData" [editVue]="true"
-      *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
-      >
-      </app-vue>
-    </ngx-masonry>
+    <div *ngIf="!loading && myVueEmpty === false && !noMatchFound" style="padding: 10px;">
 
-    <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (itemsLoaded)="masonryLoaded()"
-    style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
-    >
-      <app-vue ngxMasonryItem class="mb-5" [linkPreview]="myVueData" [editVue]="true" [createVue]="false"
-      *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
+      <ngx-masonry *ngIf="!interestSelected" [options]="masonryOption" [ordered]="true" (layoutComplete)="masonryLoaded()"
+      style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
       >
-      </app-vue>
-    </ngx-masonry>
+        <app-vue ngxMasonryItem class="mb-5" [linkPreview]="myVueData" [editVue]="true" (openDetailedVue)="openDetailedVue($event, myVueData)"
+        *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
+        >
+        </app-vue>
+      </ngx-masonry>
 
-    <div *ngIf="!interestSelected" [style.visibility]="(fetchMoreLoading || fetchMoreError || !fetchMore) && !masonryLoading ? 'visible' : 'hidden'"
-    style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
-    >
-      <app-loading *ngIf="fetchMoreLoading"></app-loading>
-      <span *ngIf="fetchMoreError" class="my-mat-error mat-subheading-1" style="font-family: Poppins;">
-        <strong>Something Went Wrong!</strong>
-      </span>
-      <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
-        <strong>That's All, For Now!</strong>
-      </span>
+      <ngx-masonry *ngIf="interestSelected" [options]="masonryOption" [ordered]="true" (layoutComplete)="masonryLoaded()"
+      style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+      >
+        <app-vue ngxMasonryItem class="mb-5" [linkPreview]="myVueData" [editVue]="true" (openDetailedVue)="openDetailedVue($event, myVueData)"
+        *ngFor="let myVueData of myVueDataArray" (vueDeleted)="updateVueLayout($event)"
+        >
+        </app-vue>
+      </ngx-masonry>
+
+      <div *ngIf="!interestSelected" [style.visibility]="(fetchMoreLoading || fetchMoreError || !fetchMore) && !masonryLoading ? 'visible' : 'hidden'"
+      style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
+      >
+        <app-loading *ngIf="fetchMoreLoading"></app-loading>
+        <span *ngIf="fetchMoreError" class="my-mat-error mat-subheading-1" style="font-family: Poppins;">
+          <strong>Something Went Wrong!</strong>
+        </span>
+        <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+          <strong>That's All, For Now!</strong>
+        </span>
+      </div>
+
     </div>
+  </ng-template>
+</div>
 
-  </div>
-</ng-template>
+<div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur w-100 h-100" 
+style="z-index: 1; position: absolute; top: 0px;">
+  <app-display-vue style="width: 95%; height: 75%;" [mode]="{create: false, edit: true, display: false}" 
+  [linkPreview]="deatiledVueData" (closeDetailedVue)="openDetailedVue($event)" (vueDeleted)="updateVueLayout($event)">
+  </app-display-vue>
+</div>

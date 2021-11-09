@@ -1,0 +1,32 @@
+<div class="display-discovery-container">
+    <div class="header-container mb-3">
+        <div class="d-flex align-items-center">
+            <button mat-icon-button class="d-flex justify-content-center align-items-center header-button button-style-9 mr-3"
+            (click)="goBack.emit(true)">
+                <mat-icon style="margin-bottom: 2px; font-weight: bolder;">arrow_back_ios_new</mat-icon>
+            </button>
+            <span class="mat-title mb-0" style="font-family: Poppins;"><strong>{{discovery.title}}</strong></span>
+            <span class="mat-title mb-0 ml-2 mr-2" style="font-family: Poppins;">|</span>
+            <span class="mat-title mb-0" style="font-family: Poppins;"><strong>{{discovery.vues.length}}</strong></span>
+        </div>
+
+        <div *ngIf="editMode" class="d-flex align-items-center">
+            <button mat-icon-button class="d-flex justify-content-center align-items-center header-button button-style-9 ml-3"
+            (click)="deleteDiscovery()">
+                <mat-icon *ngIf="!discoveryDeleting" style="margin-bottom: 2px; font-weight: bolder;">delete_outline</mat-icon>
+                <mat-spinner *ngIf="discoveryDeleting" class="vue-loading-spinner blue-loading-spinner"></mat-spinner>
+            </button>
+            <button mat-icon-button class="d-flex justify-content-center align-items-center header-button button-style-9 ml-3"
+            (click)="edit.emit(true)">
+                <mat-icon style="margin-bottom: 2px; font-weight: bolder;">mode_edit</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <div class="discovery-vue-container custom-scrollbar-4">
+        <ngx-masonry [options]="masonryOption" [ordered]="true" style="margin: 0 auto;">
+            <app-vue ngxMasonryItem class="mb-5" [linkPreview]="discoveryVue.vue_obj" [profileVue]="true"
+            *ngFor="let discoveryVue of discovery.vues" (openDetailedVue)="openDetailedVue.emit(discoveryVue.vue_obj)"></app-vue>
+        </ngx-masonry>
+    </div>
+</div>

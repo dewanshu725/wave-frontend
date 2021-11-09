@@ -1,0 +1,12 @@
+<div *ngIf="imagevisible" class="image-viewer-container">
+    <div class="image-viewer-controls frosted-glass-blur disable-select">
+        <mat-icon class="pointer ml-2" (click)="reset()">refresh</mat-icon>
+        <div>
+            <mat-icon class="mr-3 pointer" (click)="zoom(imageRef, true)">add</mat-icon>
+            <mat-icon class="mr-3 pointer" (click)="zoom(imageRef, false)">remove</mat-icon>
+            <mat-icon class="mr-3 pointer" (click)="Rotate(imageRef)">rotate_90_degrees_ccw</mat-icon>
+        </div>
+        <mat-icon class="mr-2 pointer" (click)="close()">close</mat-icon>
+    </div>
+    <img cdkDrag #imageRef (cdkDragMoved)="dragMoving(imageRef)" class="initical-size disable-select" [src]="data.imageUrl">
+</div>

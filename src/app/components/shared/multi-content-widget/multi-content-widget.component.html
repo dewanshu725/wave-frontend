@@ -1,0 +1,31 @@
+<div matRipple class="pointer content-container">
+    <div class="title-container">
+        <span class="mat-subheading-2 mb-0 white-color-text" style="font-family: Poppins;"><strong>{{title}}</strong></span>
+        <span *ngIf="!contentSymbol" class="mat-subheading-2 mb-0 white-color-text" style="font-family: Poppins;">
+            <strong>{{content}}</strong>
+        </span>
+        <mat-icon *ngIf="contentSymbol" class=" white-color-text content-symbol">{{contentSymbolName}}</mat-icon>
+    </div>
+    <ng-container *ngIf="!imageError && images.length >= 4">
+        <img class="img lazy" style="border-top-left-radius: 10px;" [src]="images[0].thumnail"
+        (load)="imgLoaded($event, images[0])" (error)="imgError($event, images[0])">
+
+        <img class="img lazy" style="border-top-right-radius: 10px;" [src]="images[1].thumnail"
+        (load)="imgLoaded($event, images[1])" (error)="imgError($event, images[1])">
+
+        <img class="img lazy" style="border-bottom-left-radius: 10px;" [src]="images[2].thumnail"
+        (load)="imgLoaded($event, images[2])" (error)="imgError($event, images[2])">
+
+        <img class="img lazy" style="border-bottom-right-radius: 10px;" [src]="images[3].thumnail"
+        (load)="imgLoaded($event, images[3])" (error)="imgError($event, images[3])">
+    </ng-container>
+
+    <ng-container *ngIf="!imageError && images.length >= 1 && images.length < 4">
+        <img class="img w-100 h-100 lazy" style="border-radius: 10px;" [src]="images[0].thumnail"
+        (load)="imgLoaded($event, images[0])" (error)="imgError($event, images[0])">
+    </ng-container>
+
+    <ng-container *ngIf="imageError || images.length === 0">
+        <mat-icon class="pacific-blue-text center-symbol">{{centerSymbolName}}</mat-icon>
+    </ng-container>
+</div>

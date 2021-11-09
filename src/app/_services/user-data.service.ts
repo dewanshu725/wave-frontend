@@ -8,6 +8,7 @@ import {
   } from './../_helpers/constents';
 
 import { Injectable } from '@angular/core';
+import { AppDataShareService } from './app-data-share.service';
 
 export interface setDataParems{
   accessToken?:string,
@@ -38,7 +39,7 @@ export interface getDataParems{
 })
 export class UserDataService {
 
-  constructor() { }
+  constructor(private appDataShareService:AppDataShareService) { }
 
   private accessToken:string;
   private refreshToken:string;
@@ -61,6 +62,7 @@ export class UserDataService {
     parems.studentState ? this.studentState = parems.studentState : null;
     parems.interestCategory ? this.interestCategory = parems.interestCategory : null;
 
+    this.appDataShareService.updateUserData.next(true);
   }
 
   getItem(parems:getDataParems){

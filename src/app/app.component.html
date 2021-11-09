@@ -1,6 +1,6 @@
-<div class="app-body" style="min-height: 100%;" (window:resize)="onResize()">
+<div class="w-100 h-100" (window:resize)="onResize()">
 
-  <div class="container-fluid my-container">
+  <div class="my-container">
     <div class="row" *ngIf="currentPath != 'app' ">
       <mat-toolbar style="background-color: white;" class="mat-elevation-z0 justify-content-between">
         <div mat-button disableRipple routerLink="/" class="d-flex justify-content-center" style="outline: none; cursor:pointer;">

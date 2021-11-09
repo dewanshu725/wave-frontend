@@ -1,0 +1,72 @@
+<div class="w-100 h-100 d-flex flex-column-reverse align-items-center converse-message-container custom-scrollbar-3"
+(scroll)="onScroll($event)">
+
+    <ng-container *ngIf="interaction.draft_converse.in_transit || interaction.converse[0].sender_student">
+        <div *ngIf="interaction.draft_converse.in_transit" class="d-flex justify-content-end w-75">
+            <div matRipple class="message-container message-send d-flex flex-column justify-content-between disable-select pointer"
+            (click)="openMessage.emit({id:interaction.draft_converse.id,draft:true})"
+            >
+                <p class="mat-body-1 white-color-text mb-0">
+                    {{interaction.draft_converse.body != null ? truncateBody(interaction.draft_converse.body) : ''}}
+                </p>
+                <div class="message-footer">
+                    <p class="mat-subheading-2 light-medium-blue-text mb-0">
+                        <strong>In Transit</strong>
+                    </p>
+                    <p class="mat-caption light-medium-blue-text mb-0">
+                        {{interaction.draft_converse.updated | date:'MMM d, h:mm a'}}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="!interaction.draft_converse.in_transit && !interaction.blocked" class="d-flex justify-content-end w-75">
+            <div matRipple class="message-container message-draft glass-blur d-flex flex-column justify-content-between disable-select pointer"
+            (click)="openMessage.emit({id:interaction.draft_converse.id,draft:true})"
+            >
+                <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                    <mat-icon class="space-gray-color-text" style="height:60px;width:60px;font-size:60px;">mode_edit_outline</mat-icon>
+                </div>
+                <div class="message-footer">
+                    <p class="mat-subheading-2 space-gray-color-text mb-0">
+                        <strong>Replay</strong>
+                    </p>
+                    <p class="mat-caption gray-color-text mb-0">
+                        {{interaction.draft_converse.updated | date:'MMM d, h:mm a'}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    
+
+
+    <div *ngFor="let converse of interaction.converse" class="d-flex w-75" 
+    [ngClass]="converse.sender_user ? 'justify-content-end' : 'justify-content-start'"
+    >
+        <div matRipple class="message-container d-flex flex-column justify-content-between disable-select pointer" 
+        [ngClass]="converse.sender_user ? 'message-send' : 'message-received'" (click)="openMessage.emit({id:converse.id,draft:false})"
+        >
+            <p class="mat-body-1 mb-0" [ngClass]="converse.sender_user ? 'white-color-text' : null">
+                {{truncateBody(converse.body)}}
+            </p>
+            <div class="message-footer">
+                <p *ngIf="converse.sender_user" class="mat-subheading-2 mb-0 light-medium-blue-text">
+                    <strong *ngIf="converse.opened">opened</strong>
+                    <strong *ngIf="!converse.opened">Received</strong>
+                </p>
+                <p *ngIf="converse.sender_student" class="mat-subheading-2 mb-0 nowrap w-50">
+                    <strong *ngIf="converse.opened" class="space-gray-color-text">
+                        {{converseContext ? interaction.student_interaction.profile.nickname : interaction.student_interaction.profile.fullname}}
+                    </strong>
+                    <strong *ngIf="!converse.opened" class="red-color-text">new</strong>
+                </p>
+                <p class="mat-caption mb-0" [ngClass]="converse.sender_user ? 'light-medium-blue-text' : 'gray-color-text'">
+                    {{converse.created | date:friendlyTimeFormat(converse.created)}}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="d-flex justify-content-center w-100 mb-2"><app-loading></app-loading></div>
+</div>

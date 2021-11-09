@@ -40,48 +40,26 @@
       </p>
     </div>
   </div>
-  <img alt="preview" *ngIf="img_display" [src]="linkPreview.image"
-  [style.height]="!createVue && linkPreview.image_height != null ? (linkPreview.image_height+'px') : '150px'"
-  (load)="createVue ? imgLoaded($event) : null" (error)="imgError($event)" [ngClass]="!createVue && !editVue ? 'pointer' : null"
-  (click)="vueOpened(linkPreview.url, true)"
-  >
-  <div class="box-side-padding is-clipped" matRipple [matRippleDisabled]="editVue || createVue" [matRippleTrigger]="clickTriger">
-    <div #clickTriger [ngClass]="!createVue && !editVue ? 'pointer' : null" (click)="vueOpened(linkPreview.url)">
-      <p class="mat-body-2 mb-1"><strong>{{linkPreview.truncated_title}}</strong></p>
-      <div *ngIf="!createVue && !editVueDescription; else vueDescription" class="mat-body-2 mb-2">
-        {{linkPreview.description}}
-      </div>
-    </div>
 
-    <ng-template #vueDescription>
-      <form class="w-100" novalidate [formGroup]="vueForm" #vue_form="ngForm">
-        <mat-form-field id="vue-description-textarea" class="w-100" appearance="outline">
-          <textarea matInput formControlName="description" #input maxlength="160" placeholder="Express yourself for others out there..." type="text"
-          cdkTextareaAutosize #autosize="cdkTextareaAutosize" cdkAutosizeMinRows="3" style="overflow: hidden;"
-          >
-          </textarea>
-          <mat-hint align="end"><strong>{{input.value?.length || 0}}</strong>/160</mat-hint>
-          <mat-error *ngIf="vueForm.get('description').hasError('required')">
-           Your expression <strong>matters</strong>
-          </mat-error>
-        </mat-form-field>
-      </form>
-    </ng-template>
+  <img [hidden]="!img_display" alt="preview" class="pointer lazy" [src]="linkPreview.image?.thumnail" [width]="linkPreview.image?.width"
+  [height]="linkPreview.image?.height" (load)="imgLoaded($event)" (error)="imgError($event)" (click)="openDetailVue()">
+
+  <div *ngIf="!img_display" class="d-flex align-items-center w-100 pointer disable-select" (click)="openDetailVue()"
+  style="height: 150px; padding: 0px 5px; background-color: black; color: white; border-radius: 10px 10px 0px 0px;"
+  >
+    <p class="mat-subheading-1 w-100 text-center mb-0"><strong>{{truncatedTitle}}</strong></p>
+  </div>
+
+  <div class="box-side-padding is-clipped pointer" matRipple (click)="openDetailVue()">
+    <div class="vue-body">
+      <p *ngIf="img_display" class="mat-body-2 mb-1 nowrap"><strong>{{linkPreview.title}}</strong></p>
+      <p class="mat-body-2 mb-0">{{truncatedDescription}}</p>
+    </div>
 
     <!---------------------------------------------------- Vue interest section -------------------------------------------->
 
-    <drag-scroll *ngIf="!createVue" class="disable-select vue-interest-scroll" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
+    <drag-scroll *ngIf="!profileVue" class="disable-select vue-interest-scroll mt-2" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
         <mat-chip class="preview_tags ml-2 mr-2" *ngFor="let interest of linkPreview.interest_keyword">{{interest.name}}</mat-chip>
-    </drag-scroll>
-
-    <drag-scroll *ngIf="createVue" class="disable-select vue-interest-scroll" style="height: 30px;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
-      <ng-container *ngIf="currentSelectedInterest.length > 0; else noInterestSelected">
-        <mat-chip class="preview_tags ml-2 mr-2" *ngFor="let interest of currentSelectedInterest">{{interest.name}}</mat-chip>
-      </ng-container>
-
-      <ng-template #noInterestSelected>
-        <span class="mat-caption">Select your interest</span>
-      </ng-template>
     </drag-scroll>
 
     <!---------------------------------------------------- Vue interest section -------------------------------------------->
@@ -103,12 +81,12 @@
     </div>
 
 
-    <div *ngIf="!editVue && !createVue" class="d-flex justify-content-between" style="height: 20px;">
+    <div *ngIf="!editVue && !profileVue" class="d-flex justify-content-between" style="height: 20px;">
       <div>
         <mat-icon class="gray-color-text" style="font-size: 14px; height: 14px; width: 14px;">place</mat-icon>
         <span class="mat-caption" style="position: relative; bottom: 2.3px; margin-left: 4px;">{{linkPreview.location}}</span>
       </div>
-      <span class="mat-caption">{{linkPreview.friendly_date}}</span>
+
       <div>
         <span class="mat-caption" style="position: relative; bottom: 2.3px; margin-right: 4px;">{{linkPreview.age}}</span>
         <mat-icon class="gray-color-text" style="font-size: 14px; height: 14px; width: 14px;">cake</mat-icon>
@@ -123,54 +101,22 @@
 
   <!---------------------------------------------------- Vue Bottom section -------------------------------------------->
 
-  <div *ngIf="createVue" class="d-flex justify-content-between align-items-center vue-action"
-  [ngClass]="disableNewConversation ? 'vue-conversation-disabled' : 'vue-conversation-enabled'"
-  [style.backgroundColor]="vueSubmitError ? 'var(--rich-red)' : null"
-  >
-    <div class="ml-2 nowrap">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</div>
-    <button mat-icon-button  (click)="changeConversationSetting()"
-    [matTooltip]="disableNewConversation ? 'Enable Conversation' : 'Disable Conversation' " matTooltipShowDelay="500"
-    >
-      <mat-icon class="vue-action-icon">forum</mat-icon>
-    </button>
-
-    <button *ngIf="vueSubmitStatus != null"
-    mat-icon-button [disabled]="vueForm.invalid || currentSelectedInterest.length === 0" (click)="vueSubmit()"
-    matTooltip="Publish" matTooltipShowDelay="500"
-    >
-      <mat-icon class="vue-action-icon">send</mat-icon>
-    </button>
-
-    <mat-spinner *ngIf="vueSubmitStatus === null" class="vue-loading-spinner white-loading-spinner mr-2">
-    </mat-spinner>
-  </div>
-
-  <div *ngIf="editVue" class="d-flex justify-content-between align-items-center vue-action"
-  [ngClass]="linkPreview.conversation_disabled ? 'vue-conversation-disabled' : 'vue-conversation-enabled'"
-  [style.backgroundColor]="vueSubmitError ? 'var(--rich-red)' : null"
-  >
-    <drag-scroll class="disable-select ml-2 nowrap" style="height: 100%; width: 40%;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
+  <div *ngIf="editVue" class="d-flex justify-content-between align-items-center vue-action vue-conversation-enabled">
+    <drag-scroll class="disable-select ml-2 nowrap" style="height: 100%; width: 35%;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
       <span style="line-height: 2.3;">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</span>
     </drag-scroll>
 
     <div class="d-flex">
-      <button mat-icon-button
+      <button mat-icon-button (click)="vueConversationUpdate()"
       [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation' " matTooltipShowDelay="500"
-      (click)="vueConversationUpdate()"
       >
-        <mat-icon class="vue-action-icon">forum</mat-icon>
+        <mat-icon class="vue-action-icon">{{linkPreview.conversation_disabled ? 'speaker_notes_off' : 'chat'}}</mat-icon>
       </button>
 
-      <button *ngIf="!editVueDescription" mat-icon-button (click)="createVueForm(linkPreview.description); editVueDescription = true;"
-      matTooltip="Edit description" matTooltipShowDelay="500"
+      <button mat-icon-button (click)="vuePublicUpdate()"
+      [matTooltip]="linkPreview.public ? 'Make Private' : 'Make Public' " matTooltipShowDelay="500"
       >
-        <mat-icon class="vue-action-icon">edit</mat-icon>
-      </button>
-
-      <button *ngIf="editVueDescription" mat-icon-button (click)="vueDescriptionUpdate()" [disabled]="vueForm.invalid" type="button"
-      matTooltip="Save description" matTooltipShowDelay="500"
-      >
-        <mat-icon class="vue-action-icon">check_circle</mat-icon>
+        <mat-icon class="vue-action-icon">{{linkPreview.public ? 'public' : 'public_off'}}</mat-icon>
       </button>
 
       <button *ngIf="!vueDeleteLoading" mat-icon-button (click)="vueDelete()" matTooltip="Delete Vue" matTooltipShowDelay="500">
@@ -181,49 +127,70 @@
       *ngIf="vueDeleteLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner' ">
       </mat-spinner>
 
-      <button mat-icon-button (click)="openVue(linkPreview.url)" type="button"
+      <button *ngIf="linkPreview.url" mat-icon-button (click)="openVue(linkPreview.url)" type="button"
       matTooltip="Open Vue" matTooltipShowDelay="500"
       >
-        <mat-icon class="vue-action-icon">send</mat-icon>
+        <mat-icon class="vue-action-icon">open_in_new</mat-icon>
       </button>
 
     </div>
   </div>
 
-  <div *ngIf="!createVue && !editVue" class="d-flex justify-content-between align-items-center vue-action"
-  [ngClass]="linkPreview.conversation_disabled ? 'vue-conversation-disabled' : 'vue-conversation-enabled'"
-  [style.backgroundColor]="vueSubmitError ? 'var(--rich-red)' : null"
+  <div *ngIf="!editVue" class="d-flex justify-content-between align-items-center vue-action"
+  [ngClass]="linkPreview.active ? 'vue-conversation-enabled' : 'vue-conversation-disabled'"
   >
-  <drag-scroll class="disable-select ml-2 nowrap" style="height: 100%; width: 40%;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
-    <span style="line-height: 2.3;">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</span>
-  </drag-scroll>
+    <drag-scroll class="disable-select ml-2" style="height: 100%; width: 35%;" [scrollbar-hidden]="true" [drag-scroll-y-disabled]="true">
+      <span style="line-height: 2.3;">{{linkPreview.site_name ? linkPreview.site_name : linkPreview.domain_name}}</span>
+    </drag-scroll>
+
     <div>
-      <button *ngIf="!linkPreview.conversation_disabled" mat-icon-button matTooltip="Start Conversation" matTooltipShowDelay="500">
-        <mat-icon class="vue-action-icon">forum</mat-icon>
-      </button>
-
-      <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button [matTooltip]="vueSaved ? 'saved' : 'Save'" matTooltipShowDelay="500"
-      (click)="updateVueFeed(false, true, false)"
-      >
-        <mat-icon class="vue-action-icon">{{vueSaved ? 'favorite' : 'favorite_border'}}</mat-icon>
-      </button>
-
-      <ng-container *ngIf="vueDisplayContext === 'savedvue'">
-        <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" matTooltipShowDelay="500"
-        (click)="removeSavedVue()"
+      <ng-container *ngIf="!profileVue">
+        <button *ngIf="!linkPreview.conversation_disabled && !linkPreview.conversation_started && !vueStartConversationLoading" 
+        mat-icon-button matTooltip="Start Conversation" matTooltipShowDelay="500" (click)="startConversation()"
         >
-          <mat-icon class="vue-action-icon">remove_circle_outline</mat-icon>
+          <mat-icon class="vue-action-icon">chat</mat-icon>
         </button>
 
-        <mat-spinner class="vue-loading-spinner d-inline-block" style="top: 4px; right: 8px; margin-left: 20px;"
-        *ngIf="removeSavedVueLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner'">
+        <mat-spinner *ngIf="vueStartConversationLoading" class="vue-loading-spinner d-inline-block" style="top: 4px; right: 8px; margin-left: 20px;"
+        [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner'"
+        >
         </mat-spinner>
-      </ng-container>
 
-      <button mat-icon-button (click)="vueMenuAction()">
-        <mat-icon class="vue-action-icon">
-          {{vueMenu ? vueDisliked || vueMisleaded ? 'done' : 'close' : 'more_vert'}}
-        </mat-icon>
+        <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button [matTooltip]="vueSaved ? 'saved' : 'Save'" matTooltipShowDelay="500"
+        (click)="updateVueFeed(false, true, false)"
+        >
+          <mat-icon class="vue-action-icon">{{vueSaved ? 'favorite' : 'favorite_border'}}</mat-icon>
+        </button>
+
+        <ng-container *ngIf="vueDisplayContext === 'savedvue'">
+          <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" matTooltipShowDelay="500"
+          (click)="removeSavedVue()"
+          >
+            <mat-icon class="vue-action-icon">remove_circle_outline</mat-icon>
+          </button>
+
+          <mat-spinner class="vue-loading-spinner d-inline-block" style="top: 4px; right: 8px; margin-left: 20px;"
+          *ngIf="removeSavedVueLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner'">
+          </mat-spinner>
+        </ng-container>
+
+        <button *ngIf="linkPreview.url" mat-icon-button matTooltip="go to link" matTooltipShowDelay="500"
+        (click)="openVue(linkPreview.url)"
+        >
+          <mat-icon class="vue-action-icon">open_in_new</mat-icon>
+        </button>
+
+        <button mat-icon-button (click)="vueMenuAction()">
+          <mat-icon class="vue-action-icon">
+            {{vueMenu ? vueDisliked || vueMisleaded ? 'done' : 'close' : 'more_vert'}}
+          </mat-icon>
+        </button>
+      </ng-container>
+      
+      <button *ngIf="linkPreview.url && profileVue" mat-icon-button matTooltip="go to link" matTooltipShowDelay="500"
+      (click)="openVue(linkPreview.url)"
+      >
+        <mat-icon class="vue-action-icon">open_in_new</mat-icon>
       </button>
     </div>
   </div>

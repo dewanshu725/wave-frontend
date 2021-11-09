@@ -1,7 +1,6 @@
 import { AppDataShareService } from './app-data-share.service';
-import { USER_LOCATION } from './../_helpers/graphql.query';
 import { take } from 'rxjs/operators';
-import { USER_OBJ, TRUSTED_DEVICE, LOCATION, INSTITUTION } from './../_helpers/constents';
+import { USER_OBJ, TRUSTED_DEVICE, INSTITUTION, IMAGE, dev_prod } from './../_helpers/constents';
 import { GraphqlService } from './graphql.service';
 import { UserDataService } from './user-data.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -10,24 +9,31 @@ import {Router} from '@angular/router';
 import {
   EMAIL_LOGIN_MUTATION,
   USERNAME_LOGIN_MUTATION,
-  LOGOUT_MUTATION
+  LOGOUT_MUTATION,
+  ALL_INTERACTION_DRAFT_CONVERSE,
+  ALL_INTERACTION_CONVERSE,
+  ALL_INTERACTION_EXPLORERS
 } from '../_helpers/graphql.query';
 
-import { Injectable } from '@angular/core';
-import { Observable, Subject } from "rxjs";
+import { Injectable, isDevMode} from '@angular/core';
+import { Observable, Subject} from "rxjs";
+import { WebsocketService } from './websocket.service';
+import { createInstitution } from '../_helpers/functions.utils';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthenticationService {
+export class AuthenticationService{
 
   constructor(
     private graphqlService: GraphqlService,
     private userDataService:UserDataService,
     private appDataShareService:AppDataShareService,
+    private websocketService:WebsocketService,
     private router: Router,
     private snackBar: MatSnackBar,
-    ) { }
+  ) { }
+  
 
   private loginFormErrorSubject = new Subject();
 
@@ -69,30 +75,35 @@ export class AuthenticationService {
           const user = tokenAuth.user;
           const token = tokenAuth.token;
           const refreshToken = tokenAuth.refreshToken;
+          let profilePicture:IMAGE = null;
 
           this.userDataService.setItem({
             accessToken:token,
             refreshToken:refreshToken
           });
 
-          let institution:INSTITUTION = null;
-          if (user.studentprofile.institution != null){
-            institution = {
-              uid: user.studentprofile.institution.uid,
-              name: user.studentprofile.institution.name
+          if (user.profilePicture != null){
+            profilePicture = {
+              id: user.profilePicture.id,
+              image: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.image : user.profilePicture.imageUrl,
+              thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.thumnail : user.profilePicture.thumnailUrl,
+              width: user.profilePicture.width,
+              height: user.profilePicture.height
             }
           }
 
           const user_obj:USER_OBJ = {
+            student_profile_id: user.studentprofile.id,
             uid: user.uid,
             email: user.email,
             username: user.username,
             fullName: user.firstName,
+            nickname: user.studentprofile.nickname,
             sex: (user.sex).toLowerCase(),
             dob: user.dob,
             age: user.age,
-            profilePictureUrl: user.profilePictureUrl,
-            institution: institution,
+            profilePicture: profilePicture,
+            institution: user.studentprofile.studentinstitution != null ? createInstitution(user.studentprofile.studentinstitution.institution, user.studentprofile.studentinstitution.verified) : null,
             location: {
               postal_code: user.location.code === 0 ? null : user.location.code,
               region: user.location.region.name,
@@ -100,9 +111,12 @@ export class AuthenticationService {
               country_code: user.location.region.stateOrProvince.country.code,
               country_name: user.location.region.stateOrProvince.country.name
             },
-            locationPreference: user.studentprofile.locationPreference.toLowerCase(),
+            locationPreference: user.studentprofile.locationPreference,
             agePreference: Number(user.studentprofile.agePreference),
-            conversationPoints: Number(user.studentprofile.conversationPoints)
+            conversationPoints: Number(user.studentprofile.conversationPoints),
+            newConversationDisabled: user.studentprofile.newConversationDisabled,
+            newConversationCount: Number(user.studentprofile.newConversationCount),
+            newConversationTime: new Date(user.studentprofile.newConversationTime)
           }
 
           this.userDataService.setItem({
@@ -121,13 +135,20 @@ export class AuthenticationService {
             });
           });
 
+
           (async () => {
-            const result = await this.graphqlService.getAllInterestCategory();
-            if (result){
+            const allInterestCategory = await this.graphqlService.getAllInterestCategory();
+            const allMyVue = await this.graphqlService.getAllMyVue();
+            const allMyDiscovery = await this.graphqlService.getAllMyDiscovery();
+            const allDraftInteraction = await this.graphqlService.getContact(ALL_INTERACTION_DRAFT_CONVERSE);
+            const allConverseInteraction = await this.graphqlService.getContact(ALL_INTERACTION_CONVERSE);
+            const allExplorerInteraction = await this.graphqlService.getContact(ALL_INTERACTION_EXPLORERS);
+            if (allInterestCategory && allMyVue && allMyDiscovery && allDraftInteraction && allConverseInteraction && allExplorerInteraction){
               this.graphqlService.onLoginChange(true);
               this.graphqlService.initialTokenRefresh = false;
               this.loginFormErrorSubject.next(false);
               this.graphqlService.studentInterestSnapshot();
+              this.websocketService.online().subscribe(() =>{});
             }
             else{
               this.loginFormErrorSubject.next(true);
@@ -158,7 +179,6 @@ export class AuthenticationService {
     .subscribe(
       (result:any) => {
       this.graphqlService.onLoginChange(false);
-      this.graphqlService.stopRefreshTokenTimer();
       this.router.navigate(['/logout']);
       },
       error =>{
@@ -185,5 +205,6 @@ export class AuthenticationService {
       }
     });
   }
+
 
 }

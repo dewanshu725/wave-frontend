@@ -1,0 +1,32 @@
+:host{
+    width: 100%;
+}
+
+.image-viewer-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: black;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.image-viewer-controls{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position:absolute;
+    top: 0px;
+    z-index: 1;
+    width: 100%;
+    height: 50px;
+    color: white;
+}
+
+.initical-size{
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}

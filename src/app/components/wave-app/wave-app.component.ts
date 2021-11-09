@@ -1,10 +1,11 @@
 import { AuthenticationService } from './../../_services/authentication.service';
 import { UserDataService } from './../../_services/user-data.service';
 import { AppDataShareService } from './../../_services/app-data-share.service';
-import { STUDENT_STATE_OBJ, USER_OBJ, ALERT_BOX } from './../../_helpers/constents';
+import { STUDENT_STATE_OBJ, USER_OBJ, ALERT_BOX, APP_ACTIVE_PATH } from './../../_helpers/constents';
 import { ResponsiveService } from './../../_services/responsive.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { NotificationService } from 'src/app/_services/notification.service';
 
 @Component({
   selector: 'app-wave-app',
@@ -18,6 +19,7 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     private appDataShareService:AppDataShareService,
     private userDataService:UserDataService,
     private authenticationService:AuthenticationService,
+    private notificationService:NotificationService,
     private Ref:ChangeDetectorRef
     ) { }
 
@@ -32,41 +34,31 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
   appRightContainerWidth:number;
 
   userObj:USER_OBJ;
-  alertBox:ALERT_BOX = {
-    open:false,
-    message:null
-  }
-  alertBoxUnsub:Subscription;
+  userDataUnsub:Subscription;
 
-  profileState = false;
+  notification:APP_ACTIVE_PATH;
+  notificationUnsub:Subscription;
+
+  navProfileState = false;
   navInterestState = false;
   navContactState = false;
-  navChatState = false;
-  navIngageState= false;
   navSettingsState = false;
 
 
   ngOnInit(): void {
-    const loggedInUser = this.userDataService.getItem({userObject:true, studentState:true});
-    this.userObj = loggedInUser.userObject;
-    const student_state:STUDENT_STATE_OBJ = loggedInUser.studentState;
+    this.userObj = this.userDataService.getItem({userObject:true}).userObject;
 
-    if (!student_state.initial_setup_done){
-      this.navStateChange('settings');
-      this.appDataShareService.initialSetup.next(true);
-    }
-    else{
-      this.navStateChange('contact');
-    }
+    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+      this.userObj = this.userDataService.getItem({userObject:true}).userObject;
+    });
 
-    this.alertBoxUnsub = this.appDataShareService.alertInput
-    .subscribe((message:string | null) =>{
-      if (message != null){
-        this.alertBox = {
-          open:true,
-          message:message
-        }
-      }
+    this.notificationService.onInit();
+
+    this.notification = this.appDataShareService.appActivePath;
+    this.notificationUnsub = this.appDataShareService.notification
+    .subscribe(() => {
+      this.notification = this.appDataShareService.appActivePath;
+      this.Ref.detectChanges();
     });
   }
 
@@ -74,9 +66,20 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.appContainerHeight = this.appContainerElement.nativeElement.offsetHeight - 2;
     this.appContainerWidth = this.appContainerElement.nativeElement.offsetWidth;
     this.appRightContainerWidth = this.appRightContainer.nativeElement.offsetWidth;
-    this.appDataShareService.appContainerHeight = this.appContainerHeight;
+
     this.appDataShareService.appContainerWidth = this.appContainerWidth;
     this.appDataShareService.appRightContainerWidth = this.appRightContainerWidth;
+    this.appDataShareService.appContainerHeight = this.appContainerHeight;
+
+    const student_state:STUDENT_STATE_OBJ = this.userDataService.getItem({studentState:true}).studentState;
+    if (student_state.initial_setup_done === false){
+      this.navStateChange('settings');
+      this.appDataShareService.initialSetup.next(true);
+    }
+    else{
+      this.navStateChange('contact');
+    }
+
     this.Ref.detectChanges();
 
     this.responsiveUnsub = this.responsiveService.getScreenWidthStatus()
@@ -95,35 +98,24 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     if (newState === 'contact'){
       this.navContactState = true;
       this.navInterestState = false;
-      this.navChatState = false;
-      this.navIngageState= false;
+      this.navProfileState = false;
       this.navSettingsState = false;
     }
     else if (newState === 'interest'){
       this.navInterestState = true;
       this.navContactState = false;
-      this.navChatState = false;
-      this.navIngageState= false;
+      this.navProfileState = false;
       this.navSettingsState = false;
     }
-    else if (newState === 'chat'){
-      this.navChatState = true;
-      this.navInterestState = false;
-      this.navContactState = false;
-      this.navIngageState= false;
-      this.navSettingsState = false;
-    }
-    else if (newState === 'ingage'){
-      this.navIngageState= true;
-      this.navChatState = false;
+    else if (newState === 'profile'){
+      this.navProfileState = true;
       this.navInterestState = false;
       this.navContactState = false;
       this.navSettingsState = false;
     }
     else if (newState === 'settings'){
       this.navSettingsState = true;
-      this.navIngageState= false;
-      this.navChatState = false;
+      this.navProfileState = false;
       this.navInterestState = false;
       this.navContactState = false;
     }
@@ -133,20 +125,8 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.navStateChange(navButton);
   }
 
-  profileNav(navButton: string){
-    this.profileState = !this.profileState;
-  }
-
   onLogout(){
     this.authenticationService.logout();
-  }
-
-  alertResponse(response){
-    this.appDataShareService.alertInput.next(response);
-    this.alertBox = {
-      open:false,
-      message:null
-    }
   }
 
   onScroll(scrollEvent){
@@ -157,9 +137,13 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
   ngOnDestroy(){
+    this.userDataUnsub.unsubscribe();
     this.responsiveUnsub.unsubscribe();
-    this.alertBoxUnsub.unsubscribe();
+    this.notificationUnsub.unsubscribe();
+
+    this.notificationService.closeConnection();
   }
 
 

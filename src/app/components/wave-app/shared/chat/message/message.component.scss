@@ -1,0 +1,36 @@
+.message-image{
+  width: 100%;
+  max-height: 250px;
+  background-color: black;
+  object-fit: cover;
+  overflow: hidden;
+}
+  
+.short-link-image{
+  max-width: 120px;
+  height: auto;
+  object-fit: cover;
+}
+
+.long-link-image{
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.image-action-icon{
+  color: white;
+  width: 35px;
+  height: 35px;
+  font-size: 35px;
+  line-height: 1.01;
+}
+
+.from-them {
+  color: var(--rich-black);
+}
+
+.from-me {
+  color: white;
+}

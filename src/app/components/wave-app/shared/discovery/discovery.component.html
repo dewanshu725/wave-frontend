@@ -1,0 +1,64 @@
+<div class="discovery-container">
+    <div class="d-flex w-100" [ngStyle]="{'height': expanded ? '500px' : '300px'}">
+        <ng-container *ngIf="mode.start && editMode">
+            <div class="w-75 d-flex flex-column justify-content-center" style="padding-left: 10px">
+                <span class="mat-display-3 white-color-text mb-4" style="font-family: Poppins;font-weight: 700;">Discovery</span>
+                <span class="mat-title white-smokes-color-text mb-0" style="font-family: Poppins;">
+                    Let your vues become part of your Story.
+                </span>
+            </div>
+            <div class="w-25 d-flex justify-content-center align-items-center pointer create-discovery" (click)="createDiscovery()">
+                <mat-icon style="font-size: 100px; height: 100px; width: 100px;">add</mat-icon>
+            </div>
+        </ng-container>
+
+        <ng-container *ngIf="mode.create && editMode">
+            <app-create-discovery class="d-flex w-100" style="border-top-left-radius: 10px; border-top-right-radius: 10px;" 
+            [editMode]="createDiscoveryInputs.editMode" [publicVue]="createDiscoveryInputs.publicVueArray" [discovery]="createDiscoveryInputs.discovery" 
+            (goBack)="createDiscoveryClose()" (discoveryCreated)="discoveryCreated($event)" (discoveryEdited)="onInit()">
+            </app-create-discovery>
+        </ng-container>
+
+        <ng-container *ngIf="mode.view">
+            <div class="w-100 d-flex align-items-center" style="padding: 10px; position: relative;">
+                <drag-scroll #carousel class="disable-select multi-content-scroll" [scrollbar-hidden]="true"
+                [snap-disabled]="true" [drag-scroll-y-disabled]="true" [scroll-x-wheel-enabled]="true">
+                    
+                    <div class="d-inline-flex">    
+                        <app-multi-content-widget *ngIf="editMode" class="mr-4" style="width: 250px; height: 250px;" title="Add Discovery"
+                        [contentSymbol]="true" contentSymbolName="join_full" centerSymbolName="add" (click)="createDiscovery()">
+                        </app-multi-content-widget>
+
+                        <app-multi-content-widget class="mr-4" style="width: 250px; height: 250px;" *ngFor="let discovery of discoveryArray"
+                        [title]="discovery.title" [content]="discovery.vues.length" [images]="discovery.vue_images"
+                        centerSymbolName="join_full" (click)="displayDiscovery(discovery)"></app-multi-content-widget>
+                    </div>
+                </drag-scroll>
+            </div>
+        </ng-container>
+
+        <ng-container *ngIf="mode.detailedView">
+            <app-display-discovery [discovery]="currentDiscoveryOnDisplay" [editMode]="editMode" class="d-block w-100"
+            style="border-top-left-radius: 10px; border-top-right-radius: 10px;" (goBack)="displayDiscoveryClose()"
+            (edit)="editDisplayDiscovery()" (delete)="deleteDiscovery()" (openDetailedVue)="openDetailedVue.emit($event)">
+            </app-display-discovery>
+        </ng-container>
+    </div>
+    <!--
+    <div *ngIf="!editMode" class="d-flex w-100" [ngStyle]="{'height': expanded ? '500px' : '300px'}">
+        <ng-container *ngIf="mode.view">
+
+        </ng-container>
+
+        <ng-container *ngIf="mode.detailedView">
+
+        </ng-container>
+    </div>
+    -->
+
+    <div *ngIf="!mode.start && !mode.view" class="d-flex justify-content-center align-items-center expand-collapse"
+    (click)="expanded = !expanded"
+    >
+        <mat-icon style="font-size:30px; height:30px; width:30px;">{{expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+    </div>
+</div>

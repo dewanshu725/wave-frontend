@@ -1,0 +1,38 @@
+.left-side-container{
+    border-top-left-radius: 10px;
+}
+
+.right-side-container{
+    background-color: var(--creme-white);
+    border-top-right-radius: 10px;
+}
+
+.discovery-title-input{
+    height:30px;
+    outline: none;
+    border: 0px;
+    border-radius: 4px;
+    padding: 5px;
+    background-color: var(--white-smokes);
+}
+
+.header-button{
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 4px;
+}
+
+.vue-search-input{
+    height:40px;
+    width: 100%;
+    padding: 5px;
+    outline: none;
+    border-top-right-radius: 10px;
+    background-color: var(--white-smokes);
+}
+
+*{
+    scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
+    scrollbar-width: thin;
+}

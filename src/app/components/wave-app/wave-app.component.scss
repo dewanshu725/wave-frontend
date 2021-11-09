@@ -1,7 +1,7 @@
 .app-container{
   display: flex;
   overflow: hidden;
-  height: 90vh;
+  height: 100%;
   border:1px solid #dcdcdc;
   box-shadow: 1px 1px 8px 1px #dcdcdc;
 }
@@ -27,9 +27,7 @@ html[dir=ltr] .right-container {
 }
 
 .nav-color{
-  backdrop-filter: saturate(180%) blur(20px);
-  background: rgba(255,255,255,.2);
-  /*background-color: var(--gray-background);*/
+  background-color: white;
 }
 
 .inline-div{
@@ -58,22 +56,14 @@ html[dir=ltr] .right-container {
 
 .component-style{
   overflow-y: auto;
+  overflow-x: hidden;
   display: block;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px!important;
-  height: 8px!important;
+.settings{
+  background-color: var(--white-smokes);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,.2);
-}
-/*
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-}
-*/
 * {
   scrollbar-color: rgba(0,0,0,.2) hsla(0,0%,100%,.1);
   scrollbar-width: thin;

@@ -4,31 +4,31 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MaterialModule } from './../../_material/material.module';
 import { CdkModule } from './../../_material/materialCDK.module';
-import { LyuiModule } from './../../_material/lyui.module';
 
 import { AlertBoxComponent } from './alert-box/alert-box.component';
-import { CropperImgDialogComponent } from './cropper-img-dialog/cropper-img-dialog.component';
 import { ImageUploadWidgetComponent } from './image-upload-widget/image-upload-widget.component';
-import { InfoCardWidgetComponent } from './info-card-widget/info-card-widget.component';
 import { LoadingComponent } from './loading/loading.component';
 import { ProfileWidgetComponent } from './profile-widget/profile-widget.component';
+import { ImageViewerComponent } from './image-viewer/image-viewer.component';
+import { ShortContentWidgetComponent } from './short-content-widget/short-content-widget.component';
+import { MultiContentWidgetComponent } from './multi-content-widget/multi-content-widget.component';
 
 
 
 @NgModule({
   declarations: [
     AlertBoxComponent,
-    CropperImgDialogComponent,
     ImageUploadWidgetComponent,
-    InfoCardWidgetComponent,
     LoadingComponent,
-    ProfileWidgetComponent
+    ProfileWidgetComponent,
+    ImageViewerComponent,
+    ShortContentWidgetComponent,
+    MultiContentWidgetComponent,
   ],
   imports: [
     CommonModule,
     MaterialModule,
     CdkModule,
-    LyuiModule
   ],
   exports: [
     CommonModule,
@@ -41,7 +41,9 @@ import { ProfileWidgetComponent } from './profile-widget/profile-widget.componen
     ImageUploadWidgetComponent,
     LoadingComponent,
     ProfileWidgetComponent,
-    InfoCardWidgetComponent
+    ImageViewerComponent,
+    ShortContentWidgetComponent,
+    MultiContentWidgetComponent
   ]
 })
 export class SharedModule { }

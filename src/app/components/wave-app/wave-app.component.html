@@ -1,93 +1,60 @@
-<div class="row justify-content-center" style="position: relative; top: 20px;">
-  <div class="col-12">
-    <div #appContainer class="app-container">
-      <div class="align-container left-container">
-          <mat-toolbar class="nav-color mat-elevation-z0 justify-content-between" style="height: 59px;">
-            <ng-container *ngIf="profileState">
-              <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" (click)="profileNav()">
-                <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
-              </button>
+<div #appContainer class="app-container">
+  <div class="align-container left-container">
+    <mat-toolbar class="nav-color mat-elevation-z0 justify-content-between" style="height: 59px;">
 
-              <button class="button-style-2" type="submit" mat-raised-button disableRipple (click)="onLogout()">
-                Logout <mat-icon class="ml-2">logout</mat-icon>
-              </button>
-            </ng-container>
-
-            <app-profile-widget
-            [fullName]="userObj.fullName" size="35px"
-            style="display: inline-flex; outline: none; cursor: pointer;" (click)="profileNav()" *ngIf="!profileState"
-            >
-            </app-profile-widget>
-            <div [hidden]="profileState">
-              <button mat-icon-button class="button-style-3 mr-2" (click)="navInterestState ? null : appNav('interest')"
-              [ngClass]="{'button-active': navInterestState, 'mat-elevation-z3': navInterestState}"
-              >
-                <mat-icon>insert_link</mat-icon>
-              </button>
-              <button mat-icon-button class="button-style-3 mr-2" (click)="navContactState ? null : appNav('contact')"
-              [ngClass]="{'button-active': navContactState, 'mat-elevation-z3': navContactState}"
-              >
-                <mat-icon style="font-size: 18px;">contacts</mat-icon>
-              </button>
-              <button mat-icon-button class="button-style-3 mr-2" (click)="navChatState ? null : appNav('chat')"
-              [ngClass]="{'button-active': navChatState, 'mat-elevation-z3': navChatState}"
-              >
-                <mat-icon style="font-size: 19px;">chat</mat-icon>
-              </button>
-              <button mat-icon-button class="button-style-3" (click)="navIngageState ? null : appNav('ingage')"
-              [ngClass]="{'button-active': navIngageState, 'mat-elevation-z3': navIngageState}"
-              >
-                <mat-icon style="font-size: 19px;">dynamic_feed</mat-icon>
-              </button>
-            </div>
-            <div [hidden]="profileState">
-              <button mat-icon-button class="button-style-3" (click)="navSettingsState ? null : appNav('settings')"
-              [ngClass]="{'button-active': navSettingsState, 'mat-elevation-z3': navSettingsState}"
-              >
-                <mat-icon style="font-size: 19px;">settings</mat-icon>
-              </button>
-            </div>
-          </mat-toolbar>
-
-          <ng-container *ngIf="profileState">
-            <app-profile class="component-style custom-scrollbar" [style.height]="(appContainerHeight - 59)+'px'"
-            style="background-image: linear-gradient(180deg,#dddbd1,#d2dbdc);"
-            >
-            </app-profile>
-          </ng-container>
-
-
-          <app-interest-left *ngIf="navInterestState" class="component-style custom-scrollbar"
-          [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"
-          >
-          </app-interest-left>
-
-          <app-contact-left *ngIf="navContactState" class="component-style custom-scrollbar"
-          [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"
-          >
-          </app-contact-left>
-
-          <app-setting-left #settingLeft *ngIf="navSettingsState" class="component-style custom-scrollbar"
-          [style.height]="(appContainerHeight - 59)+'px'" [hidden]="profileState"
-          >
-          </app-setting-left>
-
-      </div>
-      <div #appRightContainer class="align-container right-container">
-
-        <app-interest-right *ngIf="navInterestState" class="component-style custom-scrollbar" [style.height]="appContainerHeight+'px'"
-        (scroll)="onScroll($event)"
-        >
-        </app-interest-right>
-
-        <app-setting-right *ngIf="navSettingsState" class="component-style custom-scrollbar" [style.height]="appContainerHeight+'px'">
-        </app-setting-right>
-      </div>
-
-      <app-alert-box *ngIf="alertBox.open" class="alert-box frosted-glass-blur" [style.width]="appContainerWidth + 'px' " [message]="alertBox.message"
-      (response)="alertResponse($event)"
+      <app-profile-widget [displyText]="userObj.nickname" size="40px" (click)="navProfileState ? null : appNav('profile')"
+      style="display: inline-flex; outline: none; cursor: pointer; border-radius: 50%;"
+      [photoUrl]="userObj.profilePicture?.image"
       >
-      </app-alert-box>
-    </div>
+      </app-profile-widget>
+
+      <div>
+        <button mat-icon-button class="button-style-3 mr-2" (click)="navInterestState ? null : appNav('interest')"
+        [ngClass]="{'button-active': navInterestState, 'mat-elevation-z3': navInterestState}"
+        >
+          <mat-icon>preview</mat-icon>
+        </button>
+        <button mat-icon-button class="button-style-3 mr-2" (click)="navContactState ? null : appNav('contact')"
+        [ngClass]="{'button-active': navContactState, 'mat-elevation-z3': navContactState}"
+        >
+          <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.notification" style="font-size: 18px;">contacts</mat-icon>
+        </button>
+      </div>
+
+      <button mat-icon-button class="button-style-3" (click)="navSettingsState ? null : appNav('settings')"
+      [ngClass]="{'button-active': navSettingsState, 'mat-elevation-z3': navSettingsState}"
+      >
+        <mat-icon style="font-size: 19px;">settings</mat-icon>
+      </button>
+    </mat-toolbar>
+
+
+
+    <app-profile-left *ngIf="navProfileState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
+    </app-profile-left>
+
+    <app-interest-left *ngIf="navInterestState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
+    </app-interest-left>
+
+    <app-contact-left *ngIf="navContactState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
+    </app-contact-left>
+
+    <app-setting-left *ngIf="navSettingsState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
+    </app-setting-left>
+
+  </div>
+
+  <div #appRightContainer class="align-container right-container">
+    <app-profile-right *ngIf="navProfileState" class="d-block h-100">
+    </app-profile-right>
+
+    <app-interest-right *ngIf="navInterestState" class="d-block h-100">
+    </app-interest-right>
+
+    <app-contact-right *ngIf="navContactState" class="d-block h-100">
+    </app-contact-right>
+
+    <app-setting-right *ngIf="navSettingsState" class="component-style settings h-100 custom-scrollbar-2">
+    </app-setting-right>
   </div>
 </div>

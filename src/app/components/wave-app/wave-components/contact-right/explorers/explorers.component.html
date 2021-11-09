@@ -1,0 +1,188 @@
+<div *ngIf="interaction === null" style="height: inherit;"
+class="d-flex flex-column justify-content-center align-items-center glass-blur disable-select position-relative">
+    <div class="d-flex align-items-center justify-content-center glass-blur" 
+    style="background-color:rgba(239,238,233, 0.5); border-radius: 50px; padding: 20px; box-shadow: var(--shadow-dense);"
+    >
+        <mat-icon class="space-gray-color-text" style="height:60px;width:60px;font-size:60px;">groups</mat-icon>
+    </div>
+    <span class="mat-headline space-gray-color-text mb-0 mt-5" style="font-family: Poppins, sans-serif;">
+        Explore <strong>Together</strong>
+    </span>
+</div>
+
+<ng-container *ngIf="interaction != null">
+    <ng-container *ngIf="studentProfileVisible">
+        <mat-toolbar class="mat-elevation-z0 app-status-bar" style="top: 0px;">
+            <div class="pointer" (click)="studentProfileToggle()">
+                <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2">
+                    <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
+                </button>
+                &nbsp;&nbsp;<span class="mat-subheading-1 space-gray-color-text mb-0"><strong>Profile</strong></span>
+            </div>
+        </mat-toolbar>
+
+        <div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur profile-display-vue-container">
+            <app-display-vue style="width: 95%; height: 75%;" [mode]="{create: false, edit: false, display: true}" [profileVue]="true"
+            [linkPreview]="deatiledVueData" (closeDetailedVue)="openDetailedVue($event)"></app-display-vue>
+        </div>
+
+        <div class="contact-container-style profile-container-style glass-blur custom-scrollbar-3" (scroll)="onScroll($event)">
+
+            <div class="d-flex justify-content-between align-items-center profile-info-container-style mb-5">
+                <app-profile-widget [displyText]="interaction.student_interaction.profile.nickname" [bgColor]="false" size="120px"
+                style="display: inline-flex; outline: none; cursor: pointer; border-radius: 50%;"
+                [photoUrl]="interaction.student_interaction.profile?.profile_picture?.image"></app-profile-widget>
+
+                <div class="d-flex flex-wrap">
+                    <div class="ml-5">
+                        <p class="mat-caption gray-color-text">Name</p>
+                        <p class="mat-body-1">{{interaction.student_interaction.profile?.fullname}}</p>
+                    </div>
+                    <div class="ml-5">
+                        <p class="mat-caption gray-color-text">Gender</p>
+                        <p class="mat-body-1">{{interaction.student_interaction.profile?.sex}}</p>
+                    </div>
+                    <div class="ml-5">
+                        <p class="mat-caption gray-color-text">Birthday</p>
+                        <p class="mat-body-1">{{interaction.student_interaction.profile?.dob | date:'MMM d'}}, ({{interaction.student_interaction.profile?.age}})</p>
+                    </div>
+                    <div class="ml-5">
+                        <p class="mat-caption gray-color-text">Location</p>
+                        <p class="mat-body-1">{{interaction.student_interaction.profile?.region}}, {{interaction.student_interaction.profile?.country}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="interaction.student_interaction.profile.public_vues.length === 0" class="d-flex flex-column justify-content-center align-items-center">
+                <app-loading *ngIf="masonryLoading === true"></app-loading>
+
+                <div *ngIf="masonryLoading === null" class="pointer" (click)="getStudentProfileData()">
+                    <p class="mat-headline mb-0"><strong>Sorry,</strong></p>
+                    <p class="mat-body-1">Unable to Load
+                        <strong class="pr-2 pl-2 pt-1 pb-1" style="border:3px solid var(--rich-red); border-radius: 7px;">
+                            Retry
+                        </strong>
+                    </p>
+                </div>
+            </div>
+
+            <app-discovery *ngIf="interaction.student_interaction.profile.discovery.length > 0" class="d-block w-100 mb-5"
+            [editMode]="false" [studentDiscoveryArray]="interaction.student_interaction.profile.discovery"
+            (openDetailedVue)="openDetailedVue(true, $event)"></app-discovery>
+
+            <ngx-masonry [options]="masonryOption" [ordered]="true" (layoutComplete)="masonryLoaded()" style="margin: 0 auto;"
+            [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
+            >
+                <app-vue ngxMasonryItem class="mb-5" [linkPreview]="vue" [profileVue]="true" *ngFor="let vue of studentPublicVueArray"
+                (openDetailedVue)="openDetailedVue($event, vue)"></app-vue>
+            </ngx-masonry>
+
+            <div [style.visibility]="(fetchMoreLoading || !fetchMore) && masonryLoading === false ? 'visible' : 'hidden'"
+            style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
+            >
+                <app-loading *ngIf="fetchMoreLoading"></app-loading>
+                <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+                    <strong>That's All</strong>
+                </span>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="!studentProfileVisible">
+        <mat-toolbar class="mat-elevation-z0 app-status-bar justify-content-between" style="top: 0px;">
+            <div mat-button class="d-flex align-items-center pointer" (click)="studentProfileToggle()">
+                <div [innerHTML]="svg(interaction.student_interaction.profile.nickname)" style="border-radius: 50%; width: 40px;"></div>
+                <div class="d-flex flex-column">
+                    <p class="mat-subheading-1 space-gray-color-text mb-0 nowrap"><strong>{{interaction.student_interaction.profile.fullname}}</strong></p>
+
+                    <ng-container *ngIf="!interaction.blocked">
+                        <p *ngIf="interaction.student_interaction.typing" class="mat-caption space-gray-color-text mb-0">Typing...</p>
+                        <p *ngIf="!interaction.student_interaction.typing" class="mat-caption space-gray-color-text mb-0">
+                            {{interaction.student_interaction.profile.online ? 'online' : 'last seen on ' + (interaction.student_interaction.profile.last_seen | date:friendlyTimeFormat(interaction.student_interaction.profile.last_seen))}}
+                        </p>
+                    </ng-container>
+
+                    <ng-container *ngIf="interaction.blocked">
+                        <p class="mat-caption space-gray-color-text mb-0">BLOCKED</p>
+                    </ng-container>
+                </div>
+            </div>
+
+            <div class="d-block justify-content-center align-items-center">
+
+                <ng-container *ngIf="!interaction.blocked">
+                    <button *ngIf="!extraOptions" mat-icon-button disableRipple
+                    matTooltip="more options" matTooltipShowDelay="300" (click)="extraOptions = !extraOptions"
+                    >
+                        <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">more_vert</mat-icon>
+                    </button>
+
+                    <ng-container *ngIf="extraOptions">
+                        <button mat-icon-button disableRipple matTooltip="BLOCK" matTooltipShowDelay="300" (click)="stopInteraction(false)">
+                            <mat-icon *ngIf="!userBlocking" style="line-height: 22px; font-size: 22px; margin-right: 2px;">block</mat-icon>
+                            <mat-spinner *ngIf="userBlocking" class="vue-loading-spinner blue-loading-spinner"></mat-spinner>
+                        </button>
+                        <button mat-icon-button disableRipple class="button-style-7" matTooltip="REPORT" matTooltipShowDelay="300" (click)="stopInteraction(true)">
+                            <mat-icon *ngIf="!userReporting" style="line-height: 22px; font-size: 25px; margin-right: 2px;">report</mat-icon>
+                            <mat-spinner *ngIf="userReporting" class="vue-loading-spinner red-loading-spinner"></mat-spinner>
+                        </button>
+                    </ng-container>
+                </ng-container>
+
+                <ng-container *ngIf="interaction.blocked && interaction.user_interaction.blocked">
+                    <button *ngIf="!userUnblocking" mat-stroked-button disableRipple matTooltip="unblock" matTooltipShowDelay="300" (click)="unblock()">
+                        UNBLOCK
+                    </button>
+
+                    <mat-spinner *ngIf="userUnblocking" class="vue-loading-spinner blue-loading-spinner mr-4"></mat-spinner>
+                </ng-container>
+            </div>
+        </mat-toolbar>
+    
+        <div class="contact-container-style glass-blur">
+            <mat-tab-group [@.disabled]="true" #tabRef disableRipple mat-align-tabs="center" 
+            class="explorer-header-tab h-100"
+            >
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.explorers.chat.notification" class="mr-2">chat</mat-icon>
+                        Chat
+                    </ng-template>
+
+                    <ng-template matTabContent>
+                        <app-chat class="w-100" [containerHeight]="'100%'" [interactionId]="interaction.id">
+                        </app-chat>
+                    </ng-template>
+                </mat-tab>
+
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.explorers.converse.notification" class="mr-2">email</mat-icon>
+                        Converse
+                    </ng-template>
+
+                    <ng-template matTabContent>
+                        <app-converse-message [hidden]="hideConverseMessage" class="w-100" [containerHeight]="'100%'" 
+                        [converseContext]="false" [interactionId]="interaction.id" (openMessage)="openConverseMessage($event)"
+                        >
+                        </app-converse-message>
+
+                        <div *ngIf="hideConverseMessage" class="d-flex justify-content-center align-items-center" style="height: inherit;">
+                            <app-draft-editor *ngIf="converseLayer.draftEditor" [interaction]="interaction" [context]="draftEditorContext"
+                            [parentContainerWidth]="converseContainerWidthNumber" [parentContainerHeight]="converseContainerHeightNumber"
+                            [converseContext]="false" (close)="closeDraftEditor()" (send)="draftSend()"
+                            >
+                            </app-draft-editor>
+
+                            <app-notify-box *ngIf="converseLayer.notify" class="d-flex justify-content-center w-100" 
+                            [notifyData]="notifyData" (response)="notifyResponse($event)"
+                            >
+                            </app-notify-box>
+                        </div>
+                    </ng-template>
+                </mat-tab>
+    
+            </mat-tab-group>
+        </div>
+    </ng-container>
+</ng-container>

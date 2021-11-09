@@ -1,21 +1,16 @@
 <div class="model d-flex flex-column justify-content-between">
   <div class="model-title mb-2">
-    <p class="mat-headline"><strong>Confirm</strong></p>
+    <p class="mat-headline"><strong>{{data.title}}</strong></p>
     <mat-divider></mat-divider>
   </div>
   <div class="model-content d-flex align-items-center justify-content-center">
-    <p class="mat-body-2">{{message}}</p>
+    <p class="mat-subheading-2">{{data.message}}</p>
   </div>
-  <div class="mt-2">
-    <button mat-stroked-button disableRipple class="model-button-style-2 w-50" style="height: 2.5rem; border-radius: 0px 0px 0px 10px;"
-    (click)="alertResponse(false)"
-    >
-      No
-    </button>
+  <div class="mt-2 d-flex justify-content-center align-items-center">
+    <button *ngIf="!data.singleAction" mat-stroked-button disableRipple class="model-button-style-2 w-50" [mat-dialog-close]="false" 
+    style="height: 2.5rem; border-radius: 0px 0px 0px 10px;">Cancel</button>
+
     <button mat-stroked-button disableRipple class="model-button-style-1 w-50" style="height: 2.5rem; border-radius: 0px 0px 10px 0px;"
-    (click)="alertResponse(true)"
-    >
-      Yes
-    </button>
+    [mat-dialog-close]="true">{{data.actionName}}</button>
   </div>
 </div>

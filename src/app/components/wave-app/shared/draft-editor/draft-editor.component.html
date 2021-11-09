@@ -1,0 +1,101 @@
+<div class="draft-container" [style.width]="halfContainerWidth">
+    <div class="w-100 draft-header">
+        <div *ngIf="context.edit" class="d-flex justify-content-start align-items-center" style="width: 8rem;">
+            <mat-icon *ngIf="!draftBodySaving" class="draft-action-icon ml-2" style="margin-top: 4px; opacity: 0.7;">update</mat-icon>
+            <mat-spinner *ngIf="draftBodySaving" class="vue-loading-spinner white-loading-spinner ml-2">
+            </mat-spinner>
+            <p class="mat-caption ml-2 mb-0 nowrap">{{friendlyTime(interaction.draft_converse.updated)}}</p>
+        </div>
+
+        <div *ngIf="!context.edit" class="d-flex justify-content-start align-items-center nowrap" style="width: 8rem;">
+            <mat-icon class="draft-action-icon ml-2" style="margin-top: 4px; opacity: 0.7;">email</mat-icon>
+            <p *ngIf="context.converseView" class="mat-caption ml-2 mb-0 nowrap">
+                {{interaction.converse[converseIndex]?.sender_user ? 'You' : converseContext ? interaction.student_interaction.profile.nickname : interaction.student_interaction.profile.fullname}}
+            </p>
+            <p *ngIf="context.draftView" class="mat-caption ml-2 mb-0 nowrap">You</p>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center">
+            <button *ngIf="conversePined || context.converseView" mat-icon-button matTooltipShowDelay="300" matTooltip="previous"
+            [disabled]="interaction.converse.length === converseIndex + 1" (click)="converseIndex = converseIndex + 1"
+            >
+                <mat-icon class="draft-action-icon mr-1">chevron_left</mat-icon>
+            </button>
+
+            <p *ngIf="context.edit" class="mat-caption mb-0">{{bodyCountValue === 0 ? interaction.draft_converse.body?.length : bodyCountValue}}</p>
+            <p *ngIf="context.converseView" class="mat-caption mb-0">{{friendlyTime(interaction.converse[converseIndex]?.created)}}</p>
+            <p *ngIf="context.draftView" class="mat-caption mb-0">{{friendlyTime(interaction.draft_converse.updated)}}</p>
+
+            <button *ngIf="conversePined || context.converseView" mat-icon-button matTooltipShowDelay="300" matTooltip="next"
+            [disabled]="converseIndex + 1 === 1" (click)="converseIndex = converseIndex - 1"
+            >
+                <mat-icon class="draft-action-icon ml-1">chevron_right</mat-icon>
+            </button>
+        </div>
+
+
+        <div class="d-flex justify-content-end align-item-center">
+            <ng-container *ngIf="context.edit">
+                <button *ngIf="interaction.converse.length > 0" mat-icon-button matTooltipShowDelay="300" 
+                [matTooltip]="conversePined ? 'unpin' : 'pin past conversation'" (click)="conversePinChanged()"
+                >
+                    <mat-icon class="draft-action-icon mr-2">{{conversePined ? 'link_off' : 'push_pin'}}</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Send" matTooltipShowDelay="300" (click)="send.emit()" [disabled]="draftSendDisable"
+                [hidden]="draftForm.invalid || interaction.student_interaction.new_conversation_disabled">
+                    <mat-icon class="draft-action-icon">send</mat-icon>
+                </button>
+            </ng-container>
+
+            <ng-container *ngIf="!context.edit && !interaction.blocked">
+                <button *ngIf="interaction.converse[0]?.sender_student && !interaction.draft_converse.in_transit"
+                mat-icon-button matTooltipShowDelay="300" matTooltip="draft edit" (click)="startEditMode()"
+                >
+                    <mat-icon class="draft-action-icon mr-2">mode_edit_outline</mat-icon>
+                </button>
+            </ng-container>
+
+           
+            <button mat-icon-button matTooltipShowDelay="300" (click)="maximized ? maxDraftBody() : maxDraftBody(true)"
+            [matTooltip]="maximized ? 'minimize' : 'maximize'"
+            >
+                <mat-icon class="draft-action-icon mr-2">{{maximized ? 'close_fullscreen' : 'fullscreen'}}</mat-icon>
+            </button>
+            <button *ngIf="context.converse" mat-icon-button matTooltipShowDelay="300" matTooltip="close" (click)="close.emit(true)">
+                <mat-icon class="draft-action-icon mr-2">close</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <div [hidden]="!context.edit">
+        <div *ngIf="conversePined" class="w-100 d-flex flex-column justify-content-between message-body custom-scrollbar" 
+        [style.height]="pinedConverseContainerHeight" style="border-bottom: var(--rich-gray) solid 1.5px; background-color: var(--white-smokes);"
+        >
+            <span class="mat-body-1 space-gray-color-text mb-0" style="opacity: 0.8; white-space: pre-line;">
+                {{interaction.converse[converseIndex]?.body}}
+            </span>
+            <div class="mt-2 d-block">
+                <p class="mat-body-1 space-gray-color-text mb-0">
+                    <strong>{{interaction.converse[converseIndex]?.sender_user ? 'You' : converseContext ? interaction.student_interaction.profile.nickname : interaction.student_interaction.profile.fullname}}</strong>
+                </p>
+                <p class="mat-caption gray-color-text mb-0">
+                    {{interaction.converse[converseIndex]?.created | date:'MMM d, h:mm a'}}
+                </p>
+            </div>
+        </div>
+        <form class="w-100 draft-body" novalidate [formGroup]="draftForm" #draft_form="ngForm"
+        [style.height]="conversePined ? formContainerHeight : halfContainerHeight"
+        >
+            <textarea matInput formControlName="body" #draftBody minlength="5" placeholder="Write what's in your mind..." type="text"
+            autocorrect="off" spellcheck="false" class="body-textarea mat-subheading-2 space-gray-color-text custom-scrollbar"
+            >
+            </textarea>
+        </form>
+    </div>
+
+    <div *ngIf="!context.edit" class="w-100 message-body custom-scrollbar" [style.height]="halfContainerHeight">
+        <span class="mat-subheading-2 space-gray-color-text mb-0" style="white-space: pre-line;">
+            {{context.converseView ? interaction.converse[converseIndex]?.body : interaction.draft_converse.body}}
+        </span>
+    </div>
+</div>

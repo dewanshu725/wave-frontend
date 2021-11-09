@@ -1,0 +1,50 @@
+<div class="w-75 d-flex flex-column left-side-container">
+    <div class="d-flex justify-content-between align-items-center mb-2" style="padding: 10px;">
+        <div class="d-flex align-items-center">
+            <button mat-icon-button class="d-flex justify-content-center align-items-center header-button button-style-9 mr-3"
+            (click)="goBack.emit(true)">
+                <mat-icon style="margin-bottom: 2px; font-weight: bolder;">arrow_back_ios_new</mat-icon>
+            </button>
+            <form class="d-flex w-100" novalidate [formGroup]="discoveryCreateForm">
+                <input matInput formControlName="title" placeholder="Title" type="text" autocorrect="off" spellcheck="off" 
+                class="discovery-title-input mb-0 mr-2">
+            </form>
+        </div>
+
+        <button [disabled]="discoveryCreateForm.invalid || vueAddedArray.length === 0" mat-icon-button disableRipple
+        class="d-flex justify-content-center align-items-center header-button button-style-9 mr-2" (click)="submitDiscovery()">
+            <mat-icon *ngIf="true" style="margin-bottom: 2px; font-weight: bolder;">done</mat-icon>
+            <mat-spinner *ngIf="false" class="vue-loading-spinner blue-loading-spinner"></mat-spinner>
+        </button>
+    </div>
+
+    <div class="d-flex flex-wrap h-100 custom-scrollbar-4" style="overflow-y: auto; padding: 10px;"
+    [ngClass]="vueAddedArray.length === 0 ? 'justify-content-center align-items-center' : 'align-content-start'"
+    >
+        <div *ngIf="vueAddedArray.length === 0" class="white-smokes-color-text w-75">
+            <span class="mat-subheading-2 mb-0" style="font-family: Poppins;">
+                You need to add at least one Vue to create a Discovery. Add by clicking on the search result.
+            </span>
+        </div>
+
+        <app-short-content-widget [content]="vueAdded" [closeButton]="true" imgSize="50px" (close)="removeVue(vueAdded.id)"
+        class="mr-4 mb-4" style="width: 200px; height: max-content; box-shadow: var(--shadow-dense);" 
+        *ngFor="let vueAdded of vueAddedArray"></app-short-content-widget>
+    </div>
+</div>
+<div class="w-25 d-flex flex-column right-side-container">
+    <form class="d-flex w-100" novalidate>
+        <input #searchInput matInput placeholder="search by title" type="text" autocorrect="off" spellcheck="off"
+        class="vue-search-input mb-0">
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <div class="d-flex flex-column align-items-center w-100 h-100 custom-scrollbar-3" style="overflow-y: auto; padding: 10px;">
+        <span *ngIf="searchArray.length === 0" class="mat-caption mb-0"><strong>No Match</strong></span>
+
+        <app-short-content-widget [content]="search" imgSize="50px" class="mb-2 pointer" *ngFor="let search of searchArray"
+        style="width: 100%; height: max-content; box-shadow: var(--shadow-dense);" (click)="addVue(search.id)">
+        </app-short-content-widget>
+    </div>
+</div>

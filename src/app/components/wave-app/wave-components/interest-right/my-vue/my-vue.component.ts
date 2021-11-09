@@ -1,6 +1,7 @@
-import { take } from 'rxjs/operators';
 import { AppDataShareService } from './../../../../../_services/app-data-share.service';
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
 
 @Component({
   selector: 'app-my-vue',
@@ -11,12 +12,13 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   constructor(
     private appDataShareService:AppDataShareService,
-    private Ref:ChangeDetectorRef
+    private Ref:ChangeDetectorRef,
+    private matDialog:MatDialog
     ) { }
 
   vue_backgorund_url:string;
   myVueEmpty:boolean;
-  myVueArrayLength = 5;
+  myVueArrayLength = 0;
 
   navCreatedVuesState = false;
   navCreateVueState = false;
@@ -51,9 +53,18 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   backToMyvue(){
     if (this.isVueConstructed){
-      this.appDataShareService.alertInput.next('Do you want to navigate back? Your current Vue will be lost!');
-      this.appDataShareService.alertResponse().pipe(take(1))
-      .subscribe((response:boolean) =>{
+      const dialogRef = this.matDialog.open(AlertBoxComponent, {
+        width:'30%',
+        backdropClass: ['frosted-glass-blur'],
+        data: {
+          title: 'Confirm',
+          message: 'Do you want to navigate back? Your current Vue will be lost!',
+          singleAction: false,
+          actionName: 'Yes',
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(response => {
         if (response){
           this.navStateChange('createdvues');
           this.isVueConstructed = false;
@@ -75,7 +86,6 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   vueEmptyEvent(value){
     this.myVueEmpty = value;
-
     this.Ref.detectChanges();
   }
 
@@ -89,6 +99,7 @@ export class MyVueComponent implements OnInit, OnDestroy {
 
   vueArrayLengthEvent(value){
     this.myVueArrayLength = value;
+    this.Ref.detectChanges();
   }
 
   ngOnDestroy(){

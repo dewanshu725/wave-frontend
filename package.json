@@ -1,5 +1,5 @@
 {
-  "name": "nextgen-frontend",
+  "name": "wave-frontend",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -8,13 +8,12 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "gzip": "gzipper c ./dist/nextgen-frontend ./dist/nextgen-frontend-gzip",
+    "gzip": "gzipper c ./dist/wave-frontend ./dist/wave-frontend-gzip",
     "build:stats": "ng build --stats-json",
-    "analyze": "webpack-bundle-analyzer dist/nextgen-frontend/stats.json"
+    "analyze": "webpack-bundle-analyzer dist/wave-frontend/stats.json"
   },
   "private": true,
   "dependencies": {
-    "@alyle/ui": "^10.4.0",
     "@angular/animations": "~10.0.2",
     "@angular/cdk": "^10.2.5",
     "@angular/common": "~10.0.2",
@@ -36,13 +35,11 @@
     "bootstrap": "^4.5.0",
     "graphql": "^15.3.0",
     "graphql-tag": "^2.10.4",
-    "hammerjs": "^2.0.8",
     "masonry-layout": "^4.2.2",
     "minidenticons": "^0.1.10",
     "ng-connection-service": "^1.0.4",
     "ngx-drag-scroll": "^9.0.0-beta.4",
     "ngx-masonry": "^11.0.0",
-    "quill-image-resize-module": "^3.0.0",
     "rxjs": "~6.5.5",
     "save": "^2.4.0",
     "subscriptions-transport-ws": "^0.9.17",

@@ -10,25 +10,23 @@ export class SettingLeftComponent implements OnInit, OnDestroy {
 
   constructor(private appDataShareService:AppDataShareService) { }
 
-  navInterest = false;
-  navFieldofstudy = false;
+  nav = {
+    interest: false,
+    preference: false
+  }
 
   ngOnInit(): void {
-
-    if(this.appDataShareService.initialSetup.value){
-      this.navStateChange('Interest');
-    }
-
+    this.navStateChange('Interest');
   }
 
   navStateChange(state:string){
     if (state === 'Interest'){
-      this.navInterest = true;
-      this.navFieldofstudy = false;
+      this.nav.interest = true;
+      this.nav.preference = false;
     }
-    else if (state === 'Fieldofstudy'){
-      this.navFieldofstudy = true;
-      this.navInterest = false;
+    else if (state === 'Preference'){
+      this.nav.preference = true;
+      this.nav.interest = false;
     }
 
     this.appDataShareService.settingsOption.next(state);

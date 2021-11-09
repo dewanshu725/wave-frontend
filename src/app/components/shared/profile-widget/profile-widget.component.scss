@@ -2,14 +2,8 @@
     border-radius: 50%;
     align-items: center;
     justify-content: center;
-
   }
   .circle img {
     border-radius: 50%;
-  }
-  .circle .initials {
-    color: #FFFFFF;
-    font-size: 15px;
-    line-height: 19px;
-    letter-spacing: 0.2625px;
+    object-fit: cover;
   }

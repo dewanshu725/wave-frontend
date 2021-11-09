@@ -1,4 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { identicon } from 'minidenticons';
 
 @Component({
   selector: 'app-profile-widget',
@@ -7,10 +9,11 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class ProfileWidgetComponent implements OnInit {
 
-  constructor() { }
+  constructor(private domSanitizer: DomSanitizer) { }
 
-  @Input() public photoUrl: string;
-  @Input() public fullName: string;
+  @Input() public photoUrl: string = null;
+  @Input() public displyText: string;
+  @Input() public bgColor = true;
   @Input() public size: string;
 
   public showInitials = false;
@@ -37,9 +40,13 @@ export class ProfileWidgetComponent implements OnInit {
       }
   }
 
+  svg(username:string): SafeHtml{
+    return this.domSanitizer.bypassSecurityTrustHtml(identicon(username));
+  }
+
   private createInititals(): void {
       let initials;
-      initials  = this.fullName.charAt(0).toUpperCase();
+      initials  = this.displyText.charAt(0).toUpperCase();
       this.initials = initials;
   }
 

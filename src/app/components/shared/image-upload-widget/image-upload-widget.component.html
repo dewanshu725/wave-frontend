@@ -6,7 +6,7 @@
  [style.width]="smallWidget ? '80px' : '160px'"
  [style.height]="smallWidget ? '80px' : '160px'"
  (click)="file.click(); imgPickOverlay = false"
- [style.background-color]="imgURL ? 'none' : '#f5f5f5'"
+ [style.background-color]="imgURL ? 'none' : 'var(--creme-white)'"
  [style.border-radius]="borderRadius"
  (mouseenter)="imgPickOverlay = true"
  (mouseleave)="imgPickOverlay = false"

@@ -1,0 +1,34 @@
+.display-discovery-container{
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.header-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 30px;
+    color: white;
+}
+
+.header-button{
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 4px;
+}
+
+.discovery-vue-container{
+    width: 100%;
+    height: calc(100% - 46px);
+    overflow-y: auto;
+}
+
+*{
+    scrollbar-color: rgba(255,255,255,.6) hsla(0,0%,100%,.1);
+    scrollbar-width: thin;
+}

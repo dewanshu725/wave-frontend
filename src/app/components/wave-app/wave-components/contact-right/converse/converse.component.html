@@ -1,0 +1,85 @@
+<div *ngIf="interaction === null" style="height: inherit;"
+class="d-flex flex-column justify-content-center align-items-center glass-blur position-relative disable-select">
+    <div class="d-flex align-items-center justify-content-center glass-blur" 
+    style="background-color:rgba(239,238,233, 0.5); border-radius: 50px; padding: 20px; box-shadow: var(--shadow-dense);"
+    >
+        <mat-icon class="space-gray-color-text" style="height:60px;width:60px;font-size:60px;">email</mat-icon>
+    </div>
+    <span class="mat-headline space-gray-color-text mb-0 mt-5" style="font-family: Poppins, sans-serif;">
+        Create <strong>meaningful</strong> connections
+    </span>
+</div>
+
+<ng-container *ngIf="interaction != null">
+    <mat-toolbar class="mat-elevation-z0 app-status-bar justify-content-between" style="top: 0px;">
+        <div mat-button class="d-flex align-items-center">
+            <div [innerHTML]="svg(interaction.student_interaction.profile.nickname)" style="border-radius: 50%; width: 40px;"></div>
+            <div class="d-flex flex-column">
+                <p class="mat-body-2 space-gray-color-text mb-0 nowrap"><strong>{{interaction.student_interaction.profile.nickname}}</strong></p>
+                <p class="mat-caption space-gray-color-text mb-0">{{interaction.converse_context.vue_context.location}}, {{interaction.converse_context.vue_context.age}}</p>
+            </div>
+        </div>
+
+        <div [hidden]="!interaction.student_interaction.profile.inactive || interaction.converse.length >= minMessageForExplorers" 
+        class="d-flex align-items-center"
+        >
+            <p *ngIf="interaction.student_interaction.profile.inactive" 
+            class="mat-caption rich-black-color-text mb-0 pointer" matTooltipShowDelay="500" style="opacity: 0.6;"
+            [matTooltip]="interaction.student_interaction.profile.nickname+' is inactive for more then 10 days'"
+            >
+            INACTIVE
+            </p>
+            <p *ngIf="interaction.converse.length >= minMessageForExplorers && !hideConverseMessage" class="mat-caption mb-0 pointer"
+            [ngClass]="interaction.user_interaction.accepted_connection ? 'accepted-connection' : 'add-to-explorers'"
+            matTooltip="become explorers together" [matTooltipDisabled]="interaction.user_interaction.accepted_connection" 
+            matTooltipShowDelay="300" (click)="acceptConnection()"
+            >
+            <strong>{{interaction.user_interaction.accepted_connection ? 'Accepted by You' : 'Accept Connection'}}</strong>
+            </p>
+        </div>
+
+        <div class="d-block justify-content-center align-items-center">
+            <button mat-icon-button disableRipple class="button-style-3 mr-4" matTooltip="Vue" matTooltipShowDelay="300"
+            (click)="openVue(interaction.converse_context.vue_context.url)"
+            >
+                <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">preview</mat-icon>
+            </button>
+            
+            <button *ngIf="!extraOptions" mat-icon-button disableRipple [disabled]="hideConverseMessage"
+            matTooltip="more options" matTooltipShowDelay="300" (click)="extraOptions = !extraOptions"
+            >
+                <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">more_vert</mat-icon>
+            </button>
+
+            <ng-container *ngIf="extraOptions">
+                <button mat-icon-button disableRipple [disabled]="hideConverseMessage" (click)="stopConversation()"
+                [matTooltip]="'Stop conversing with '+interaction.student_interaction.profile.nickname" matTooltipShowDelay="300"
+                >
+                    <mat-icon style="line-height: 22px; font-size: 22px; margin-right: 2px;">block</mat-icon>
+                </button>
+                <button mat-icon-button disableRipple class="button-style-7" [disabled]="hideConverseMessage"
+                matTooltip="REPORT" matTooltipShowDelay="300" (click)="reportConversation()"
+                >
+                    <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">report</mat-icon>
+                </button>
+            </ng-container>
+        </div>
+    </mat-toolbar>
+
+    <div class="contact-container-style glass-blur">
+        <app-converse-message [hidden]="hideConverseMessage" class="converse-message-container" [interactionId]="interaction.id"
+        (openMessage)="openDraftEditor($event)"></app-converse-message>
+
+        <div *ngIf="hideConverseMessage" class="d-flex justify-content-center align-items-center h-100">
+            <app-draft-editor *ngIf="secondLayer.draftEditor" [interaction]="interaction" [context]="draftEditorContext"
+            [parentContainerWidth]="bodyContainerWidthNumber" [parentContainerHeight]="bodyContainerHeightNumber" 
+            (close)="closeDraftEditor()" (send)="draftSend()"
+            >
+            </app-draft-editor>
+
+            <app-notify-box *ngIf="secondLayer.notify" class="d-flex justify-content-center w-100" [notifyData]="notifyData"
+            (response)="notifyResponse($event)">
+            </app-notify-box>
+        </div>
+    </div>
+</ng-container>

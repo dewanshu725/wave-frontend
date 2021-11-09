@@ -1,0 +1,15 @@
+<div class="d-flex content-container disable-select">
+    <div *ngIf="closeButton" class="d-flex justify-content-center align-items-center pointer close-box" (click)="close.emit(true)">
+        <mat-icon class="close-symbol">close</mat-icon>
+    </div>
+
+    <img *ngIf="content.image != null" class="short-image lazy" [src]="content.thumnail" [style.width]="imgSize" [style.height]="imgSize"
+    (load)="imgLoaded($event)" (error)="imgError($event)">
+
+    <div class="d-flex flex-column justify-content-between w-100" style="padding: 5px; overflow: hidden;">
+        <p *ngIf="content.title" class="mat-caption mb-0" [ngClass]="noWrap ? 'nowrap' : null">
+            <strong>{{content.title.substring(0, 60)}}</strong>
+        </p>
+        <p *ngIf="content.description" class="mat-caption gray-color-text mb-0 nowrap">{{content.description}}</p>
+    </div>
+</div>

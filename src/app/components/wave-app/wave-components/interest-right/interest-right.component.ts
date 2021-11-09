@@ -15,7 +15,10 @@ export class InterestRightComponent implements OnInit, OnDestroy {
   interestOptionUnsub: Subscription;
 
   ngOnInit(): void {
-    this.interestOptionUnsub = this.appDataShareService.interestOption.subscribe(result =>{this.interestOption = result;});
+    this.interestOptionUnsub = this.appDataShareService.interestOption.subscribe(result => this.interestOption = result);
+
+    this.appDataShareService.appActivePath.interest.active = true;
+    this.appDataShareService.appActivePath.interest.notification = false;
   }
 
   reInitVueSaved(){
@@ -26,6 +29,7 @@ export class InterestRightComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this.interestOptionUnsub.unsubscribe();
+    this.appDataShareService.appActivePath.interest.active = false;
   }
 
 }

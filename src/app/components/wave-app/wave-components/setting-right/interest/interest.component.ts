@@ -6,7 +6,8 @@ import { GraphqlService } from './../../../../../_services/graphql.service';
 import { INTEREST_KEYWORD_MUTATION, ALL_INTEREST_CATEGORY } from './../../../../../_helpers/graphql.query';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatChipSelectionChange } from '@angular/material/chips';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-interest',
@@ -26,17 +27,18 @@ export class InterestComponent implements OnInit, OnDestroy {
   initialSetup:boolean = false;
   chipChanged = false;
   selectedInterestSaving = false;
-  loadContainerHeight:string;
   allInterestCategory:INTEREST_CATEGORY[];
   selectedInterest:INTEREST_KEYWORD[] = [];
   chipSelectionCounter = 0;
-
+  
+  userDataUnsub:Subscription;
 
   ngOnInit(): void {
-
-    this.loadContainerHeight = (this.appDataShareService.appContainerHeight - 59) + 'px';
-
     this.allInterestCategory = this.userDataService.getItem({interestCategory:true}).interestCategory;
+
+    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+      this.allInterestCategory = this.userDataService.getItem({interestCategory:true}).interestCategory;
+    });
 
     if (this.appDataShareService.initialSetup.value){
       this.initialSetup = true;
@@ -61,38 +63,25 @@ export class InterestComponent implements OnInit, OnDestroy {
   }
 
   chipClick(chipState){
-    if (this.chipSelectionCounter < 10){
-      this.chipChanged = true;
-      chipState.selected = !chipState.selected;
+    this.chipChanged = true;
+    chipState.selected = !chipState.selected;
 
-      if (chipState.selected){
-        this.selectedInterest.push(
-          {
-            id:chipState.id,
-            name:chipState.name,
-            saved:true,
-            count:0,
-            average_percent:0
-          }
-        );
-      }
-      else{
-        const objIndex = this.selectedInterest.findIndex(obj => obj.id === chipState.id);
-        if (objIndex > -1) {
-          this.selectedInterest.splice(objIndex, 1);
+    if (chipState.selected){
+      this.selectedInterest.push(
+        {
+          id:chipState.id,
+          name:chipState.name,
+          saved:true,
+          count:0,
+          average_percent:0
         }
-      }
-    }
-    else if (this.chipSelectionCounter === 10 && chipState.selected){
-      this.chipChanged = true;
-      chipState.selected = false;
-      const objIndex = this.selectedInterest.findIndex(obj => obj.id === chipState.id);
-        if (objIndex > -1) {
-          this.selectedInterest.splice(objIndex, 1);
-        }
+      );
     }
     else{
-      this.snackBar.open("Only 10 Interests are allowed",'Deselect',{duration:2000});
+      const objIndex = this.selectedInterest.findIndex(obj => obj.id === chipState.id);
+      if (objIndex > -1) {
+        this.selectedInterest.splice(objIndex, 1);
+      }
     }
   }
 
@@ -107,7 +96,7 @@ export class InterestComponent implements OnInit, OnDestroy {
         this.graphqlService.graphqlMutation(INTEREST_KEYWORD_MUTATION, mutationArrgs).pipe(take(1))
         .subscribe(
           (result:any) =>{
-            if (result.data.interestKeywordMutation.result){
+            if (result.data?.interestKeywordMutation?.result){
               const all_interest_category:INTEREST_CATEGORY[] = [];
               const localAllInterestCategory = this.graphqlService.graphqlLocalQuery(ALL_INTEREST_CATEGORY);
               localAllInterestCategory.allInterestCategory.edges.forEach(interest_category => {
@@ -168,5 +157,6 @@ export class InterestComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
+    this.userDataUnsub.unsubscribe();
   }
 }

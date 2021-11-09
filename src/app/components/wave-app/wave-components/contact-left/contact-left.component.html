@@ -1,52 +1,122 @@
 <div class="h-100">
-  <mat-tab-group disableRipple mat-align-tabs="center" class="nav-header-tab h-100">
+
+  <mat-tab-group [@.disabled]="true" #tabRef (selectedTabChange)="contactChanged()" [(selectedIndex)]="selectedIndex" disableRipple 
+   class="nav-header-tab contact-header-tab h-100"
+  >
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon class="mr-2" >groups</mat-icon>
-        Circle
+        <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.explorers.notification" class="mr-2" >groups</mat-icon>
+        Explorers
       </ng-template>
 
       <ng-template matTabContent>
-        <!--
-        <div class="p-2 d-flex align-items-center" style="height: inherit;">
-          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
-            All your <strong>student circle</strong> will appear here
-          </p>
+        <div *ngIf="loadState.explorersLoading === true" class="p-2 d-flex justify-content-center align-items-center" style="height: inherit;">
+          <app-loading></app-loading>
         </div>
-        -->
-        <div style="height: inherit;">
-          <app-info-card-widget [infoCardData]="data"></app-info-card-widget>
-        </div>
+
+        <ng-container *ngIf="loadState.explorersLoading === false">
+          <div *ngIf="allInteraction.explorers.length === 0" class="p-2 d-flex align-items-center" style="height: inherit;">
+            <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
+              All the <strong>Explorers</strong> will appear here
+            </p>
+          </div>
+
+          <div *ngIf="allInteraction.explorers.length > 0" style="height: inherit;">
+            <app-info-card-widget *ngFor="let explorer of allInteraction.explorers" [interaction]="explorer"
+            [displayContext]="{explorers:true, converse:false, draft_converse:false}" (click)="contactClicked(explorer)"
+            >
+            </app-info-card-widget>
+          </div>
+        </ng-container>
       </ng-template>
     </mat-tab>
 
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon class="nav-header-font mr-2">forum</mat-icon>
+        <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.converse.notification" class="nav-header-font mr-2">email</mat-icon>
         Converse
       </ng-template>
 
       <ng-template matTabContent>
-        <div class="p-2 d-flex align-items-center" style="height: inherit;">
-          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
-            You will find all your <strong>conversations</strong> listed here
-          </p>
+        <div *ngIf="loadState.converseLoading === true" class="p-2 d-flex justify-content-center align-items-center" style="height: inherit;">
+          <app-loading></app-loading>
         </div>
+
+        <ng-container *ngIf="loadState.converseLoading === false">
+          <div class="d-flex flex-column justify-content-center w-100" style="padding: 15px;">
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <span class="mat-body-1 mb-0 gray-color-text">Receive new converse</span>
+
+              <mat-slide-toggle aria-label="Receive New Converse" [checked]="!userObject.newConversationDisabled"
+              (toggleChange)="updateNewConversation()"></mat-slide-toggle>
+            </div>
+
+            <div class="d-flex justify-content-between w-100">
+              <span class="mat-body-1 mb-0 gray-color-text">Converse point</span>
+
+              <span class="mat-body-1 mb-0 gray-color-text"><strong>
+                {{userObject.conversationPoints > 100 ? '100' : userObject.conversationPoints}}
+              </strong></span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div *ngIf="allInteraction.converse.length === 0" class="p-2 d-flex align-items-center">
+            <p class="mat-subheading-2 text-center gray-color-text w-100" style="font-family: Poppins;">
+              You have no one to converse with, as of now!
+            </p>
+          </div>
+
+          <div *ngIf="allInteraction.converse.length > 0">
+
+            <app-info-card-widget *ngFor="let converse of allInteraction.converse" [interaction]="converse"
+            [displayContext]="{explorers:false, converse:true, draft_converse:false}" (click)="contactClicked(converse)"
+            >
+            </app-info-card-widget>
+          </div>
+        </ng-container>
       </ng-template>
     </mat-tab>
 
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon class="nav-header-font mr-2">drafts</mat-icon>
+        <mat-icon matBadge="0" [matBadgeHidden]="!notification?.contact.draft.notification" class="nav-header-font mr-2">drafts</mat-icon>
         Draft
       </ng-template>
 
       <ng-template matTabContent>
-        <div class="p-2 d-flex align-items-center" style="height: inherit;">
-          <p class="mat-title text-center gray-color-text w-100" style="font-family: Poppins;">
-            You will find your <strong>unsend conversation</strong> listed here
-          </p>
+        <div *ngIf="loadState.draftLoading === true" class="p-2 d-flex justify-content-center align-items-center" style="height: inherit;">
+          <app-loading></app-loading>
         </div>
+
+        <ng-container *ngIf="loadState.draftLoading === false">
+          <div class="d-flex justify-content-between align-items-center" style="height: 50px; padding: 15px;">
+            <div>
+              <span class="mat-caption mr-1">Send quota left:</span>
+              <span class="mat-caption space-gray-color-text"><Strong>{{3 - userObject.newConversationCount}}</Strong></span>
+            </div>
+            <div *ngIf="newConversationTime > dataNow && userObject.newConversationCount > 0">
+              <span class="mat-caption mr-1">Quota reloads in </span>
+              <span class="mat-caption space-gray-color-text"><Strong>{{timeInHours(newConversationTime)}}</Strong></span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div *ngIf="allInteraction.draft_converse.length === 0" class="p-2 d-flex align-items-center">
+            <p class="mat-subheading-2 text-center gray-color-text w-100" style="font-family: Poppins;">
+              All your Drafts will appear here
+            </p>
+          </div>
+
+          <div *ngIf="allInteraction.draft_converse.length > 0">
+            <app-info-card-widget *ngFor="let draft of allInteraction.draft_converse" [interaction]="draft" 
+            [displayContext]="{explorers:false, converse:false, draft_converse:true}" (click)="contactClicked(draft)"
+            >
+            </app-info-card-widget>
+          </div>
+        </ng-container>
       </ng-template>
     </mat-tab>
 

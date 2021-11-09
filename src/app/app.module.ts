@@ -1,6 +1,6 @@
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 //import { LocationStrategy, HashLocationStrategy} from '@angular/common';
-import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -16,14 +16,6 @@ import { ApolloModule } from 'apollo-angular';
 import { HttpLinkModule } from 'apollo-angular-link-http';
 import { HttpClientModule } from '@angular/common/http';
 
-import { MinimaLight } from '@alyle/ui/themes/minima';
-import {
-  LyTheme2,
-  LY_THEME,
-  LY_THEME_NAME,
-  StyleRenderer,
-  LyHammerGestureConfig
-} from '@alyle/ui';
 
 import {appInitializer} from './_helpers/app.initializer';
 
@@ -33,6 +25,9 @@ import { ResponsiveService } from './_services/responsive.service';
 import { LocationService } from './_services/location.service';
 import { AppDataShareService } from './_services/app-data-share.service';
 import { UserDataService } from './_services/user-data.service';
+import { WebsocketService } from './_services/websocket.service';
+import { NotificationService } from './_services/notification.service';
+import { RequestService } from './_services/request.service';
 
 import { AppComponent } from './app.component';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
@@ -52,7 +47,6 @@ import { LogoutComponent } from './components/logout/logout.component';
     ApolloModule,
     HttpClientModule,
     HttpLinkModule,
-    HammerModule,
     BrowserAnimationsModule,
     MatButtonModule,
     MatToolbarModule,
@@ -60,21 +54,19 @@ import { LogoutComponent } from './components/logout/logout.component';
     MatSnackBarModule,
     HomeModule,
     AccountModule,
-    WaveAppModule
+    WaveAppModule,
   ],
   providers: [
     GraphqlService,
     AuthenticationService,
     ResponsiveService,
     LocationService,
-    LyTheme2,
-    StyleRenderer,
     AppDataShareService,
     UserDataService,
+    WebsocketService,
+    NotificationService,
+    RequestService,
     { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [GraphqlService] },
-    { provide: LY_THEME_NAME, useValue: 'minima-light' },
-    { provide: LY_THEME, useClass: MinimaLight, multi: true },
-    { provide: HAMMER_GESTURE_CONFIG, useClass: LyHammerGestureConfig },
     //{ provide: LocationStrategy, useClass: HashLocationStrategy }
 
   ],

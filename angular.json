@@ -3,7 +3,7 @@
 	"version": 1,
 	"newProjectRoot": "projects",
 	"projects": {
-		"nextgen-frontend": {
+		"wave-frontend": {
 			"projectType": "application",
 			"schematics": {
 				"@schematics/angular:component": {
@@ -17,7 +17,7 @@
 				"build": {
 					"builder": "@angular-devkit/build-angular:browser",
 					"options": {
-						"outputPath": "dist/nextgen-frontend",
+						"outputPath": "dist/wave-frontend",
 						"index": "src/index.html",
 						"main": "src/main.ts",
 						"polyfills": "src/polyfills.ts",
@@ -68,19 +68,19 @@
 				"serve": {
 					"builder": "@angular-devkit/build-angular:dev-server",
 					"options": {
-						"browserTarget": "nextgen-frontend:build",
+						"browserTarget": "wave-frontend:build",
 						"proxyConfig": "./proxyconfig.json"
 					},
 					"configurations": {
 						"production": {
-							"browserTarget": "nextgen-frontend:build:production"
+							"browserTarget": "wave-frontend:build:production"
 						}
 					}
 				},
 				"extract-i18n": {
 					"builder": "@angular-devkit/build-angular:extract-i18n",
 					"options": {
-						"browserTarget": "nextgen-frontend:build"
+						"browserTarget": "wave-frontend:build"
 					}
 				},
 				"test": {
@@ -118,16 +118,16 @@
 					"builder": "@angular-devkit/build-angular:protractor",
 					"options": {
 						"protractorConfig": "e2e/protractor.conf.js",
-						"devServerTarget": "nextgen-frontend:serve"
+						"devServerTarget": "wave-frontend:serve"
 					},
 					"configurations": {
 						"production": {
-							"devServerTarget": "nextgen-frontend:serve:production"
+							"devServerTarget": "wave-frontend:serve:production"
 						}
 					}
 				}
 			}
 		}
 	},
-	"defaultProject": "nextgen-frontend"
+	"defaultProject": "wave-frontend"
 }

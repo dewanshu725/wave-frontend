@@ -35,7 +35,7 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
       this.interestSelectedCounter++;
       this.selectedInterest.push(interest);
       this.appDataShareService.currentSelectedInterestArray = this.selectedInterest;
-      this.appDataShareService.currentSelectedInterestSubject.next(interest);
+      this.appDataShareService.currentSelectedInterest.next(interest);
     }
     else if (!interest.selected && this.interestSelectedCounter === 3){
       this.snackBar.open("Only 3 interest can be selected at once",'',{duration:2000});
@@ -50,7 +50,7 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
       }
 
       this.appDataShareService.currentSelectedInterestArray = this.selectedInterest;
-      this.appDataShareService.currentSelectedInterestSubject.next(interest);
+      this.appDataShareService.currentSelectedInterest.next(interest);
     }
   }
 
