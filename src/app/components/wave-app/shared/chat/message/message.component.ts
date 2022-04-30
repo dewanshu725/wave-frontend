@@ -15,7 +15,6 @@ export class MessageComponent implements OnInit {
 
   @Input() chat:CHAT;
   @Input() showMessage = true;
-  @Input() promtDelete = false;
   @Input() sender_user:boolean;
 
   ngOnInit(): void {}

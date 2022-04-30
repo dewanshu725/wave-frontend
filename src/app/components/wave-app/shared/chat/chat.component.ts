@@ -1,9 +1,11 @@
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { AfterViewInit, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { fromEvent, of, Subscription } from 'rxjs';
 import { debounceTime, map, switchMap, take } from 'rxjs/operators';
+import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
 import { CHAT, INTERACTION, LINK } from 'src/app/_helpers/constents';
 import { composedPath, createChatMessage, dataURLtoFile, getDomain, placeholderImage, } from 'src/app/_helpers/functions.utils';
 import { ALL_CHAT, CHAT_MESSAGE_CURSOR, DELETE_CHAT_MESSAGE, GENERATE_LINK_PREVIEW, MARK_CHAT_MESSAGE_SEEN, SEND_CHAT_MESSAGE } from 'src/app/_helpers/graphql.query';
@@ -24,6 +26,7 @@ export class ChatComponent implements OnChanges, OnInit, AfterViewInit, OnDestro
     private websocketService:WebsocketService,
     private _ngZone: NgZone,
     private snackBar: MatSnackBar,
+    private matDialog:MatDialog
   ) { }
 
   @Input() containerHeight:string;
@@ -37,6 +40,7 @@ export class ChatComponent implements OnChanges, OnInit, AfterViewInit, OnDestro
   minMessageFeedLength = 5;
   loading = false;
   messageSending = false;
+  messageDeleting = false;
   checkScrollTop = true;
   currentSelectedChat:CHAT = null;
   currentMessageRef:HTMLDivElement = null;
@@ -167,44 +171,57 @@ export class ChatComponent implements OnChanges, OnInit, AfterViewInit, OnDestro
     .subscribe();
   }
 
-  promtDelete(message:HTMLDivElement){
-    if (message.dataset?.promtDelete === undefined || message.dataset?.promtDelete === 'false'){
-      message.dataset.promtDelete = 'true';
-    }
-    else{
-      message.dataset.promtDelete = 'false';
-    }
-  }
 
-  messageDeleting(message:HTMLDivElement, chat:CHAT){
-    if (message.dataset?.messageDeleting === undefined || message.dataset?.messageDeleting === 'false'){
-      message.dataset.messageDeleting = 'true';
+  deleteMessage(message:HTMLDivElement, chat:CHAT){
+    const dialogRef = this.matDialog.open(AlertBoxComponent, {
+      width:'30%',
+      backdropClass: ['frosted-glass-blur'],
+      data: {
+        title: 'Confirm',
+        message: 'Once deleted, you won’t be able to recover it later',
+        singleAction: false,
+        actionName: 'Delete',
+      }
+    });
 
-      this.graphqlService.graphqlMutation(DELETE_CHAT_MESSAGE, {'chatMessageId': chat.id}).pipe(take(1))
-      .subscribe(
-        (result:any) => {
-          if (result.data?.deleteChatMessage?.result === true){
-            this.selectChat(chat, message);
-            chat.deleted = true;
-            chat.body = null;
-            chat.image = null;
-            chat.link = null;
-            chat.vue = null;
+    dialogRef.afterClosed().subscribe(response => {
+      if (response){
+        this.messageDeleting = true;
+
+        (async () => {
+          const tokenStatus = await this.graphqlService.isTokenValid();
+
+          if (tokenStatus){
+            this.graphqlService.graphqlMutation(DELETE_CHAT_MESSAGE, {'chatMessageId': chat.id}).pipe(take(1))
+            .subscribe(
+              (result:any) => {
+                if (result.data?.deleteChatMessage?.result === true){
+                  this.selectChat(chat, message);
+                  chat.deleted = true;
+                  chat.body = null;
+                  chat.image = null;
+                  chat.link = null;
+                  chat.vue = null;
+                }
+                else{
+                  this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+                }
+
+                this.messageDeleting = false;
+              },
+              error => {
+                this.messageDeleting = false;
+                this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+              }
+            );
           }
           else{
-            message.dataset.messageDeleting = 'false';
+            this.messageDeleting = false;
             this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
           }
-        },
-        error => {
-          message.dataset.messageDeleting = 'false';
-          this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
-        }
-      );
-    }
-    else{
-      message.dataset.messageDeleting = 'false';
-    }
+        })();
+      }
+    });
   }
 
   deleteMessageDataset(message:HTMLDivElement){

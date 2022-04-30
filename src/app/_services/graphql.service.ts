@@ -1,5 +1,5 @@
 import { AppDataShareService } from './app-data-share.service';
-import { INTEREST_CATEGORY, INTEREST_KEYWORD, dev_prod, INSTITUTION, IMAGE, INTERACTION, STUDENT_INTERACTION, CONVERSE_CONTEXT, DRAFT_CONVERSE, CONVERSE_PAGE_INFO, CHAT_PAGE_INFO, CONVERSE, CHAT, LOCATION } from './../_helpers/constents';
+import { INTEREST_CATEGORY, INTEREST_KEYWORD, dev_prod, IMAGE, CONVERSE_PAGE_INFO, CHAT_PAGE_INFO, CONVERSE, CHAT, INTERACTION } from './../_helpers/constents';
 import { ALL_INTERACTION_CONVERSE, ALL_INTERACTION_DRAFT_CONVERSE, ALL_INTERACTION_EXPLORERS, ALL_INTEREST_CATEGORY, MY_DISCOVERY, MY_VUE, STUDENT_INTEREST_SNAPSHOT } from './../_helpers/graphql.query';
 import { UserDataService } from './user-data.service';
 import { Injectable, isDevMode} from '@angular/core';
@@ -19,7 +19,7 @@ import { Subject, Observable} from "rxjs";
 import { take } from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { WebsocketService } from './websocket.service';
-import { createChatMessage, createConverseMessage, createInstitution, createMyDiscoveryObj, createMyVueObj, modifyDateByDay } from '../_helpers/functions.utils';
+import { createChatMessage, createConverseMessage, createInstitution, createInteraction, createMyDiscoveryObj, createMyVueObj } from '../_helpers/functions.utils';
 
 
 
@@ -28,7 +28,7 @@ import { createChatMessage, createConverseMessage, createInstitution, createMyDi
 })
 export class GraphqlService{
 
-  private webSocketClient: SubscriptionClient;
+  webSocketClient: SubscriptionClient;
 
   constructor(
     private apollo: Apollo,
@@ -71,12 +71,10 @@ export class GraphqlService{
              }
              else{
                this.onTokenRefreshFailedChange(true);
-               console.log('token refresh filled');
              }
-         }
-       }
- 
-     });
+          }
+        }
+      });
  
  
  
@@ -85,10 +83,12 @@ export class GraphqlService{
  
      // Create a WebSocket link:
      this.webSocketClient = new SubscriptionClient(
-       isDevMode() ? dev_prod.wsServerUrl_dev + 'graphql/' : dev_prod.wsServerUrl_prod + 'graphql/',
+       isDevMode() ? 
+       dev_prod.wsServerUrl_dev + 'graphql/' + this.userDataService.getItem({accessToken:true}).accessToken : 
+       dev_prod.wsServerUrl_prod + 'graphql/' + this.userDataService.getItem({accessToken:true}).accessToken,
        {
          reconnect: true,
-         lazy: true,
+         lazy: true
        }
      );
  
@@ -116,9 +116,9 @@ export class GraphqlService{
        link,
        cache: new InMemoryCache()
      })
-  }
+  };
 
-  private resetApolloClient(){
+  resetApolloClient(){
     (async () => {
       this.closeGraphqlSubscription();
       const storeClered = await this.apollo.getClient().clearStore();
@@ -220,20 +220,26 @@ export class GraphqlService{
 
               if (this.initialTokenRefresh === true){
 
+                this.resetApolloClient();
+
                 (async () => {
                   const userDataResult = await this.getUserData();
                   if (userDataResult === true){
                     const allInterestCategory = await this.getAllInterestCategory();
                     const allMyVue = await this.getAllMyVue();
                     const allMyDiscovery = await this.getAllMyDiscovery();
-                    const allDraftInteraction = await this.getContact(ALL_INTERACTION_DRAFT_CONVERSE);
-                    const allConverseInteraction = await this.getContact(ALL_INTERACTION_CONVERSE);
-                    const allExplorerInteraction = await this.getContact(ALL_INTERACTION_EXPLORERS);
-                    if (allInterestCategory && allMyVue && allMyDiscovery && allDraftInteraction && allConverseInteraction && allExplorerInteraction){
+                    const allContact = await Promise.all([ 
+                      this.getContact(ALL_INTERACTION_DRAFT_CONVERSE),
+                      this.getContact(ALL_INTERACTION_CONVERSE),
+                      this.getContact(ALL_INTERACTION_EXPLORERS)
+                    ]);
+
+                    if (allInterestCategory && allMyVue && allMyDiscovery && !allContact.includes(false)){
                       this.initialTokenRefresh = false;
-                      this.onLoginChange(true);
                       this.studentInterestSnapshot();
                       this.websocketService.online().subscribe(() =>{});
+                      this.resetApolloClient();
+                      this.onLoginChange(true);
                     }
                     else{
                       this.onLoginChange(false);
@@ -262,7 +268,6 @@ export class GraphqlService{
     }
     else{
       this.tokenRefreshWaiting = true;
-      console.log('waiting');
 
       this.getInternetStatus().pipe(take(1))
       .subscribe(status =>{
@@ -435,121 +440,12 @@ export class GraphqlService{
             const studentProfileId = this.userDataService.getItem({userObject:true}).userObject.student_profile_id;
 
             result.data.allInteraction.edges.forEach(element => {
-              let interaction:INTERACTION;
-              let user_interaction:STUDENT_INTERACTION;
-              let student_interaction:STUDENT_INTERACTION;
-              let converse_context:CONVERSE_CONTEXT;
-              let draft_converse:DRAFT_CONVERSE;
               let converse_page_info:CONVERSE_PAGE_INFO;
               let chat_page_info:CHAT_PAGE_INFO;
 
-              element.node.studentinteractionSet.edges.forEach(studentInteractionElement => {
+              const interaction:INTERACTION = createInteraction(element.node, studentProfileId, query.definitions[0].name.value);
 
-                if (studentProfileId === studentInteractionElement.node.student.id){
-                  user_interaction = {
-                    id: studentInteractionElement.node.id,
-                    accepted_connection: studentInteractionElement.node.acceptedConnection,
-                    blocked: studentInteractionElement.node.blockedInteraction,
-                    new_conversation_disabled: studentInteractionElement.node.student.newConversationDisabled,
-                    typing: false,
-                    profile:{
-                      id: studentInteractionElement.node.student.id,
-                      nickname: studentInteractionElement.node.student.nickname,
-                      last_seen: new Date(studentInteractionElement.node.student.lastSeen),
-                      inactive: new Date(studentInteractionElement.node.student.lastSeen) >= modifyDateByDay(new Date, 10) ? false : true,
-                      deleted: false
-                    }
-                  }
-
-                  if (query.definitions[0].name.value === 'allInteractionExplorers'){
-                    user_interaction.profile.fullname = studentInteractionElement.node.student.fullName;
-                    user_interaction.profile.online = studentInteractionElement.node.student.online;
-                  }
-                }
-                else{
-                  student_interaction = {
-                    id: studentInteractionElement.node.id,
-                    accepted_connection: studentInteractionElement.node.acceptedConnection,
-                    blocked: studentInteractionElement.node.blockedInteraction,
-                    new_conversation_disabled: studentInteractionElement.node.student.newConversationDisabled,
-                    typing: false,
-                    profile:{
-                      id: studentInteractionElement.node.student.id,
-                      nickname: studentInteractionElement.node.student.nickname,
-                      last_seen: new Date(studentInteractionElement.node.student.lastSeen),
-                      inactive: new Date(studentInteractionElement.node.student.lastSeen) >= modifyDateByDay(new Date, 10) ? false : true,
-                      deleted: studentInteractionElement.node.student.deleted
-                    }
-                  }
-
-                  if (query.definitions[0].name.value === 'allInteractionExplorers' && !studentInteractionElement.node.student.deleted){
-                    student_interaction.profile.fullname = studentInteractionElement.node.student?.fullName;
-                    student_interaction.profile.online = studentInteractionElement.node.student.online;
-                    student_interaction.profile.sex = studentInteractionElement.node.student?.sex.toLowerCase();
-                    student_interaction.profile.dob = studentInteractionElement.node.student?.dob;
-                    student_interaction.profile.age = studentInteractionElement.node.student?.age;
-                    student_interaction.profile.profile_picture = {
-                      id:null,
-                      width: null,
-                      height: null,
-                      image: studentInteractionElement.node.student.profilePicture != null ? isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ studentInteractionElement.node.student?.profilePicture : studentInteractionElement.node.student?.profilePictureUrl : null,
-                      thumnail:null
-                    }
-                    student_interaction.profile.region = studentInteractionElement.node.student?.region;
-                    student_interaction.profile.country = studentInteractionElement.node.student?.country;
-                    student_interaction.profile.public_vues = [];
-                    student_interaction.profile.discovery = [];
-                  }
-                }
-              });
-
-              converse_context = {
-                type: element.node.conversecontext.contextType,
-                vue_context: element.node.conversecontext.vue === null ? null : {
-                  id: element.node.conversecontext.vue.id,
-                  author_id: element.node.conversecontext.vue.author?.id,
-                  image: element.node.conversecontext.vue.image === null ? null : {
-                    id: element.node.conversecontext.vue.image.id,
-                    image: element.node.conversecontext.vue.image.image,
-                    thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ element.node.conversecontext.vue.image.thumnail : element.node.conversecontext.vue.image.thumnailUrl,
-                    width: element.node.conversecontext.vue.image.width,
-                    height: element.node.conversecontext.vue.image.height
-                  },
-                  title: element.node.conversecontext.vue.title,
-                  description: element.node.conversecontext.vue.description,
-                  url: element.node.conversecontext.vue.url,
-                  site_name: element.node.conversecontext.vue.domain?.siteName,
-                  domain_name: element.node.conversecontext.vue.domain?.domainName,
-                  location: element.node.conversecontext.vue.author?.region,
-                  age: element.node.conversecontext.vue.author?.age
-                }
-              }
-
-              draft_converse = {
-                id: element.node.draftconversemessageSet.edges[0].node.id,
-                type: element.node.draftconversemessageSet.edges[0].node.messageType,
-                in_transit: element.node.draftconversemessageSet.edges[0].node.inTransit,
-                body: element.node.draftconversemessageSet.edges[0].node.body,
-                updated: new Date(element.node.draftconversemessageSet.edges[0].node.updated)
-              }
-
-              interaction = {
-                id: element.node.id,
-                expire: element.node.expire != null ? new Date(element.node.expire) : null,
-                converse_context: converse_context,
-                user_interaction: user_interaction,
-                student_interaction: student_interaction,
-                draft_converse: draft_converse,
-                converse_page_info: null,
-                converse: [],
-                chat_page_info: null,
-                chat: [],
-                selected: false,
-                blocked: element.node.blocked
-              }
-                
-
-              if (query.definitions[0].name.value === 'allInteractionDraftConverse'){
+              if (query.definitions[0].name.value === 'allInteractionDraftConverse' && interaction.user_interaction.started_interaction){
                 this.appDataShareService.allInteraction.draft_converse.push(interaction);
               }
 
@@ -557,8 +453,19 @@ export class GraphqlService{
                 
                 if (element.node.conversemessageSet.edges.length > 0){
 
-                  element.node.conversemessageSet.edges.forEach(converse => {
+                  element.node.conversemessageSet.edges.forEach((converse, index) => {
                     const converse_obj:CONVERSE = createConverseMessage(converse.node, interaction);
+
+                    if (index === 0 && !converse_obj.opened && !converse_obj.sender_user){
+                      if (query.definitions[0].name.value === 'allInteractionConverse'){
+                        this.appDataShareService.appNotification({contact_converse: true});
+                      }
+                      else{
+                        this.appDataShareService.appNotification({contact_explorers_converse: true});
+                      }
+                    }
+
+
                     interaction.converse.push(converse_obj);
                   });
                 }
@@ -570,22 +477,37 @@ export class GraphqlService{
                 }
                 interaction.converse_page_info = converse_page_info;
 
-                if(query.definitions[0].name.value === 'allInteractionConverse') this.appDataShareService.allInteraction.converse.push(interaction);
+                if(query.definitions[0].name.value === 'allInteractionConverse' && (interaction.converse.length > 0 || interaction.user_interaction.started_interaction)){
+                  if (interaction.expire != null){
+                    if (new Date() < interaction.expire){
+                      this.appDataShareService.allInteraction.converse.push(interaction);
+                    }
+                  }
+                  else{
+                    this.appDataShareService.allInteraction.converse.push(interaction);
+                  }
+                }
               }
 
               if (query.definitions[0].name.value === 'allInteractionExplorers'){
                 if (element.node.chatmessageSet.edges.length > 0){
+
                   element.node.chatmessageSet.edges.forEach((chat, index) => {
+                    let indexValue = index;
                     const chat_obj:CHAT = createChatMessage(chat.node, interaction);
 
                     const currentChatDate = chat_obj.created.getDate();
-                    const nextChatDate = element.node.chatmessageSet.edges[index++] != undefined ? new Date(element.node.chatmessageSet.edges[index++]?.node.created).getDate() : null;
+                    const nextChatDate = element.node.chatmessageSet.edges[indexValue++] != undefined ? new Date(element.node.chatmessageSet.edges[indexValue++]?.node.created).getDate() : null;
                     let newDate = false;
                     if (nextChatDate === null || currentChatDate != nextChatDate){
                       newDate = true;
                     }
 
                     chat_obj.newDate = newDate;
+
+                    if (index === 0 && !chat_obj.seen && !chat_obj.sender_user){
+                      this.appDataShareService.appNotification({contact_explorers_chat: true});
+                    }
 
                     interaction.chat.push(chat_obj);
                   });

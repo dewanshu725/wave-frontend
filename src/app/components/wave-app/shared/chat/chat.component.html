@@ -1,7 +1,6 @@
 <div class="w-100 d-flex flex-column justify-content-end" [style.height]="containerHeight">
     <div #chatContainer class="w-100 d-flex flex-column-reverse align-items-center chat-message-container custom-scrollbar-3"
-    style="height: inherit;" (scroll)="onScroll($event)"
-    >
+    style="height: inherit;" (scroll)="onScroll($event)">
         <ng-container *ngFor="let chat of interaction.chat; let last = last; let first = first;">
 
             <div class="d-flex align-items-center position-relative w-75 mb-3" [ngClass]="chat.sender_user ? 'justify-content-end' : 'justify-content-start'">
@@ -57,24 +56,23 @@
 
 
                         <app-message #appMessage *ngIf="message.dataset?.showMessage === undefined || message.dataset?.showMessage === 'true'"
-                        [chat]="chat" [promtDelete]="message.dataset?.promtDelete == 'true' ? true : false"></app-message>
+                        [chat]="chat"></app-message>
 
-                        <app-message *ngIf="message.dataset?.showMessage === 'false'" [chat]="chat.context"
-                        [showMessage]="false" [sender_user]="chat.sender_user"></app-message>
+                        <app-message *ngIf="message.dataset?.showMessage === 'false'" [chat]="chat.context" [showMessage]="false"
+                        [sender_user]="chat.sender_user"></app-message>
 
 
                         <div *ngIf="!chat.selected && (message.dataset?.showMessage === undefined || message.dataset?.showMessage === 'true')"
-                        class="message-status-body disable-select" [style.margin]="chat.body != null ? '0px 5px 10px 0px' : '0px 10px 12px 0px'"
+                        class="message-status-body disable-select" [style.margin]="chat.body != null ? '0px 5px 10px 0px' : chat.deleted ? chat.sender_user ? '0px 10px 10px 0px' : '0px 10px 5px 0px' : '0px 10px 12px 0px'"
                         >
-                            <span [ngClass]="chat.type === 'IMAGE' && chat.body === null ? 'white-color-text' : chat.sender_user ? 'white-smokes-color-text' : 'gray-color-text'">
+                            <span [ngClass]="chat.type === 'IMAGE' && chat.body === null ? chat.deleted ? chat.sender_user ? 'white-smokes-color-text' : 'gray-color-text' : 'white-color-text' : chat.sender_user ? 'white-smokes-color-text' : 'gray-color-text'">
                                 {{chat.created | date:'h:mm a'}}
                             </span>
                             <mat-icon *ngIf="chat.sender_user" class="message-tick ml-1" [ngClass]="chat.type === 'IMAGE' && chat.body === null ? 'white-color-text' : chat.seen ? 'message-seen' : 'message-not-seen'">
                                 {{chat.seen ? 'done_all' : 'done'}}
                             </mat-icon>
-                            <mat-icon class="message-tick pointer ml-1" [ngClass]="chat.type === 'IMAGE' && chat.body === null ? 'white-color-text' : chat.sender_user ? 'message-seen' : 'gray-color-text'"
-                            (click)="selectChat(chat, message)"
-                            >
+                            <mat-icon *ngIf="!chat.deleted" class="message-tick pointer ml-1" (click)="selectChat(chat, message)"
+                            [ngClass]="chat.type === 'IMAGE' && chat.body === null ? 'white-color-text' : chat.sender_user ? 'message-seen' : 'gray-color-text'">
                                 more_vert
                             </mat-icon>
                         </div>
@@ -85,32 +83,22 @@
                     >
                         <div class="d-flex align-items-end">
                             <mat-icon class="message-option-symbol pointer" (click)="selectChat(chat, message)"
-                            [ngClass]="chat.sender_user ? 'message-seen' : 'gray-color-text pointer mr-2'"
-                            >
+                            [ngClass]="chat.sender_user ? 'message-seen' : 'gray-color-text pointer mr-2'">
                                 close
                             </mat-icon>
                         </div>
 
                         <div class="d-flex align-items-end">
-                            <mat-icon *ngIf="chat.sender_user && message.dataset?.promtDelete != 'true'" 
-                            class="message-option-symbol white-smokes-color-text pointer" (click)="promtDelete(message)"
-                            >
-                                delete
-                            </mat-icon>
+                            <ng-container *ngIf="chat.sender_user">
+                                <mat-icon *ngIf="!messageDeleting" class="message-option-symbol white-smokes-color-text pointer"
+                                (click)="deleteMessage(message, chat)">delete</mat-icon>
 
-                            <ng-container *ngIf="chat.sender_user && message.dataset?.promtDelete == 'true'">
-                                <mat-icon *ngIf="message.dataset?.messageDeleting != 'true'"
-                                class="message-option-symbol pointer white-smokes-color-text" (click)="messageDeleting(message, chat)"
-                                >
-                                    check
-                                </mat-icon>
-                                <mat-spinner *ngIf="message.dataset?.messageDeleting == 'true'"
-                                class="vue-loading-spinner d-inline-block white-loading-spinner"></mat-spinner>
+                                <mat-spinner *ngIf="messageDeleting"class="vue-loading-spinner d-inline-block white-loading-spinner">
+                                </mat-spinner>
                             </ng-container>
 
                             <mat-icon [ngClass]="chat.sender_user ? 'white-smokes-color-text' : 'gray-color-text'"
-                            class="message-option-symbol ml-3 pointer" (click)="attachMessage(chat, message)"
-                            >
+                            class="message-option-symbol ml-3 pointer" (click)="attachMessage(chat, message)">
                                 redo
                             </mat-icon>
                         </div>

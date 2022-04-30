@@ -19,7 +19,7 @@
         </p>
 
         <p class="mat-caption mb-0">
-            <strong>Note: Chances you make don’t affect your existing connections.</strong>
+            <strong>Note: Changes you make don’t affect your existing connections.</strong>
         </p>
 
         <div class="d-flex justify-content-center align-items-center mt-4">
@@ -58,7 +58,7 @@
         </p>
 
         <p class="mat-caption mb-0">
-            <strong>Note: Chances you make don’t affect your existing connections.</strong>
+            <strong>Note: Changes you make don’t affect your existing connections.</strong>
         </p>
 
         <div class="d-flex flex-column justify-content-center align-items-center mt-4 age-slider-container">
@@ -76,16 +76,22 @@
     <div class="setting-section-container mt-4 mb-4">
         <p class="mat-headline mb-2 rich-black-color-text"><strong>College</strong></p>
 
-        <p class="mat-body-1 mb-1 gray-color-text">
-            If you would like to engage with students from your college, Just add your college to your profile.
-        </p>
+        <ng-container *ngIf="institutionContent === null">
+            <p class="mat-body-1 mb-1 gray-color-text">
+                If you would like to engage with students from your college, Just add your college to your profile.
+            </p>
+    
+            <p class="mat-caption mb-0">
+                <strong>Note: Only those colleges can be added who provide college Email IDs to there students.</strong>
+            </p>
+        </ng-container>
 
-        <p class="mat-caption mb-0">
-            <strong>Note: Only those colleges can be added who provide personal college Email ID to there students.</strong>
+        <p *ngIf="institutionContent != null" class="mat-body-1 mb-1 gray-color-text">
+            Now you can engage with students from your college as well. Just select your college in the location preference section.
         </p>
 
         <div class="d-flex justify-content-center align-items-center mt-4 mb-4 w-100">
-            <ng-container *ngIf="institutionContent != null">
+            <ng-container *ngIf="institutionContent != null && editInstitution === false">
                 <app-short-content-widget [content]="institutionContent" [noWrap]="false" imgSize="80px" class="pointer" 
                 style="width: 300px; height: max-content; box-shadow: var(--shadow-medium-spread);"></app-short-content-widget>
 
@@ -93,13 +99,23 @@
                 (click)="updateInstituion()">
                     <mat-icon class="change-symbol">edit</mat-icon>
                 </button>
+                <button mat-icon-button class="d-flex justify-content-center align-items-center change-button button-style-1 ml-3"
+                (click)="!institutionDisconnecting ? confirmInstiutionDelection() : null">
+                    <mat-spinner *ngIf="institutionDisconnecting" class="button-loading-spinner white-loading-spinner">
+                    </mat-spinner>
+                    <mat-icon *ngIf="!institutionDisconnecting" class="change-symbol">delete</mat-icon>
+                </button>
             </ng-container>
 
-            <div *ngIf="institutionContent === null" 
-            class="w-75 d-flex flex-column" style="height: 200px;">
+            <div *ngIf="institutionContent === null || editInstitution === true" class="w-75 d-flex flex-column" style="height: 200px;">
                 <div *ngIf="createInstitution.search" class="w-100 d-flex flex-column" style="height: inherit;">
                     <div class="w-100 d-flex">
-                        <form class="w-100 mr-2 search-form" novalidate>
+                        <button *ngIf="institutionContent != null" mat-raised-button disableRipple class="d-flex justify-content-center align-items-center"
+                        (click)="updateInstituion()">
+                            <mat-icon style="font-size: 27px; width: 27px; height: 27px;">keyboard_backspace</mat-icon>
+                        </button>
+
+                        <form class="w-100 ml-2 mr-2 search-form" novalidate>
                             <input #searchInput matInput placeholder="Search By" type="text" autocorrect="off" spellcheck="false"
                             class="search-input mb-0">
                         </form>

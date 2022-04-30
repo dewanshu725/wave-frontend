@@ -1,8 +1,9 @@
 import { LINK_PREVIEW, INTEREST_KEYWORD } from './../../../../../../_helpers/constents';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AppDataShareService } from './../../../../../../_services/app-data-share.service';
 import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { NgxMasonryOptions } from 'ngx-masonry';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-created-vues',
@@ -12,6 +13,8 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 export class CreatedVuesComponent implements OnInit, OnDestroy {
 
   constructor(private appDataShareService:AppDataShareService) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   @Output() createVueRequest = new EventEmitter();
   @Output() myVueEmptyEvent = new EventEmitter();
@@ -23,7 +26,7 @@ export class CreatedVuesComponent implements OnInit, OnDestroy {
 
   myVueEmpty:boolean;
   myVueError = false;
-  myVuefetchLength = 3;
+  myVuefetchLength = 10;
   myVueSourceArray:LINK_PREVIEW[] = [];
   myVueDataArray:LINK_PREVIEW[] = [];
   isMyVueFetching = false;
@@ -39,10 +42,7 @@ export class CreatedVuesComponent implements OnInit, OnDestroy {
   detailedVueOpened = false;
   deatiledVueData:LINK_PREVIEW;
 
-  selectedInterestUnsub:Subscription;
-
-
-  public masonryOption: NgxMasonryOptions = {
+  masonryOption: NgxMasonryOptions = {
     gutter: 80,
     horizontalOrder: true,
     columnWidth: 260,
@@ -55,8 +55,7 @@ export class CreatedVuesComponent implements OnInit, OnDestroy {
     this.myVueSourceArray = this.appDataShareService.myVueArray.slice(0, this.myVuefetchLength);
     this.arrangeMyVueArray();
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
-    .subscribe(result =>{
+    this.appDataShareService.currentSelectedInterest.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       if (this.detailedVueOpened) this.openDetailedVue(false);
 
       this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
@@ -186,7 +185,8 @@ export class CreatedVuesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-   if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

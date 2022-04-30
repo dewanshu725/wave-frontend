@@ -4,13 +4,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
-import {MatButtonModule} from '@angular/material/button';
-import {MatToolbarModule} from '@angular/material/toolbar';
-import {MatDividerModule} from '@angular/material/divider';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
+
 import { WaveAppModule } from './components/wave-app/wave-app.module';
 import { AccountModule } from './components/account/account.module';
-import { HomeModule } from './components/home/home.module';
 
 import { ApolloModule } from 'apollo-angular';
 import { HttpLinkModule } from 'apollo-angular-link-http';
@@ -30,15 +26,11 @@ import { NotificationService } from './_services/notification.service';
 import { RequestService } from './_services/request.service';
 
 import { AppComponent } from './app.component';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { LogoutComponent } from './components/logout/logout.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    PageNotFoundComponent,
-    LogoutComponent,
 
   ],
   imports: [
@@ -48,11 +40,6 @@ import { LogoutComponent } from './components/logout/logout.component';
     HttpClientModule,
     HttpLinkModule,
     BrowserAnimationsModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatDividerModule,
-    MatSnackBarModule,
-    HomeModule,
     AccountModule,
     WaveAppModule,
   ],

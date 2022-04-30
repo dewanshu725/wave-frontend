@@ -1,6 +1,7 @@
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { fromEvent, of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, take } from 'rxjs/operators';
 import { DRAFT_EDITOR_CONTEXT, INTERACTION } from 'src/app/_helpers/constents';
@@ -19,7 +20,8 @@ export class DraftEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     private _ngZone: NgZone,
     private Ref:ChangeDetectorRef,
     private graphqlService: GraphqlService,
-    ) { }
+    private snackBar: MatSnackBar,
+  ) { }
 
   @ViewChild('autosize') autosize: CdkTextareaAutosize;
   @ViewChild('draftBody') draftBody;
@@ -162,6 +164,15 @@ export class DraftEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.formContainerHeight = (0.6 * this.parentContainerHeight) + 'px';
       this.maximized = true;
     }    
+  }
+
+  sendConverse(){
+    if (this.interaction.draft_converse.body.length >= 130){
+      this.send.emit();
+    }
+    else{
+      this.snackBar.open("Let’s not have small talks, Please", "Write More", {duration:3000});
+    }
   }
 
   ngOnDestroy(){

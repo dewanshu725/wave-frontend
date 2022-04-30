@@ -4,7 +4,7 @@
             <div class="w-75 d-flex flex-column justify-content-center" style="padding-left: 10px">
                 <span class="mat-display-3 white-color-text mb-4" style="font-family: Poppins;font-weight: 700;">Discovery</span>
                 <span class="mat-title white-smokes-color-text mb-0" style="font-family: Poppins;">
-                    Let your vues become part of your Story.
+                    Let your vues become part of your Story
                 </span>
             </div>
             <div class="w-25 d-flex justify-content-center align-items-center pointer create-discovery" (click)="createDiscovery()">
@@ -44,17 +44,6 @@
             </app-display-discovery>
         </ng-container>
     </div>
-    <!--
-    <div *ngIf="!editMode" class="d-flex w-100" [ngStyle]="{'height': expanded ? '500px' : '300px'}">
-        <ng-container *ngIf="mode.view">
-
-        </ng-container>
-
-        <ng-container *ngIf="mode.detailedView">
-
-        </ng-container>
-    </div>
-    -->
 
     <div *ngIf="!mode.start && !mode.view" class="d-flex justify-content-center align-items-center expand-collapse"
     (click)="expanded = !expanded"

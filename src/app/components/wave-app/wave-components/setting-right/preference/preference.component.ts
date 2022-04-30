@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { fromEvent, of, Subscription } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, take } from 'rxjs/operators';
+import { fromEvent, of, Subject, Subscription } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
+import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
 import { CONTENT, INSTITUTION, USER_OBJ, USER_PREFERENCE } from 'src/app/_helpers/constents';
 import { createInstitution } from 'src/app/_helpers/functions.utils';
-import { CONNECT_INSTITUTION, RESEND_OTP_CONNECT_INSTITUTION, SEARCH_INSTITUTION, UPDATE_STUDENT_PROFILE, VERIFY_CONNECT_INSTITUTION } from 'src/app/_helpers/graphql.query';
+import { CONNECT_INSTITUTION, DISCONNECT_INSTITUTION, RESEND_OTP_CONNECT_INSTITUTION, SEARCH_INSTITUTION, UPDATE_STUDENT_PROFILE, VERIFY_CONNECT_INSTITUTION } from 'src/app/_helpers/graphql.query';
 import { AppDataShareService } from 'src/app/_services/app-data-share.service';
 import { GraphqlService } from 'src/app/_services/graphql.service';
 import { UserDataService } from 'src/app/_services/user-data.service';
@@ -28,21 +30,23 @@ export class PreferenceComponent implements OnInit, OnDestroy {
     private appDataShareService:AppDataShareService,
     private userDataService:UserDataService,
     private graphqlService: GraphqlService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private matDialog:MatDialog
   ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
+  searchInputUnsub: Subscription;
 
   @ViewChild('searchInput') searchInput;
 
-  
   settings:USER_PREFERENCE;
   settingsUpdating = false;
-  
-  searchInputUnsub:Subscription;
 
   userObj:USER_OBJ;
-  userDataUnsub:Subscription;
 
   institutionContent:CONTENT = null;
+  institutionDisconnecting = false;
+  editInstitution = false;
   settingsChanged = false;
 
   createInstitution = {
@@ -72,14 +76,12 @@ export class PreferenceComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userObj = this.userDataService.getItem({userObject:true}).userObject;
 
-    this.settings = {
-      locationPreference: this.userObj.locationPreference.toLowerCase(),
-      agePreference: this.userObj.agePreference
-    }
-
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.userObj = this.userDataService.getItem({userObject:true}).userObject;
+      this.updatedSettings();
     });
+
+    this.updatedSettings();
 
     if (this.userObj.institution != null && this.userObj.institution.verified){
       this.institutionContent = this.createInstitutionContent(this.userObj.institution);
@@ -87,6 +89,15 @@ export class PreferenceComponent implements OnInit, OnDestroy {
     else{
       this.createInstitutionChange({search:true});
     }
+  }
+
+  updatedSettings(){
+    this.settings = {
+      locationPreference: this.userObj.locationPreference.toLowerCase(),
+      agePreference: this.userObj.agePreference
+    }
+
+    this.settingsChanged = false;
   }
 
   createInstitutionChange(parems:CREATE_INSTITUTION){
@@ -264,6 +275,10 @@ export class PreferenceComponent implements OnInit, OnDestroy {
                 this.userDataService.setItem({userObject:this.userObj});
                 this.appDataShareService.updateUserData.next(true);
                 this.institutionContent = this.createInstitutionContent(this.userObj.institution);
+                this.searchResult = [];
+                this.searchedInstitution = [];
+                this.selectedInstitution = null;
+                this.selectedInstitutionContent = null;
               }
               else{
                 this.snackBar.open("Incorrect OTP", "Try Again", {duration:2000});
@@ -300,9 +315,10 @@ export class PreferenceComponent implements OnInit, OnDestroy {
     return institutionContent;
   }
 
+
   updateInstituion(){
-    this.institutionContent = null;
-    this.createInstitutionChange({search:true});
+    this.editInstitution = !this.editInstitution;
+    this.createInstitutionChange({search:!this.createInstitution.search});
   }
 
   updateSettings(parems:USER_PREFERENCE){
@@ -351,13 +367,69 @@ export class PreferenceComponent implements OnInit, OnDestroy {
           );
         }
         else{
-
+          this.settingsUpdating = false;
+          this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
         }
     })();
   }
 
+  confirmInstiutionDelection(){
+    const dialogRef = this.matDialog.open(AlertBoxComponent, {
+      width:'30%',
+      backdropClass: ['frosted-glass-blur'],
+      data: {
+        title: 'Confirm',
+        message: 'Do you want to remove your college from your profile?',
+        singleAction: false,
+        actionName: 'Remove',
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(response => {
+      if (response){
+        this.institutionDisconnecting = true;
+
+        (async () => {
+          const tokenStatus = await this.graphqlService.isTokenValid();
+          if (tokenStatus){
+            this.graphqlService.graphqlMutation(DISCONNECT_INSTITUTION).pipe(take(1))
+            .subscribe(
+              (result:any) => {
+                if (result.data?.disconnectInstitution?.result === true){
+                  if (this.userObj.locationPreference === 'INSTITUTION'){
+                    this.userObj.locationPreference = 'COUNTRY';
+                  }
+          
+                  this.appDataShareService.vueFeedLocationPreferance = null;
+                  this.createInstitutionChange({search: true});
+                  this.institutionContent = null;
+                  this.userObj.institution = null;
+                  this.userDataService.setItem({userObject:this.userObj});
+                }
+                else{
+                  this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+                }
+
+                this.institutionDisconnecting = false;
+              },
+              error => {
+                this.institutionDisconnecting = false;
+                this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+              }
+            );
+          }
+          else{
+            this.institutionDisconnecting = false;
+            this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+          }
+        })();
+      }
+    });
+  }
+
   ngOnDestroy(){
-    this.userDataUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
     if (this.searchInputUnsub) this.searchInputUnsub.unsubscribe();
   }
 

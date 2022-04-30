@@ -14,7 +14,7 @@ export class MyVueComponent implements OnInit, OnDestroy {
     private appDataShareService:AppDataShareService,
     private Ref:ChangeDetectorRef,
     private matDialog:MatDialog
-    ) { }
+  ) { }
 
   vue_backgorund_url:string;
   myVueEmpty:boolean;

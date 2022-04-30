@@ -1,8 +1,9 @@
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { INTEREST_KEYWORD } from './../../../../_helpers/constents';
 import { AppDataShareService } from './../../../../_services/app-data-share.service';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-interest-left',
@@ -15,7 +16,9 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private appDataShareService:AppDataShareService,
     private Ref:ChangeDetectorRef
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   studentInterests:INTEREST_KEYWORD[] = [];
   selectedInterest:INTEREST_KEYWORD[] = [];
@@ -26,7 +29,6 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
   navSavedvueState = false;
   navVuehistoryState = false;
 
-  isVueConstructedUnsub: Subscription;
   isVueConstructed = false;
 
   interestClicked(interest){
@@ -89,19 +91,16 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.navStateChange('vues');
 
-    if (!this.appDataShareService.initialSetup.value){
-      this.appDataShareService.studentInterest.forEach(element => {
-        this.studentInterests.push({
-          id:element.id,
-          name:element.name,
-          selected:false,
-          saved: element.saved
-        });
+    this.appDataShareService.studentInterest.forEach(element => {
+      this.studentInterests.push({
+        id:element.id,
+        name:element.name,
+        selected:false,
+        saved: element.saved
       });
-    }
+    });
 
-    this.isVueConstructedUnsub = this.appDataShareService.isVueConstructed
-    .subscribe(result =>{
+    this.appDataShareService.isVueConstructed.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       if (result != null){
         this.isVueConstructed = result;
         if (!result){
@@ -121,7 +120,8 @@ export class InterestLeftComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.isVueConstructedUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

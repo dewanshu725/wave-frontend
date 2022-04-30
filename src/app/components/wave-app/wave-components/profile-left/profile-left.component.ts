@@ -1,6 +1,6 @@
 import { LocationService } from './../../../../_services/location.service';
 import { AppDataShareService } from './../../../../_services/app-data-share.service';
-import { take } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 import { PASSWORD_CHANGE, USER_LOCATION_UPDATE, UPDATE_ACCOUNT, UPDATE_PROFILE_PIC, DELETE_ACCOUNT } from './../../../../_helpers/graphql.query';
 import { GraphqlService } from './../../../../_services/graphql.service';
 import { USER_OBJ, LOCATION_JSON, dev_prod } from './../../../../_helpers/constents';
@@ -10,10 +10,9 @@ import { Component, isDevMode, OnDestroy, OnInit } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { removeValidators } from 'src/app/_helpers/functions.utils';
 import { AuthenticationService } from 'src/app/_services/authentication.service';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile-left',
@@ -28,10 +27,11 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
     private userDataService:UserDataService,
     private graphqlService:GraphqlService,
     private authenticationService: AuthenticationService,
-    private router: Router,
     private matDialog:MatDialog,
     private snackBar: MatSnackBar
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   profileForm = {
     fullName_editState : true,
@@ -43,7 +43,6 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
   locationData:LOCATION_JSON;
 
   userObj:USER_OBJ;
-  userDataUnsub:Subscription;
 
   panelOpenState = false;
   passwordChangeForm: FormGroup;
@@ -52,13 +51,14 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
   passwordChangeLoadStatus = false;
   passwordChangeSubmited = false;
 
+  profilePicDeleting = false;
   accountDeleting = false;
   deleteModeActive = false;
 
   ngOnInit(): void {
     this.userObj = this.userDataService.getItem({userObject:true}).userObject;
 
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() =>{
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() =>{
       this.userObj = this.userDataService.getItem({userObject:true}).userObject;
     });
 
@@ -67,7 +67,7 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
 
     this.passwordChangeForm = new FormGroup({
       'currentPassword': new FormControl(null, Validators.required),
-      'newPassword': new FormControl(null, [Validators.required, Validators.pattern('^(?=.*[\\d])(?=.*[A-Z])(?=.*[a-z])(?=.*[.?!^@#$%&*])[\\w\\d.?!@^#$%&*]{8,}$')]),
+      'newPassword': new FormControl(null, [Validators.required, Validators.pattern('^(?=.*\\d)(?=.*[a-z])(?=.*[!@#$%^&*]).{8,}$')]),
       'confirmPassword': new FormControl(null, Validators.required)
     }, {validators: this.passwordMatchValidator});
   }
@@ -184,24 +184,41 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
     })();
   }
 
-  onProfilePicChange(file){
+  onProfilePicChange(file?){
+    if (file === null){
+      this.profilePicDeleting = true;
+    }
+
     (async () => {
       const tokenStatus = await this.graphqlService.isTokenValid();
       if (tokenStatus){
-        this.graphqlService.graphqlMutation(UPDATE_PROFILE_PIC, {profilePic: file}).pipe(take(1))
-        .subscribe((result:any) => {
-          if (result.data?.updateProfilePic?.imgObj != null){
-            const image_obj = result.data.updateProfilePic.imgObj;
-            this.userObj.profilePicture = {
-              id: image_obj.id,
-              image: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ image_obj.image : image_obj.imageUrl,
-              thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ image_obj.thumnail : image_obj.thumnailUrl,
-              width: image_obj.width,
-              height: image_obj.height
+        const mutationArrgs = file != null ? {profilePic: file} : null;
+
+        this.graphqlService.graphqlMutation(UPDATE_PROFILE_PIC, mutationArrgs).pipe(take(1))
+        .subscribe(
+          (result:any) => {
+            if (result.data?.updateProfilePic?.imgObj != null){
+              const image_obj = result.data.updateProfilePic.imgObj;
+              this.userObj.profilePicture = {
+                id: image_obj.id,
+                image: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ image_obj.image : image_obj.imageUrl,
+                thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ image_obj.thumnail : image_obj.thumnailUrl,
+                width: image_obj.width,
+                height: image_obj.height
+              }
+              this.userDataService.setItem({userObject:this.userObj});
             }
-            this.userDataService.setItem({userObject:this.userObj});
+            else{
+              this.userObj.profilePicture = null;
+              this.userDataService.setItem({userObject:this.userObj});
+              this.profilePicDeleting = false;
+            }
+          },
+          error => {
+            this.profilePicDeleting = false;
+            this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
           }
-        });
+        );
       }
     })();
   }
@@ -292,7 +309,7 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
                 (result:any) => {
                   if (result.data?.deleteAccount?.result === true){
                     this.graphqlService.onLoginChange(false);
-                    this.router.navigate(['/logout']);
+                    window.open(`${isDevMode() ? dev_prod.httpServerUrl_dev : dev_prod.httpServerUrl_prod}account-deleted/`);
                   }
                   else{
                     this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
@@ -323,7 +340,8 @@ export class ProfileLeftComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.userDataUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

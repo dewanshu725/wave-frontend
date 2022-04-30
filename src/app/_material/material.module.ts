@@ -27,6 +27,7 @@ import {MatBadgeModule} from '@angular/material/badge';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSliderModule} from '@angular/material/slider';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
 
 const MaterialComponents = [
   MatGridListModule,
@@ -56,7 +57,8 @@ const MaterialComponents = [
   MatBadgeModule,
   MatDialogModule,
   MatButtonToggleModule,
-  MatSliderModule
+  MatSliderModule,
+  MatProgressBarModule
 ];
 
 @NgModule({

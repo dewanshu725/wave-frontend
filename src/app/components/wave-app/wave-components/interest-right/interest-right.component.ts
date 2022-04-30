@@ -1,6 +1,7 @@
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AppDataShareService } from './../../../../_services/app-data-share.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-interest-right',
@@ -11,11 +12,12 @@ export class InterestRightComponent implements OnInit, OnDestroy {
 
   constructor(private appDataShareService:AppDataShareService) { }
 
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   interestOption:string;
-  interestOptionUnsub: Subscription;
 
   ngOnInit(): void {
-    this.interestOptionUnsub = this.appDataShareService.interestOption.subscribe(result => this.interestOption = result);
+    this.appDataShareService.interestOption.pipe(takeUntil(this.destroy$)).subscribe(result => this.interestOption = result);
 
     this.appDataShareService.appActivePath.interest.active = true;
     this.appDataShareService.appActivePath.interest.notification = false;
@@ -28,8 +30,10 @@ export class InterestRightComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.interestOptionUnsub.unsubscribe();
     this.appDataShareService.appActivePath.interest.active = false;
+
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

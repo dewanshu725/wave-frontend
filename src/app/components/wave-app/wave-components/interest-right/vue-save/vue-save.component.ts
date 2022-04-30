@@ -2,8 +2,8 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 import { isConversationStarted, isVueConverseDisable, locationName, modifyDateByDay, timeSince } from 'src/app/_helpers/functions.utils';
 import { UserDataService } from './../../../../../_services/user-data.service';
 import { LINK_PREVIEW, INTEREST_KEYWORD, PAGE_INFO, USER_PREFERENCE, IMAGE, dev_prod } from './../../../../../_helpers/constents';
-import { take } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { VUE_SAVED, VUE_SAVED_CURSOR } from './../../../../../_helpers/graphql.query';
 import { GraphqlService } from './../../../../../_services/graphql.service';
 import { Component, OnInit, OnDestroy, Output, EventEmitter, isDevMode } from '@angular/core';
@@ -20,7 +20,9 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     private appDataShareService: AppDataShareService,
     private graphqlService: GraphqlService,
     private userDataService: UserDataService
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   vue_backgorund_url:string;
   vueDisplayContext = 'savedvue';
@@ -34,7 +36,11 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   fetchMoreLoading = false;
   fetchMoreError = false;
 
-  vueSavedLength = 3;
+  currentVueSavedPosition:{start:number, end:number};
+  updatingCurrentVueSavedPosition = false;
+  currentVueSavedLength = 10;
+
+  vueSavedLength = 20;
   vueSavedArray:LINK_PREVIEW[] = [];
   isVueSavedFetching = false;
 
@@ -43,8 +49,6 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   noMatchFound = false;
 
   masonryLoading = true;
-
-  selectedInterestUnsub:Subscription;
 
   @Output() reInitVueSaved = new EventEmitter();
 
@@ -59,6 +63,8 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   deatiledVueData:LINK_PREVIEW;
 
   ngOnInit(): void {
+    this.currentVueSavedPosition = {start:0, end:this.currentVueSavedLength};
+
     this.vue_backgorund_url = this.appDataShareService.vue_background;
     this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
     this.appDataShareService.vueSavedPageInfo ? this.fetchMore = this.appDataShareService.vueSavedPageInfo.hasNextPage : null;
@@ -80,8 +86,7 @@ export class VueSaveComponent implements OnInit, OnDestroy {
       this.getVueSaved();
     }
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
-    .subscribe(result =>{
+    this.appDataShareService.currentSelectedInterest.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       if (this.detailedVueOpened) this.openDetailedVue(false);
 
       this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
@@ -94,9 +99,20 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     let element = scrollEvent.target;
 
     if ((element.offsetHeight+element.scrollTop) > (element.scrollHeight - 59)){
-      if (this.fetchMore && !this.interestSelected && !this.isVueSavedFetching){
-        this.isVueSavedFetching = true;
-        this.getVueSaved(true);
+      if (!this.updatingCurrentVueSavedPosition && !this.isVueSavedFetching){
+
+        if (this.currentVueSavedPosition.end < this.vueSavedArray.length){
+          this.updatingCurrentVueSavedPosition = true;
+
+          this.currentVueSavedPosition = {
+            start: 0,
+            end: this.currentVueSavedPosition.end+this.currentVueSavedLength
+          }
+        }
+        else if (this.fetchMore && !this.interestSelected){
+          this.isVueSavedFetching = true;
+          this.getVueSaved(true);
+        }
       }
     }
   }
@@ -162,7 +178,12 @@ export class VueSaveComponent implements OnInit, OnDestroy {
                 }
               }
               else{
-                this.createVueArray(result.data.vueSaved.pageInfo, result.data.vueSaved.edges);
+                if (fetchMore){
+                  this.createVueArray(result.data.vueSaved.pageInfo, result.data.vueSaved.edges, true);
+                }
+                else{
+                  this.createVueArray(result.data.vueSaved.pageInfo, result.data.vueSaved.edges);
+                }
               }
             },
             error =>{
@@ -196,7 +217,7 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     })();
   }
 
-  createVueArray(pageInfo:PAGE_INFO, vueSaved){
+  createVueArray(pageInfo:PAGE_INFO, vueSaved, fetchMore=false){
     this.appDataShareService.vueSavedPageInfo = pageInfo;
     this.fetchMore = this.appDataShareService.vueSavedPageInfo.hasNextPage;
     const user_obj = this.userDataService.getItem({userObject:true}).userObject;
@@ -285,6 +306,13 @@ export class VueSaveComponent implements OnInit, OnDestroy {
     this.loading = false;
     this.vueEmpty = false;
     this.noMatch();
+
+    if (fetchMore){
+      this.currentVueSavedPosition = {
+        start: 0,
+        end: this.vueSavedArray.length
+      }
+    }
   }
 
   arrangeVueSavedArray(){
@@ -327,6 +355,7 @@ export class VueSaveComponent implements OnInit, OnDestroy {
 
   masonryLoaded(){
     this.fetchMoreLoading = false;
+    this.updatingCurrentVueSavedPosition = false;
     this.isVueSavedFetching = false;
     this.masonryLoading = false;
   }
@@ -352,7 +381,8 @@ export class VueSaveComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
     this.appDataShareService.isVueConstructed.next(false);
   }
 

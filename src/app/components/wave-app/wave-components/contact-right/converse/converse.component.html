@@ -16,7 +16,11 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur p
             <div [innerHTML]="svg(interaction.student_interaction.profile.nickname)" style="border-radius: 50%; width: 40px;"></div>
             <div class="d-flex flex-column">
                 <p class="mat-body-2 space-gray-color-text mb-0 nowrap"><strong>{{interaction.student_interaction.profile.nickname}}</strong></p>
-                <p class="mat-caption space-gray-color-text mb-0">{{interaction.converse_context.vue_context.location}}, {{interaction.converse_context.vue_context.age}}</p>
+                <span class="mat-caption space-gray-color-text mb-0 d-flex align-items-center">
+                    {{interaction.student_interaction.profile.region}}, {{interaction.student_interaction.profile.country}}
+                    <div class="dot ml-2 mr-2"></div>
+                    ({{interaction.converse_context.vue_context.age}})
+                </span>
             </div>
         </div>
 
@@ -39,15 +43,13 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur p
         </div>
 
         <div class="d-block justify-content-center align-items-center">
-            <button mat-icon-button disableRipple class="button-style-3 mr-4" matTooltip="Vue" matTooltipShowDelay="300"
-            (click)="openVue(interaction.converse_context.vue_context.url)"
-            >
+            <button *ngIf="interaction.converse_context.vue_context != null" mat-icon-button disableRipple class="button-style-3 mr-4"
+            matTooltip="Vue" [disabled]="hideConverseMessage" (click)="hideConverseMessage = true; secondLayer.displayVue = true">
                 <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">preview</mat-icon>
             </button>
             
             <button *ngIf="!extraOptions" mat-icon-button disableRipple [disabled]="hideConverseMessage"
-            matTooltip="more options" matTooltipShowDelay="300" (click)="extraOptions = !extraOptions"
-            >
+            matTooltip="more options" (click)="extraOptions = !extraOptions">
                 <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">more_vert</mat-icon>
             </button>
 
@@ -71,15 +73,17 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur p
         (openMessage)="openDraftEditor($event)"></app-converse-message>
 
         <div *ngIf="hideConverseMessage" class="d-flex justify-content-center align-items-center h-100">
+            <app-display-vue *ngIf="secondLayer.displayVue" style="width: 95%; height: 75%;" [profileVue]="true"
+            [linkPreview]="interaction.converse_context.vue_context" [mode]="{create: false, edit: false, display: true}"
+            (closeDetailedVue)="secondLayer.displayVue = false; hideConverseMessage = false">
+            </app-display-vue>
+
             <app-draft-editor *ngIf="secondLayer.draftEditor" [interaction]="interaction" [context]="draftEditorContext"
             [parentContainerWidth]="bodyContainerWidthNumber" [parentContainerHeight]="bodyContainerHeightNumber" 
-            (close)="closeDraftEditor()" (send)="draftSend()"
-            >
-            </app-draft-editor>
+            (close)="closeDraftEditor()" (send)="draftSend()"></app-draft-editor>
 
             <app-notify-box *ngIf="secondLayer.notify" class="d-flex justify-content-center w-100" [notifyData]="notifyData"
-            (response)="notifyResponse($event)">
-            </app-notify-box>
+            (response)="notifyResponse($event)"></app-notify-box>
         </div>
     </div>
 </ng-container>

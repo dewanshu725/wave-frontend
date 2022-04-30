@@ -1,6 +1,13 @@
+:host{
+  display: block;
+  width: inherit;
+  height: inherit;
+}
+
 .my-container{
-    width: 100%;
-    height: 100%;
+    display: block;
+    width: inherit;
+    height: inherit;
 }
 .logo-text{
     color: var(--pacific-blue);

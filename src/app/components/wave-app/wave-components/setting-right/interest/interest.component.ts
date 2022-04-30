@@ -1,5 +1,5 @@
 import { UserDataService } from './../../../../../_services/user-data.service';
-import { take } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 import { INTEREST_CATEGORY, INTEREST_KEYWORD } from './../../../../../_helpers/constents';
 import { AppDataShareService } from './../../../../../_services/app-data-share.service';
 import { GraphqlService } from './../../../../../_services/graphql.service';
@@ -7,7 +7,7 @@ import { INTEREST_KEYWORD_MUTATION, ALL_INTEREST_CATEGORY } from './../../../../
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatChipSelectionChange } from '@angular/material/chips';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-interest',
@@ -22,34 +22,28 @@ export class InterestComponent implements OnInit, OnDestroy {
     private userDataService:UserDataService,
     private Ref:ChangeDetectorRef,
     private snackBar: MatSnackBar,
-    ) { }
+  ) { }
 
-  initialSetup:boolean = false;
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   chipChanged = false;
   selectedInterestSaving = false;
   allInterestCategory:INTEREST_CATEGORY[];
   selectedInterest:INTEREST_KEYWORD[] = [];
   chipSelectionCounter = 0;
-  
-  userDataUnsub:Subscription;
 
   ngOnInit(): void {
     this.allInterestCategory = this.userDataService.getItem({interestCategory:true}).interestCategory;
 
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.allInterestCategory = this.userDataService.getItem({interestCategory:true}).interestCategory;
     });
 
-    if (this.appDataShareService.initialSetup.value){
-      this.initialSetup = true;
-    }
-    else{
-      this.appDataShareService.studentInterest.forEach(element =>{
-        if (element.saved){
-          this.selectedInterest.push(element);
-        }
-      });
-    }
+    this.appDataShareService.studentInterest.forEach(element =>{
+      if (element.saved){
+        this.selectedInterest.push(element);
+      }
+    });
   }
 
   chipChangeSelected(event:MatChipSelectionChange){
@@ -87,36 +81,41 @@ export class InterestComponent implements OnInit, OnDestroy {
 
   chipSubmit(){
     this.selectedInterestSaving = true;
+
+    const selectedInterestIds:string[] = [];
+
+    this.selectedInterest.forEach(interest => {selectedInterestIds.push(interest.id)});
+
     const mutationArrgs = {
-      "selected_keyword":JSON.stringify(this.selectedInterest)
+      selectedInterests: selectedInterestIds
     };
+
     (async () =>{
       const tokenStatus = await this.graphqlService.isTokenValid();
       if (tokenStatus){
         this.graphqlService.graphqlMutation(INTEREST_KEYWORD_MUTATION, mutationArrgs).pipe(take(1))
         .subscribe(
           (result:any) =>{
-            if (result.data?.interestKeywordMutation?.result){
+            if (result.data?.interestKeywordMutation?.result === true){
               const all_interest_category:INTEREST_CATEGORY[] = [];
-              const localAllInterestCategory = this.graphqlService.graphqlLocalQuery(ALL_INTEREST_CATEGORY);
-              localAllInterestCategory.allInterestCategory.edges.forEach(interest_category => {
+              this.allInterestCategory.forEach(interest_category => {
                 const interest_keyword_set:INTEREST_KEYWORD[] = [];
-                interest_category.node.interestkeywordSet.edges.forEach(interest => {
+                interest_category.interest_keyword.forEach(interest => {
                   let selected = false;
                   this.selectedInterest.forEach(user_interest =>{
-                    user_interest.id === interest.node.id ? selected = true : null;
+                    user_interest.id === interest.id ? selected = true : null;
                   });
                   interest_keyword_set.push(
                     {
-                      id:interest.node.id,
-                      name:interest.node.word,
+                      id:interest.id,
+                      name:interest.name,
                       selected:selected
                     }
                   );
                 });
                 all_interest_category.push(
                   {
-                    name:interest_category.node.name,
+                    name:interest_category.name,
                     interest_keyword:interest_keyword_set
                   }
                 );
@@ -134,7 +133,8 @@ export class InterestComponent implements OnInit, OnDestroy {
               });
               this.userDataService.setItem({interestCategory:JSON.stringify(all_interest_category)});
               this.selectedInterestSaving = false;
-              this.appDataShareService.initialSetup.next(false);
+              this.appDataShareService.vueFeedIds = [];
+              this.appDataShareService.vueFeedArray = [];
               this.snackBar.open("Successfully Saved","",{duration:2000});
               this.chipChanged = false;
             }
@@ -157,6 +157,7 @@ export class InterestComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.userDataUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 }

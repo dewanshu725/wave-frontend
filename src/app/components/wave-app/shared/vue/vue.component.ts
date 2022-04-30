@@ -8,9 +8,10 @@ import { take } from 'rxjs/operators';
 import { Component, OnInit, Input, ViewChild, OnDestroy, Output, EventEmitter, AfterViewInit, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { LINK_PREVIEW } from 'src/app/_helpers/constents';
 import {CdkTextareaAutosize} from '@angular/cdk/text-field';
-import { composedPath, createVueObj, placeholderImage, truncate } from 'src/app/_helpers/functions.utils';
+import { composedPath, createInteraction, createVueObj, placeholderImage, truncate } from 'src/app/_helpers/functions.utils';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
+import { UserDataService } from 'src/app/_services/user-data.service';
 
 @Component({
   selector: 'app-vue',
@@ -21,6 +22,7 @@ export class VueComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private appDataShareService:AppDataShareService,
+    private userDataService: UserDataService,
     private graphqlService:GraphqlService,
     private snackBar: MatSnackBar,
     private matDialog:MatDialog,
@@ -268,30 +270,28 @@ export class VueComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.graphqlService.graphqlMutation(START_CONVERSATION, mutationArrgs).pipe(take(1))
       .subscribe((result:any) =>{
-        if (result.data?.startConversation?.result === true){
-          (async () =>{
-            const draft = await this.graphqlService.getContact(ALL_INTERACTION_DRAFT_CONVERSE);
+        if (result.data?.startConversation?.result != null){
+          const interactionObj = result.data.startConversation.result;
+          const studentProfileId = this.userDataService.getItem({userObject:true}).userObject.student_profile_id;
+          this.appDataShareService.allInteraction.draft_converse.unshift(createInteraction(interactionObj, studentProfileId, ''));
 
-            if (draft){
-              this.vueStartConversationLoading = false;
-              this.linkPreview.conversation_started = true;
+          this.appDataShareService.vueFeedArray.forEach(vueFeed => {
+            vueFeed.author_id === this.linkPreview.author_id ? vueFeed.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueFeedArray.forEach(vueFeed => {
-                vueFeed.author_id === this.linkPreview.author_id ? vueFeed.conversation_started = true : null;
-              });
+          this.appDataShareService.vueHistoryArray.forEach(vueHistory => {
+            vueHistory.author_id === this.linkPreview.author_id ? vueHistory.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueHistoryArray.forEach(vueHistory => {
-                vueHistory.author_id === this.linkPreview.author_id ? vueHistory.conversation_started = true : null;
-              });
+          this.appDataShareService.vueSavedArray.forEach(vueSave =>{
+            vueSave.author_id === this.linkPreview.author_id ? vueSave.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueSavedArray.forEach(vueSave =>{
-                vueSave.author_id === this.linkPreview.author_id ? vueSave.conversation_started = true : null;
-              });
+          this.vueStartConversationLoading = false;
+          this.linkPreview.conversation_started = true;
 
-              this.snackBar.open("conversation started", "GO TO DRAFT", {duration:2000});
-              this.appDataShareService.appNotification({contact_draft: true});
-            }
-          })();
+          this.snackBar.open("conversation started", "GO TO DRAFT", {duration:2000});
+          this.appDataShareService.appNotification({contact_draft: true});
         }
         else{
           this.vueStartConversationLoading = false;

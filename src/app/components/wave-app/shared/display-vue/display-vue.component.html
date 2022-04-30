@@ -1,29 +1,19 @@
 <div class="display-vue-container">
     <div class="display-vue-align-container display-vue-left-container">
         <ng-container *ngIf="mode.create">
-            <div *ngIf="!linkValidationSuccess" class="d-flex justify-content-center align-items-center w-100 h-100" 
-            style="padding: 10px;"
-            >
+            <div class="d-flex justify-content-center align-items-center w-100 h-100" style="padding: 10px;">
                 <div *ngIf="!linkError.error" class="display-title">
                     <p class="mat-title mb-1" style="font-family: 'Poppins', sans-serif;">Share What Captivates Your Heart,</p>
-                    <p class="mat-title mb-0"><strong>with the world.</strong></p>
+                    <p class="mat-title mb-0"><strong>with the world</strong></p>
                 </div>
 
                 <div class="w-100 d-flex justify-content-center align-items-center">
                     <ng-container *ngIf="!linkError.error">
-                        <form #chatElement class="w-100 mr-4 link-form" novalidate>
+                        <form #chatElement class="w-100 link-form" novalidate>
                             <input matInput placeholder="Enter a Link" type="text" #linkInput
                             autocorrect="off" spellcheck="false" (input)="linkInputChange(linkInput)"
                             class="link-input mb-0">
                         </form>
-        
-                        <button [disabled]="!linkInputValid" mat-icon-button disableRipple
-                        class="d-flex justify-content-center align-items-center mat-elevation-z4"
-                        [ngClass]="linkInputValid ? 'button-style-1' : null" (click)="linkSubmit()"
-                        >
-                            <mat-icon *ngIf="!linkValidationLoading" style="margin-bottom: 2px;">done</mat-icon>
-                            <mat-spinner *ngIf="linkValidationLoading" class="vue-loading-spinner white-loading-spinner"></mat-spinner>
-                        </button>
                     </ng-container>
                     <div *ngIf="linkError.error" class="d-flex flex-column justify-content-center align-items-center pointer" (click)="tryAgain()">
                         <div>
@@ -39,12 +29,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div *ngIf="linkValidationSuccess" class="d-flex align-items-center w-100 h-100" style="background-color: black;">
-                <img *ngIf="linkSubmitData.image != null" class="vue-image" alt="vue-preview" [src]="linkSubmitData.image" 
-                (load)="imgLoaded($event)" (error)="imgError($event)"
-                >
-                <p *ngIf="linkSubmitData.image === null" class="mat-body-1 w-100 text-center mb-0" style="color: white;">Unable to load any image</p>
             </div>
         </ng-container>
 
@@ -74,29 +58,26 @@
 
         <ng-container *ngIf="mode.display">
             <div *ngIf="!profileVue" class="d-flex justify-content-center align-items-center position-absolute w-100 h-100" 
-            style="z-index: 1;" [style.backgroundColor]="vueMenu.menu ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0)'"
-            >
+            style="z-index: 1;" [style.backgroundColor]="vueMenu.menu ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0)'">
                 <div class="d-flex position-absolute justify-content-between align-items-center vue-action w-100 frosted-glass-blur"
                 style="top: 0px; color: white;">
                 <div class="d-flex align-items-center">
-                    <span class="mat-caption ml-2"><strong>{{linkPreview.active ? 'ACTIVE' : 'INACTIVE'}}</strong></span>
+                    <span class="mat-caption ml-2">{{linkPreview.active ? 'ACTIVE' : 'INACTIVE'}}</span>
 
-                    <span class="mat-caption mb-0 ml-2 mr-2">|</span>
+                    <div class="dot ml-2 mr-2" style="background-color: var(--silver);"></div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <mat-icon style="font-size: 18px; height: 18px; width: 18px;">place</mat-icon>
                         <span class="mat-caption ml-1 mb-0">{{linkPreview.location}}</span>
                     </div>
 
-                    <span class="mat-caption mb-0 ml-2 mr-2">|</span>
+                    <div class="dot ml-2 mr-2" style="background-color: var(--silver);"></div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <mat-icon style="font-size: 18px; height: 18px; width: 18px;">cake</mat-icon>
-                        <span class="mat-caption ml-1 mb-0">{{linkPreview.age}}</span>
+                        <span class="mat-caption ml-1 mb-0">({{linkPreview.age}})</span>
                     </div>
                 </div>
 
-                    <mat-icon class="pointer mr-1" matTooltip="Menu" matRipple matTooltipShowDelay="500"
+                    <mat-icon class="pointer mr-1" matTooltip="Menu" matRipple
                     (click)="vueMenuAction()"
                     >
                     {{vueMenu.menu ? vueMenu.disliked || vueMenu.misleaded ? 'done' : 'close' : 'more_vert'}}
@@ -159,19 +140,19 @@
 
                 <div class="d-flex justify-content-end align-items-center">
                     <button mat-icon-button  (click)="disableNewConversation = !disableNewConversation" class="mr-2"
-                    [matTooltip]="disableNewConversation ? 'Enable Conversation' : 'Disable Conversation' " matTooltipShowDelay="500"
+                    [matTooltip]="disableNewConversation ? 'Enable Conversation' : 'Disable Conversation' "
                     >
                         <mat-icon class="vue-action-icon">{{disableNewConversation ? 'speaker_notes_off' : 'chat'}}</mat-icon>
                     </button>
 
                     <button mat-icon-button  (click)="vuePublic = !vuePublic" class="mr-2"
-                    [matTooltip]="vuePublic ? 'Mark Private' : 'Mark Publish' " matTooltipShowDelay="500"
+                    [matTooltip]="vuePublic ? 'Mark Private' : 'Mark Publish'"
                     >
                         <mat-icon class="vue-action-icon">{{vuePublic ? 'public' : 'public_off'}}</mat-icon>
                     </button>
 
-                    <button *ngIf="vueSubmitStatus != null" matTooltip="Publish" matTooltipShowDelay="500" (click)="vueSubmit()"
-                    mat-icon-button [disabled]="currentSelectedInterest?.length === 0 || vueCreateForm.invalid"
+                    <button *ngIf="vueSubmitStatus != null" matTooltip="Publish" (click)="vueSubmit()"
+                    mat-icon-button [disabled]="currentSelectedInterest?.length === 0 || vueCreateForm.invalid || !linkInputValid"
                     >
                         <mat-icon class="vue-action-icon">done</mat-icon>
                     </button>
@@ -190,7 +171,7 @@
                 </ng-container>
         
                 <ng-template #noInterestSelected>
-                <span class="mat-caption">Select Interest</span>
+                <span class="mat-caption">Select interest from left</span>
                 </ng-template>
             </drag-scroll>
             <mat-divider></mat-divider>
@@ -223,18 +204,17 @@
 
                 <div class="d-flex justify-content-end align-items-center">
                     <button mat-icon-button  (click)="vueConversationUpdate()" class="mr-2"
-                    [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation'"
-                    matTooltipShowDelay="500">
+                    [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation'">
                         <mat-icon class="vue-action-icon">{{linkPreview.conversation_disabled ? 'speaker_notes_off' : 'chat'}}</mat-icon>
                     </button>
 
                     <button mat-icon-button  (click)="vuePublicUpdate()" class="mr-2"
-                    [matTooltip]="linkPreview.public ? 'Make Private' : 'Mark Public' " matTooltipShowDelay="500"
+                    [matTooltip]="linkPreview.public ? 'Make Private' : 'Mark Public'"
                     >
                         <mat-icon class="vue-action-icon">{{linkPreview.public ? 'public' : 'public_off'}}</mat-icon>
                     </button>
 
-                    <button *ngIf="!vueDeleteLoading" mat-icon-button matTooltip="Delete Vue" matTooltipShowDelay="500" class="mr-2"
+                    <button *ngIf="!vueDeleteLoading" mat-icon-button matTooltip="Delete Vue" class="mr-2"
                     (click)="vueDelete()" 
                     >
                         <mat-icon class="vue-action-icon">delete_outline</mat-icon>
@@ -244,15 +224,12 @@
                     >
                     </mat-spinner>
 
-                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open" matTooltipShowDelay="500" 
-                    (click)="openVue(linkPreview.url)" class="mr-2"
-                    >
+                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open"
+                    (click)="openVue(linkPreview.url)" class="mr-2">
                         <mat-icon class="vue-action-icon">open_in_new</mat-icon>
                     </button>
 
-                    <button mat-icon-button matTooltip="close" matTooltipShowDelay="500" 
-                    (click)="closeDetailedVue.emit(false)"
-                    >
+                    <button mat-icon-button matTooltip="close" (click)="closeDetailedVue.emit(false)">
                         <mat-icon class="vue-action-icon">close</mat-icon>
                     </button>
                 </div>
@@ -287,7 +264,7 @@
 
                 <div *ngIf="!profileVue" class="d-flex justify-content-end align-items-center">
                     <button *ngIf="!linkPreview.conversation_disabled && !linkPreview.conversation_started && !vueStartConversationLoading"
-                    mat-icon-button matTooltipShowDelay="500" class="mr-2" matTooltip="Start Conversation" (click)="startConversation()"
+                    mat-icon-button class="mr-2" matTooltip="Start Conversation" (click)="startConversation()"
                     >
                         <mat-icon class="vue-action-icon">chat</mat-icon>
                     </button>
@@ -296,15 +273,13 @@
                     </mat-spinner>
 
                     <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button class="mr-2"
-                    matTooltip="Save" matTooltipShowDelay="500" (click)="updateVueFeed(true, false)"
+                    matTooltip="Save" (click)="updateVueFeed(true, false)"
                     >
                         <mat-icon class="vue-action-icon">{{vueSaved ? 'favorite' : 'favorite_border'}}</mat-icon>
                     </button>
 
                     <ng-container *ngIf="vueDisplayContext === 'savedvue'">
-                        <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" matTooltipShowDelay="500"
-                        (click)="removeSavedVue()"
-                        >
+                        <button *ngIf="!removeSavedVueLoading" class="mr-2" mat-icon-button matTooltip="remove" (click)="removeSavedVue()">
                             <mat-icon class="vue-action-icon">remove_circle_outline</mat-icon>
                         </button>
 
@@ -314,29 +289,23 @@
                         </mat-spinner>
                     </ng-container>
 
-                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open" matTooltipShowDelay="500" 
-                    (click)="openVue(linkPreview.url)" class="mr-2"
-                    >
+                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open"
+                    (click)="openVue(linkPreview.url)" class="mr-2">
                         <mat-icon class="vue-action-icon">open_in_new</mat-icon>
                     </button>
 
-                    <button mat-icon-button matTooltip="close" matTooltipShowDelay="500" 
-                    (click)="closeDetailedVue.emit(false)"
-                    >
+                    <button mat-icon-button matTooltip="close" (click)="closeDetailedVue.emit(false)">
                         <mat-icon class="vue-action-icon">close</mat-icon>
                     </button>
                 </div>
 
                 <div *ngIf="profileVue" class="d-flex justify-content-end align-items-center">
-                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open" matTooltipShowDelay="500" 
-                    (click)="openVue(linkPreview.url)" class="mr-2"
-                    >
+                    <button *ngIf="linkPreview.url != null" mat-icon-button matTooltip="open" 
+                    (click)="openVue(linkPreview.url)" class="mr-2">
                         <mat-icon class="vue-action-icon">open_in_new</mat-icon>
                     </button>
 
-                    <button mat-icon-button matTooltip="close" matTooltipShowDelay="500" 
-                    (click)="closeDetailedVue.emit(false)"
-                    >
+                    <button mat-icon-button matTooltip="close" (click)="closeDetailedVue.emit(false)">
                         <mat-icon class="vue-action-icon">close</mat-icon>
                     </button>
                 </div>

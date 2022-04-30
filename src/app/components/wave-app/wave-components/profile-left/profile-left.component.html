@@ -1,7 +1,8 @@
 <div class="p-2 h-100 d-flex flex-column">
   <div class="d-flex flex-column align-items-center w-100" style="margin: 1.5rem 0;">
-    <app-image-upload-widget [smallWidget]="false" [imgURL]="userObj.profilePicture?.image" borderRadius="50%"
-    (imgFile)="onProfilePicChange($event)"></app-image-upload-widget>
+    <app-image-upload-widget [smallWidget]="false" [imgURL]="userObj.profilePicture?.image" borderRadius="50%" [imgToDelete]="true" 
+    [imgDeleting]="profilePicDeleting" (imgDelete)="onProfilePicChange()" (imgFile)="onProfilePicChange($event)">
+    </app-image-upload-widget>
 
     <span class="mat-headline pacific-blue-text mb-0 mt-2" style="font-family: Poppins;">
       <strong>{{userObj.fullName}}</strong>
@@ -27,7 +28,7 @@
     <div class="w-100 d-flex justify-content-center">
       <div class="w-100" style="padding-top: 0.8rem;">
         <p class="mat-caption profile-title">Gender</p>
-        <p class="mat-body-1">{{userObj.sex}}</p>
+        <p class="mat-body-1">{{userObj.sex === 'non_binary' ? 'Non-Binary' : userObj.sex}}</p>
       </div>
     </div>
 

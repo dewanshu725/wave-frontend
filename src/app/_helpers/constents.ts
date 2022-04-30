@@ -95,9 +95,9 @@ export interface INTEREST_KEYWORD{
 }
 
 export interface INTEREST_CATEGORY{
-    name:string,
-    interest_keyword:INTEREST_KEYWORD[]
-  }
+  name:string,
+  interest_keyword:INTEREST_KEYWORD[]
+}
 
 export interface LINK_ERROR{
   error:boolean,
@@ -227,6 +227,7 @@ export interface STUDENT_PROFILE{
 
 export interface STUDENT_INTERACTION{
   id:string,
+  started_interaction:boolean
   accepted_connection:boolean,
   blocked:boolean,
   new_conversation_disabled?:boolean,

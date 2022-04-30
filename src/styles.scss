@@ -7,7 +7,7 @@ $custom-typography: mat-typography-config(
 
 @include mat-core($custom-typography);
 
-html, body { height: 100%; }
+html, body { display: block; width: 100%; height: 100%; }
 body {
    margin: 0;
    font-family: "Inter", sans-serif;
@@ -17,6 +17,8 @@ body {
   }
 
 :root{
+    --pacific-light-blue: #d8e6ec;
+    --pacific-medium-blue: #498299;
     --pacific-blue: #233E49;
     --medium-blue: #259bcd;
     --light-medium-blue: #c1e4f3;
@@ -88,14 +90,55 @@ body {
   cursor: pointer;
 }
 
+.dot{
+  width: 5px;
+  height: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  background-color: var(--gray-text);
+}
+
+.link{
+  text-decoration: unset;
+  color: unset;
+}
+
+.link:hover{
+  text-decoration: unset;
+  color: unset;
+}
+
+.link:active{
+  text-decoration: unset;
+  color: unset;
+}
+
+.link:visited{
+  text-decoration: unset;
+  color: unset;
+}
+
+.poppins-font{
+  font-family: Poppins !important;
+}
+
 .gray-background{
   background-color: #dddbd1;
   background-image: linear-gradient(180deg,#dddbd1,#d2dbdc);
 }
 
 .mat-focus-indicator{
-    outline: 0 !important;
+  outline: 0 !important;
 }
+
+.mat-input-element{
+  caret-color: black !important;
+}
+
+.mat-input-element:disabled{
+  color: black !important;
+}
+
 
 .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick{
   color: var(--pacific-blue);
@@ -486,9 +529,15 @@ body {
 .stepper-form-navigate-button .mat-figure{
     justify-content: space-between !important;
 }
-#signup-stepper .mat-horizontal-stepper-header-container{
+#account-stepper .mat-horizontal-stepper-header-container{
     display: None;
 }
+
+.mat-horizontal-content-container{
+  padding: 0px !important;
+}
+
+
 #institution-registration .mat-horizontal-stepper-header-container{
     display: none;
 }
@@ -536,6 +585,7 @@ mat-slider {
   border: 2.3px solid var(--silver) !important;
   background-color: inherit !important;
   color: var(--rich-black) !important;
+  cursor: pointer !important;
 }
 
 .mat-chip.mat-standard-chip.mat-chip-selected.mat-primary{
@@ -559,6 +609,14 @@ mat-slider {
 
 .mat-slide-toggle.mat-checked .mat-ripple-element {
   background-color: var(--pacific-blue);
+}
+
+.mat-progress-bar-fill::after{
+  background-color: var(--pacific-blue) !important;
+}
+
+.mat-progress-bar-buffer{
+  background-color: var(--pacific-light-blue) !important;
 }
 
 .disable-select {

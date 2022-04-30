@@ -29,3 +29,18 @@
   outline: none;
   box-shadow: var(--shadow-dense);
 }
+
+.text-highlight{
+  line-height: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--primiam-gray);
+  color: var(--gray-text);
+}
+
+.text-highlight-symbol{
+  position: absolute;
+  line-height: inherit;
+  font-size: 20px; 
+  width: 20px; 
+  height: 20px;
+}

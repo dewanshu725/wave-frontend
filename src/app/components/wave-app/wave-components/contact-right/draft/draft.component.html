@@ -16,7 +16,11 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur p
             <div [innerHTML]="svg(interaction.student_interaction.profile.nickname)" style="border-radius: 50%; width: 40px;"></div>
             <div class="d-flex flex-column">
                 <p class="mat-body-2 space-gray-color-text mb-0 nowrap"><strong>{{interaction.student_interaction.profile.nickname}}</strong></p>
-                <p class="mat-caption space-gray-color-text mb-0">{{interaction.converse_context.vue_context.location}}, {{interaction.converse_context.vue_context.age}}</p>
+                <span class="mat-caption space-gray-color-text mb-0 d-flex align-items-center">
+                    {{interaction.student_interaction.profile.region}}, {{interaction.student_interaction.profile.country}}
+                    <div class="dot ml-2 mr-2"></div>
+                    ({{interaction.converse_context.vue_context.age}})
+                </span>
             </div>
         </div>
 
@@ -37,25 +41,28 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur p
         </div>
 
         <div class="d-flex justify-content-center align-items-center">
-            <button mat-icon-button disableRipple class="button-style-3 mr-2" matTooltip="Vue" matTooltipShowDelay="300"
-            (click)="openVue(interaction.converse_context.vue_context.url)"
-            >
+            <button *ngIf="interaction.converse_context.vue_context != null" [disabled]="!draftEditor" mat-icon-button disableRipple 
+            class="button-style-3 mr-2" matTooltip="Vue" (click)="draftEditor = false; displayVue = true">
                 <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">preview</mat-icon>
             </button>
 
-            <button [disabled]="notify" mat-icon-button disableRipple class="button-style-3" 
-            [matTooltip]="'Remove '+interaction.student_interaction.profile.nickname" matTooltipShowDelay="500" (click)="draftRemove()"
-            >
+            <button [disabled]="!draftEditor" mat-icon-button disableRipple class="button-style-3" (click)="draftRemove()" 
+            [matTooltip]="'Remove '+interaction.student_interaction.profile.nickname">
                 <mat-icon style="line-height: 22px; font-size: 25px; margin-right: 2px;">delete_outline</mat-icon>
             </button>
         </div>
     </mat-toolbar>
 
     <div class="d-flex justify-content-center align-items-center app-container-style glass-blur" style="height: calc(100% - 59px);">
-        <app-notify-box *ngIf="notify" class="d-flex justify-content-center w-100" [notifyData]="this.notifyData"
-        (response)="notifyResponse($event)"
-        >
-        </app-notify-box>
+        <ng-container *ngIf="!draftEditor">
+            <app-display-vue *ngIf="displayVue" style="width: 95%; height: 75%;" [mode]="{create: false, edit: false, display: true}"
+            [profileVue]="true" [linkPreview]="interaction.converse_context.vue_context" (closeDetailedVue)="displayVue = false; draftEditor = true">
+            </app-display-vue>
+
+            <app-notify-box *ngIf="notify" class="d-flex justify-content-center w-100" [notifyData]="notifyData"
+            (response)="notifyResponse($event)">
+            </app-notify-box>
+        </ng-container>
 
         <app-draft-editor *ngIf="draftEditor" [parentContainerWidth]="bodyContainerWidthNumber" [context]="draftEditorContext"
         [parentContainerHeight]="bodyContainerHeightNumber" [interaction]="interaction" (send)="draftSend()"

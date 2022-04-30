@@ -41,7 +41,7 @@
                 >
                     <mat-icon class="draft-action-icon mr-2">{{conversePined ? 'link_off' : 'push_pin'}}</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Send" matTooltipShowDelay="300" (click)="send.emit()" [disabled]="draftSendDisable"
+                <button mat-icon-button matTooltip="Send" matTooltipShowDelay="300" (click)="sendConverse()" [disabled]="draftSendDisable"
                 [hidden]="draftForm.invalid || interaction.student_interaction.new_conversation_disabled">
                     <mat-icon class="draft-action-icon">send</mat-icon>
                 </button>
@@ -86,7 +86,7 @@
         <form class="w-100 draft-body" novalidate [formGroup]="draftForm" #draft_form="ngForm"
         [style.height]="conversePined ? formContainerHeight : halfContainerHeight"
         >
-            <textarea matInput formControlName="body" #draftBody minlength="5" placeholder="Write what's in your mind..." type="text"
+            <textarea matInput formControlName="body" #draftBody placeholder="Write what's in your mind..." type="text"
             autocorrect="off" spellcheck="false" class="body-textarea mat-subheading-2 space-gray-color-text custom-scrollbar"
             >
             </textarea>

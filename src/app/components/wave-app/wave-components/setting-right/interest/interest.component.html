@@ -1,11 +1,13 @@
 <mat-toolbar class="app-status-bar justify-content-between">
-  <p *ngIf="initialSetup else editeInterest" class="mat-body-2 space-gray-color-text mb-0"><strong>Select what interests you</strong></p>
-  <ng-template #editeInterest>
-    <p class="mat-subheading-1 space-gray-color-text mb-0"><strong style="font-family: Roboto, sans-serif;">Edit your interests</strong></p>
-  </ng-template>
+  <div class="d-flex align-items-center">
+    <p class="mat-subheading-1 space-gray-color-text mb-0">
+      <strong style="font-family: Roboto, sans-serif;">Edit your interests</strong>
+    </p>
 
+    <div class="dot ml-2 mr-2"></div>
 
-  <p class="mat-caption rich-black-color-text mb-0"><strong>{{chipSelectionCounter}}</strong></p>
+    <p class="mat-subheading-1 rich-black-color-text mb-0"><strong>{{chipSelectionCounter}}</strong></p>
+  </div>
   
   <button *ngIf="selectedInterestSaving === false" mat-icon-button disableRipple matTooltip="save" matTooltipShowDelay="500"
   [disabled]="chipSelectionCounter>0 && chipChanged ? false : true" (click)="chipSubmit()" class="button-style-6"

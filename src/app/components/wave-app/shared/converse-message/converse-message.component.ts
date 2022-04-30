@@ -27,7 +27,7 @@ export class ConverseMessageComponent implements OnInit, OnChanges, OnDestroy {
 
   interaction:INTERACTION;
   fetchMore:boolean;
-  minMessageFeedLength = 2;
+  minMessageFeedLength = 5;
   loading = false;
   checkScrollTop = true;
 

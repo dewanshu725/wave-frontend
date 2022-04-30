@@ -1,8 +1,9 @@
 import { INTEREST_KEYWORD } from './../../../../../../_helpers/constents';
 import { ResponsiveService } from './../../../../../../_services/responsive.service';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { AppDataShareService } from './../../../../../../_services/app-data-share.service';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-create-vue',
@@ -16,6 +17,8 @@ export class CreateVueComponent implements OnInit, OnDestroy {
     private responsiveService:ResponsiveService,
   ) { }
 
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   @Output() linkResultStatus = new EventEmitter();
   @Output() vueConstructed = new EventEmitter();
   @Output() vueSubmited = new EventEmitter();
@@ -23,15 +26,13 @@ export class CreateVueComponent implements OnInit, OnDestroy {
   isMobile:boolean;
 
   currentSelectedInterest:INTEREST_KEYWORD[] = [];
-  selectedInterestUnsub: Subscription;
 
   ngOnInit(): void {
     this.isMobile = this.responsiveService.isMobile;
 
     this.currentSelectedInterest = this.appDataShareService.currentSelectedInterestArray;
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
-    .subscribe(result =>{
+    this.appDataShareService.currentSelectedInterest.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       this.currentSelectedInterest = this.appDataShareService.currentSelectedInterestArray;
     });
 
@@ -39,7 +40,8 @@ export class CreateVueComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.selectedInterestUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
     this.currentSelectedInterest = [];
   }
 

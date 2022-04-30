@@ -1,11 +1,13 @@
 import { AuthenticationService } from './../../_services/authentication.service';
 import { UserDataService } from './../../_services/user-data.service';
 import { AppDataShareService } from './../../_services/app-data-share.service';
-import { STUDENT_STATE_OBJ, USER_OBJ, ALERT_BOX, APP_ACTIVE_PATH } from './../../_helpers/constents';
+import { USER_OBJ, APP_ACTIVE_PATH } from './../../_helpers/constents';
 import { ResponsiveService } from './../../_services/responsive.service';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { NotificationService } from 'src/app/_services/notification.service';
+import { Meta, MetaDefinition, Title } from '@angular/platform-browser';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-wave-app',
@@ -20,13 +22,20 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     private userDataService:UserDataService,
     private authenticationService:AuthenticationService,
     private notificationService:NotificationService,
-    private Ref:ChangeDetectorRef
+    private Ref:ChangeDetectorRef,
+    private title:Title, 
+    private meta:Meta
     ) { }
 
   @ViewChild('appContainer') appContainerElement: ElementRef;
   @ViewChild('appRightContainer') appRightContainer: ElementRef;
 
-  responsiveUnsub: Subscription;
+  metaTags:MetaDefinition[] = [
+    {name: "title", content: "Wave"}
+  ];
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   appColum = 'col-10';
 
   appContainerHeight:number;
@@ -34,10 +43,8 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
   appRightContainerWidth:number;
 
   userObj:USER_OBJ;
-  userDataUnsub:Subscription;
 
   notification:APP_ACTIVE_PATH;
-  notificationUnsub:Subscription;
 
   navProfileState = false;
   navInterestState = false;
@@ -46,17 +53,19 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   ngOnInit(): void {
+    this.title.setTitle("Wave");
+    this.meta.addTags(this.metaTags);
+
     this.userObj = this.userDataService.getItem({userObject:true}).userObject;
 
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.userObj = this.userDataService.getItem({userObject:true}).userObject;
     });
 
     this.notificationService.onInit();
 
     this.notification = this.appDataShareService.appActivePath;
-    this.notificationUnsub = this.appDataShareService.notification
-    .subscribe(() => {
+    this.appDataShareService.notification.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.notification = this.appDataShareService.appActivePath;
       this.Ref.detectChanges();
     });
@@ -71,19 +80,11 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.appDataShareService.appRightContainerWidth = this.appRightContainerWidth;
     this.appDataShareService.appContainerHeight = this.appContainerHeight;
 
-    const student_state:STUDENT_STATE_OBJ = this.userDataService.getItem({studentState:true}).studentState;
-    if (student_state.initial_setup_done === false){
-      this.navStateChange('settings');
-      this.appDataShareService.initialSetup.next(true);
-    }
-    else{
-      this.navStateChange('contact');
-    }
+    this.navStateChange('interest');
 
     this.Ref.detectChanges();
 
-    this.responsiveUnsub = this.responsiveService.getScreenWidthStatus()
-    .subscribe( () =>{
+    this.responsiveService.getScreenWidthStatus().pipe(takeUntil(this.destroy$)).subscribe( () =>{
       this.appContainerHeight = this.appContainerElement.nativeElement.offsetHeight - 2;
       this.appContainerWidth = this.appContainerElement.nativeElement.offsetWidth;
       this.appRightContainerWidth = this.appRightContainer.nativeElement.offsetWidth;
@@ -139,9 +140,8 @@ export class WaveAppComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   ngOnDestroy(){
-    this.userDataUnsub.unsubscribe();
-    this.responsiveUnsub.unsubscribe();
-    this.notificationUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
 
     this.notificationService.closeConnection();
   }

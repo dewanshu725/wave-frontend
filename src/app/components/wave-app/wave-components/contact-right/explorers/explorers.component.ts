@@ -3,8 +3,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { identicon } from 'minidenticons';
 import { NgxMasonryOptions } from 'ngx-masonry';
-import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 import { APP_ACTIVE_PATH, DRAFT_EDITOR_CONTEXT, INTERACTION, LINK_PREVIEW, NOTIFY_DATA } from 'src/app/_helpers/constents';
 import { createMyVueObj, createMyDiscoveryObj, timeSinceFormat } from 'src/app/_helpers/functions.utils';
 import { DECLINE_INTERACTION, GET_PROFILE_DATA, RESTART_INTERACTION, SEND_CONVERSATION, TOUCH_CONVERSATION } from 'src/app/_helpers/graphql.query';
@@ -29,15 +29,14 @@ export class ExplorersComponent implements OnInit, OnDestroy {
     private Ref:ChangeDetectorRef
   ) { }
 
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   converseContainerWidthNumber:number;
   converseContainerHeightNumber:number;
 
   interaction:INTERACTION = null;
-  contactChangedUnsub: Subscription;
-  scrollEndUnsub:Subscription;
 
   notification:APP_ACTIVE_PATH;
-  notificationUnsub:Subscription;
 
   studentProfileVisible = false;
   hideConverseMessage = false;
@@ -81,14 +80,12 @@ export class ExplorersComponent implements OnInit, OnDestroy {
     this.appDataShareService.notification.next(true);
 
     this.notification = this.appDataShareService.appActivePath;
-    this.notificationUnsub = this.appDataShareService.notification
-    .subscribe(() => {
+    this.appDataShareService.notification.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.notification = this.appDataShareService.appActivePath;
       this.Ref.detectChanges();
     });
 
-    this.contactChangedUnsub = this.appDataShareService.changeContact
-    .subscribe(result => {
+    this.appDataShareService.changeContact.pipe(takeUntil(this.destroy$)).subscribe(result => {
       const Index = this.appDataShareService.allInteraction.explorers.findIndex(obj => obj.id === result);
       if (Index > -1){
         this.interaction = this.appDataShareService.allInteraction.explorers[Index];
@@ -172,7 +169,7 @@ export class ExplorersComponent implements OnInit, OnDestroy {
     this.notifyData = {
       notify_context: "SEND",
       title: "CONFIRM",
-      body: "Replying to " + this.interaction.student_interaction.profile.nickname +"." + " once send, it can not be taken back.",
+      body: "Replying to " + this.interaction.student_interaction.profile.nickname +"." + " once sent, it can't be taken back.",
       singleAction: false,
       action: "Send",
       actionLoading: false
@@ -387,7 +384,7 @@ export class ExplorersComponent implements OnInit, OnDestroy {
       ${this.interaction.student_interaction.profile.fullname}. You can unblock it later if you wish to resume communication.`
 
       const reportMessage = `Once reported, ${this.interaction.student_interaction.profile.fullname} 
-      will be removed from you explorer's list and all the data will be deleted permanently.`
+      will be removed from your explorer's list and all the data will be deleted permanently.`
 
       const dialogRef = this.matDialog.open(AlertBoxComponent, {
         width:'30%',
@@ -469,7 +466,7 @@ export class ExplorersComponent implements OnInit, OnDestroy {
         backdropClass: ['frosted-glass-blur'],
         data: {
           title: 'Unblock',
-          message: 'Once unblocked, all service will resume as normal.',
+          message: 'Once unblocked, all services will resume as normal.',
           singleAction: false,
           actionName: 'Unblock',
         }
@@ -520,8 +517,9 @@ export class ExplorersComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.contactChangedUnsub.unsubscribe();
     this.appDataShareService.appActivePath.contact.explorers.active = false;
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

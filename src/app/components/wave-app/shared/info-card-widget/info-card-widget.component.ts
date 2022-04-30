@@ -275,9 +275,9 @@ export class InfoCardWidgetComponent implements OnInit, OnDestroy {
             }
           }
           else if (this.interaction.converse[0].sender_student === true){
-  
+
             if (this.interaction.expire != null && threeDaysLeft(this.interaction.expire)){
-              this.infoCardData.messageText = timeAfter(this.interaction.expire) + " left for you to reply back!"
+              this.infoCardData.messageText = timeAfter(this.interaction.expire) === false ? 'This contact is expired' : `${timeAfter(this.interaction.expire)} left for you to reply back!`;
             }
             else{
               this.infoCardData.messageText = truncate(this.interaction.converse[0].body, 29);
@@ -292,7 +292,7 @@ export class InfoCardWidgetComponent implements OnInit, OnDestroy {
             if (this.interaction.expire != null && threeDaysLeft(this.interaction.expire)){
   
               this.infoCardData.contactStatus = {
-                text: "Expiring in " + timeAfter(this.interaction.expire),
+                text: timeAfter(this.interaction.expire) === false ? 'Expired' : `Expiring in ${timeAfter(this.interaction.expire)}`,
                 symbol: null,
                 highPriority: true,
                 newMessage: 0

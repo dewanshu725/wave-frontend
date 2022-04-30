@@ -3,12 +3,13 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { take } from 'rxjs/operators';
 import { INTEREST_KEYWORD, LINK_ERROR, LINK_PREVIEW } from 'src/app/_helpers/constents';
-import { composedPath, createMyVueObj, createVueObj, getDomain, truncate } from 'src/app/_helpers/functions.utils';
-import { ALL_INTERACTION_DRAFT_CONVERSE, LINK_VALIDATION_MUTATION, REPORT_VUE, START_CONVERSATION, UPDATE_VUE_FEED, VUE_CONVERSATION_UPDATE, VUE_DELETE, VUE_PUBLIC_UPDATE, VUE_PUBLISH } from 'src/app/_helpers/graphql.query';
+import { composedPath, createInteraction, createMyVueObj, createVueObj, getDomain, truncate } from 'src/app/_helpers/functions.utils';
+import { LINK_VALIDATION_MUTATION, REPORT_VUE, START_CONVERSATION, UPDATE_VUE_FEED, VUE_CONVERSATION_UPDATE, VUE_DELETE, VUE_PUBLIC_UPDATE, VUE_PUBLISH } from 'src/app/_helpers/graphql.query';
 import { AppDataShareService } from 'src/app/_services/app-data-share.service';
 import { GraphqlService } from 'src/app/_services/graphql.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertBoxComponent } from 'src/app/components/shared/alert-box/alert-box.component';
+import { UserDataService } from 'src/app/_services/user-data.service';
 
 @Component({
   selector: 'app-display-vue',
@@ -19,6 +20,7 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
 
   constructor(
     private appDataShareService:AppDataShareService,
+    private userDataService: UserDataService,
     private graphqlService:GraphqlService,
     private Ref:ChangeDetectorRef,
     private snackBar: MatSnackBar,
@@ -93,10 +95,8 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
     error_message:""
   }
 
-  linkValue = null;
-  linkInputValid = false;
-  linkValidationLoading = false;
-  linkValidationSuccess = false;
+  linkValue:string = '';
+  linkInputValid = true;
 
   vueCreateForm:FormGroup;
   vueReportForm:FormGroup;
@@ -166,12 +166,17 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
 
   linkInputChange(linkInput:HTMLInputElement){
     this.linkValue = linkInput.value;
-    const linkValid = this.linkValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)+[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,10}(:[0-9]{1,10})?(\/.*)?$/g);
-    if (linkValid){
-      this.linkInputValid = true;
+    if (this.linkValue.length != 0){
+      const linkValid = this.linkValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)+[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,10}(:[0-9]{1,10})?(\/.*)?$/g);
+      if (linkValid){
+        this.linkInputValid = true;
+      }
+      else{
+        this.linkInputValid = false;
+      }
     }
     else{
-      this.linkInputValid = false;
+      this.linkInputValid = true;
     }
   }
 
@@ -256,131 +261,127 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
 
   }
 
-  linkSubmit(){
+  linkSubmit(): Promise<boolean>{
+    return new Promise<boolean>((resolve, reject) => {
+      this.linkValidationStatus.emit("Preparing your Vue...");
 
-    (async () =>{
-      const tokenStatus = await this.graphqlService.isTokenValid();
-      if (tokenStatus){
-        this.linkValidationLoading = true;
-        this.linkValidationStatus.emit("Preparing your Vue...");
-  
-        const mutationArrgs = {
-          "link": this.linkValue
+      const mutationArrgs = {
+        "link": this.linkValue
+      }
+
+      this.graphqlService.graphqlMutation(LINK_VALIDATION_MUTATION, mutationArrgs).pipe(take(1))
+      .subscribe((result:any) =>{
+        if(result.errors){
+          this.linkValidationStatus.emit("");
+          this.linkError = {
+            error:true,
+            blacklist:false,
+            sentence_filler:"something went wrong",
+            error_message:"On Our End"
+          }
+
+          resolve(false);
         }
-  
-        this.graphqlService.graphqlMutation(LINK_VALIDATION_MUTATION, mutationArrgs).pipe(take(1))
-        .subscribe((result:any) =>{
-          if(result.errors){
+        else{
+          const data = result.data.linkValidation;
+          if (data.error){
+            this.linkError.error = true;
             this.linkValidationStatus.emit("");
-            this.linkValidationLoading = false;
-            this.linkError = {
-              error:true,
-              blacklist:false,
-              sentence_filler:"something went wrong",
-              error_message:"On Our End"
+
+            if (data.error === 'INVALID_LINK'){
+              this.linkError.sentence_filler = "your web link is";
+              this.linkError.error_message = "Invalide";
             }
+            else if (data.error === 'TIMEOUT'){
+              this.linkError.sentence_filler = "your web link is taking";
+              this.linkError.error_message = "Too Much Time To Respond";
+            }
+            else if (data.error === 'TOO_MANY_REDIRECTS'){
+              this.linkError.sentence_filler = "your web link has";
+              this.linkError.error_message = "Too Many Redirects";
+            }
+            else if (data.error === 'BROKEN_LINK'){
+              this.linkError.sentence_filler = "your web link is";
+              this.linkError.error_message = "Not Responding";
+            }
+
+            resolve(false);
+          }
+          else if (data.blackList){
+            this.linkValidationStatus.emit("");
+            this.linkError.error = true;
+            this.linkError.blacklist = true;
+            this.linkError.sentence_filler = "your web link points to";
+
+            if (data.blackList === 'ADULT'){
+              this.linkError.error_message = "Adult Content";
+            }
+            else if(data.blackList === 'GAMBLING'){
+              this.linkError.error_message = "Gambling Website";
+            }
+            else if(data.blackList === 'SHOPPING'){
+              this.linkError.error_message = "Shopping Website";
+            }
+
+            resolve(false);
           }
           else{
-            const data = result.data.linkValidation;
-            if (data.error){
-              this.linkValidationLoading = false;
-              this.linkError.error = true;
-              this.linkValidationStatus.emit("");
-  
-              if (data.error === 'INVALID_LINK'){
-                this.linkError.sentence_filler = "your web link is";
-                this.linkError.error_message = "Invalide";
+            this.linkValidationStatus.emit("");
+            const linkPreview = JSON.parse(data.linkPreview);
+            
+            if (linkPreview.error){
+              this.linkError = {
+                error:true,
+                blacklist:false,
+                sentence_filler:"something went wrong",
+                error_message: "On Our End"
               }
-              else if (data.error === 'TIMEOUT'){
-                this.linkError.sentence_filler = "your web link is taking";
-                this.linkError.error_message = "Too Much Time To Respond";
-              }
-              else if (data.error === 'TOO_MANY_REDIRECTS'){
-                this.linkError.sentence_filler = "your web link has";
-                this.linkError.error_message = "Too Many Redirects";
-              }
-              else if (data.error === 'BROKEN_LINK'){
-                this.linkError.sentence_filler = "your web link is";
-                this.linkError.error_message = "Not Responding";
-              }
-            }
-            else if (data.blackList){
-              this.linkValidationLoading = false;
-              this.linkValidationStatus.emit("");
-              this.linkError.error = true;
-              this.linkError.blacklist = true;
-              this.linkError.sentence_filler = "your web link points to";
-  
-              if (data.blackList === 'ADULT'){
-                this.linkError.error_message = "Adult Content";
-              }
-              else if(data.blackList === 'GAMBLING'){
-                this.linkError.error_message = "Gambling Website";
-              }
-              else if(data.blackList === 'SHOPPING'){
-                this.linkError.error_message = "Shopping Website";
-              }
+
+              resolve(false);
             }
             else{
-              this.linkValidationStatus.emit("");
-              const linkPreview = JSON.parse(data.linkPreview);
-              
-              if (linkPreview.error){
-                this.linkError = {
-                  error:true,
-                  blacklist:false,
-                  sentence_filler:"something went wrong",
-                  error_message: "On Our End"
-                }
-              }
-              else{
-                const domain_url = getDomain(linkPreview.url);
+              const domain_url = getDomain(linkPreview.url);
 
-                this.linkSubmitData = {
-                  title: linkPreview.title,
-                  image: linkPreview.image,
-                  image_width: null,
-                  image_height: null,
-                  url: linkPreview.url,
-                  domain_url: domain_url,
-                  domain_name: domain_url.split('.')[0],
-                  site_name: linkPreview.site_name,
-                }
+              this.linkSubmitData.image = linkPreview.image,
+              this.linkSubmitData.image_width = null,
+              this.linkSubmitData.image_height = null,
+              this.linkSubmitData.url = linkPreview.url,
+              this.linkSubmitData.domain_url = domain_url,
+              this.linkSubmitData.domain_name = domain_url.split('.')[0],
+              this.linkSubmitData.site_name = linkPreview.site_name,
 
-                if (this.linkSubmitData.title != null){
-                  this.vueCreateForm.get('title').setValue(this.linkSubmitData.title);
-                }
-  
-                this.linkValidationSuccess = true;
-              }
+              resolve(true);
             }
           }
-        },
-        error =>{
-          this.linkValidationStatus.emit("");
-          this.linkValidationLoading = false;
-          if (this.graphqlService.internetStatus){
-            this.linkError = {
-              error:true,
-              blacklist:false,
-              sentence_filler:"something went wrong",
-              error_message:"On Our End"
-            }
+        }
+      },
+      error =>{
+        this.linkValidationStatus.emit("");
+        if (this.graphqlService.internetStatus){
+          this.linkError = {
+            error:true,
+            blacklist:false,
+            sentence_filler:"something went wrong",
+            error_message:"On Our End"
           }
-          else{
-            this.linkError = {
-              error:true,
-              blacklist:false,
-              sentence_filler:"You don't have",
-              error_message:"Proper Internet"
-            }
+        }
+        else{
+          this.linkError = {
+            error:true,
+            blacklist:false,
+            sentence_filler:"You don't have",
+            error_message:"Proper Internet"
           }
-        });
-      }
-    })();
+        }
+
+        resolve(false);
+      });
+    });
   }
 
   vueSubmit(){
+    this.vueSubmitStatus = null;
+
     this.linkSubmitData.title = truncate(this.vueCreateForm.get('title').value.trim(), 100);
     this.linkSubmitData.description = this.vueCreateForm.get('description').value.trim();
     this.linkSubmitData.interest_keyword = this.currentSelectedInterest;
@@ -391,33 +392,43 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
 
       const tokenStatus = await this.graphqlService.isTokenValid();
       if (tokenStatus){
-        this.vueSubmitStatus = null;
+        let linkResult = true;
 
-        const mutationArrgs = {
-          'vueJson': JSON.stringify(this.linkSubmitData)
+        if (this.linkValue.length != 0){
+          linkResult = await this.linkSubmit();
+          this.linkValue = '';
         }
 
-        this.graphqlService.graphqlMutation(VUE_PUBLISH, mutationArrgs).pipe(take(1))
-        .subscribe(
-          (result:any) =>{
-            if (result.errors){
-              this.vueSubmitStatus = false;
-              this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
-            }
-            else if (result.data?.vuePublish?.result != null){
-              this.appDataShareService.myVueArray.unshift(createMyVueObj(result.data.vuePublish.result));
-              this.vueSubmited.emit(true);
-            }
-            else{
-              this.vueSubmitStatus = false;
-              this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
-            }
-          },
-          error =>{
-            this.vueSubmitStatus = false;
-            this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+        if (linkResult){
+          const mutationArrgs = {
+            'vueJson': JSON.stringify(this.linkSubmitData)
           }
-        )
+  
+          this.graphqlService.graphqlMutation(VUE_PUBLISH, mutationArrgs).pipe(take(1))
+          .subscribe(
+            (result:any) =>{
+              if (result.errors){
+                this.vueSubmitStatus = false;
+                this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+              }
+              else if (result.data?.vuePublish?.result != null){
+                this.appDataShareService.myVueArray.unshift(createMyVueObj(result.data.vuePublish.result));
+                this.vueSubmited.emit(true);
+              }
+              else{
+                this.vueSubmitStatus = false;
+                this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+              }
+            },
+            error =>{
+              this.vueSubmitStatus = false;
+              this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+            }
+          );
+        }
+        else{
+          this.vueSubmitStatus = false;
+        }
       }
       else{
         this.vueSubmitStatus = false;
@@ -428,8 +439,7 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
   }
 
   tryAgain(){
-    this.linkValue = null;
-    this.linkInputValid = false;
+    this.linkValue = '';
     this.linkError = {
       error:false,
       blacklist:false,
@@ -526,30 +536,28 @@ export class DisplayVueComponent implements OnInit, AfterViewInit {
 
       this.graphqlService.graphqlMutation(START_CONVERSATION, mutationArrgs).pipe(take(1))
       .subscribe((result:any) =>{
-        if (result.data?.startConversation?.result === true){
-          (async () =>{
-            const draft = await this.graphqlService.getContact(ALL_INTERACTION_DRAFT_CONVERSE);
+        if (result.data?.startConversation?.result != null){
+          const interactionObj = result.data.startConversation.result;
+          const studentProfileId = this.userDataService.getItem({userObject:true}).userObject.student_profile_id;
+          this.appDataShareService.allInteraction.draft_converse.unshift(createInteraction(interactionObj, studentProfileId, ''));
 
-            if (draft){
-              this.vueStartConversationLoading = false;
-              this.linkPreview.conversation_started = true;
+          this.appDataShareService.vueFeedArray.forEach(vueFeed => {
+            vueFeed.author_id === this.linkPreview.author_id ? vueFeed.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueFeedArray.forEach(vueFeed => {
-                vueFeed.author_id === this.linkPreview.author_id ? vueFeed.conversation_started = true : null;
-              });
+          this.appDataShareService.vueHistoryArray.forEach(vueHistory => {
+            vueHistory.author_id === this.linkPreview.author_id ? vueHistory.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueHistoryArray.forEach(vueHistory => {
-                vueHistory.author_id === this.linkPreview.author_id ? vueHistory.conversation_started = true : null;
-              });
+          this.appDataShareService.vueSavedArray.forEach(vueSave =>{
+            vueSave.author_id === this.linkPreview.author_id ? vueSave.conversation_started = true : null;
+          });
 
-              this.appDataShareService.vueSavedArray.forEach(vueSave =>{
-                vueSave.author_id === this.linkPreview.author_id ? vueSave.conversation_started = true : null;
-              });
+          this.vueStartConversationLoading = false;
+          this.linkPreview.conversation_started = true;
 
-              this.snackBar.open("conversation started", "GO TO DRAFT", {duration:2000});
-              this.appDataShareService.appNotification({contact_draft: true});
-            }
-          })();
+          this.snackBar.open("conversation started", "GO TO DRAFT", {duration:2000});
+          this.appDataShareService.appNotification({contact_draft: true});
         }
         else{
           this.vueStartConversationLoading = false;

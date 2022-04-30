@@ -3,11 +3,11 @@ import { DRAFT_EDITOR_CONTEXT, INTERACTION, NOTIFY_DATA } from 'src/app/_helpers
 import { AppDataShareService } from 'src/app/_services/app-data-share.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { identicon } from 'minidenticons';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { GraphqlService } from 'src/app/_services/graphql.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BECOME_EXPLORERS, DECLINE_INTERACTION, SEND_CONVERSATION, TOUCH_CONVERSATION } from 'src/app/_helpers/graphql.query';
-import { take } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-converse',
@@ -21,23 +21,25 @@ export class ConverseComponent implements OnInit, OnDestroy {
     private graphqlService: GraphqlService,
     private domSanitizer: DomSanitizer,
     private snackBar: MatSnackBar,
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   bodyContainerWidthNumber:number;
   bodyContainerHeightNumber:number;
 
   interaction:INTERACTION = null;
-  contactChangedUnsub: Subscription;
 
-  extraOptions = false;
+  extraOptions = true;
   hideConverseMessage = false;
   secondLayer = {
+    displayVue:false,
     draftEditor:false,
     notify:false
   }
   notifyData:NOTIFY_DATA;
   become_explorers = false;
-  minMessageForExplorers = 2;
+  minMessageForExplorers = 4;
 
   draftEditorContext:DRAFT_EDITOR_CONTEXT = {converseId:null, converseView:false, draftView:false, edit:false, converse:true};
 
@@ -48,9 +50,9 @@ export class ConverseComponent implements OnInit, OnDestroy {
   }
 
   reset(){
-    this.extraOptions = false;
+    this.extraOptions = true;
     this.hideConverseMessage = false;
-    this.secondLayer = {draftEditor:false, notify:false}
+    this.secondLayer = {displayVue:false, draftEditor:false, notify:false};
     this.notifyData = null;
     this.become_explorers = false;
     this.draftEditorContext = {converseId:null, converseView:false, draftView:false, edit:false, converse:true};
@@ -64,8 +66,7 @@ export class ConverseComponent implements OnInit, OnDestroy {
     this.appDataShareService.appActivePath.contact.converse.notification = false;
     this.appDataShareService.notification.next(true);
 
-    this.contactChangedUnsub = this.appDataShareService.changeContact
-    .subscribe(result => {
+    this.appDataShareService.changeContact.pipe(takeUntil(this.destroy$)).subscribe(result => {
       const Index = this.appDataShareService.allInteraction.converse.findIndex(obj => obj.id === result);
       if (Index > -1){
         this.interaction = this.appDataShareService.allInteraction.converse[Index];
@@ -148,7 +149,7 @@ export class ConverseComponent implements OnInit, OnDestroy {
     this.notifyData = {
       notify_context: "REPORT",
       title: "CONFIRM",
-      body: "Report and Block, " + this.interaction.student_interaction.profile.nickname +"." + " once reported, user will be removed and blocked permanently.",
+      body: "Report and Block, " + this.interaction.student_interaction.profile.nickname +"." + " once reported, the user will be removed and blocked permanently.",
       singleAction: false,
       action: "Report & block",
       actionLoading: false
@@ -172,8 +173,9 @@ export class ConverseComponent implements OnInit, OnDestroy {
     }
   }
 
-  secondLayerChanged(parems:{draftEditor?:boolean, notify?:boolean}){
+  secondLayerChanged(parems:{displayVue?:boolean, draftEditor?:boolean, notify?:boolean}){
     this.secondLayer = {
+      displayVue: parems.displayVue ? parems.displayVue : false,
       draftEditor: parems.draftEditor ? parems.draftEditor : false,
       notify: parems.notify ? parems.notify : false
     }
@@ -347,7 +349,7 @@ export class ConverseComponent implements OnInit, OnDestroy {
       this.graphqlService.graphqlMutation(SEND_CONVERSATION, mutationArrgs).pipe(take(1))
       .subscribe(
         (result:any) => {
-          if (result.data && result.data.sendConversation.result){
+          if (result.data?.sendConversation?.result){
             resolve(true);
           }
           else{
@@ -388,7 +390,11 @@ export class ConverseComponent implements OnInit, OnDestroy {
       this.graphqlService.graphqlMutation(BECOME_EXPLORERS, mutationArrgs).pipe(take(1))
       .subscribe(
         (result:any) => {
-          if (result.data && result.data.becomeExplorers.result){
+          if (result.data?.becomeExplorers?.result){
+            if (result.data.becomeExplorers.explorer){
+              this.interaction.student_interaction.accepted_connection = true;
+            }
+
             resolve(true);
           }
           else{
@@ -401,8 +407,9 @@ export class ConverseComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.contactChangedUnsub.unsubscribe();
     this.appDataShareService.appActivePath.contact.converse.active = false;
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

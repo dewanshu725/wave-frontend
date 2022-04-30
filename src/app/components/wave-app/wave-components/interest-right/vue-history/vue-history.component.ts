@@ -2,8 +2,8 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 import { isConversationStarted, isVueConverseDisable, locationName, modifyDateByDay, timeSince } from 'src/app/_helpers/functions.utils';
 import { UserDataService } from './../../../../../_services/user-data.service';
 import { LINK_PREVIEW, INTEREST_KEYWORD, PAGE_INFO, USER_PREFERENCE, IMAGE, dev_prod } from './../../../../../_helpers/constents';
-import { take } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { VUE_HISTORY, VUE_HISTORY_CURSOR } from './../../../../../_helpers/graphql.query';
 import { GraphqlService } from './../../../../../_services/graphql.service';
 import { Component, OnInit, OnDestroy, isDevMode } from '@angular/core';
@@ -20,7 +20,9 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
     private appDataShareService: AppDataShareService,
     private graphqlService: GraphqlService,
     private userDataService: UserDataService
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   vue_backgorund_url:string;
   vueDisplayContext = 'vuehistory';
@@ -34,7 +36,11 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
   fetchMoreLoading = false;
   fetchMoreError = false;
 
-  vueHistoryLength = 3;
+  currentVueHistoryPosition:{start:number, end:number};
+  updatingCurrentVueHistoryPosition = false;
+  currentVueHistoryLength = 10;
+
+  vueHistoryLength = 20;
   vueHistoryArray:LINK_PREVIEW[] = [];
   isVueHistoryFetching = false;
 
@@ -43,8 +49,6 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
   noMatchFound = false;
 
   masonryLoading = true;
-
-  selectedInterestUnsub:Subscription;
 
   masonryOption: NgxMasonryOptions = {
     gutter: 80,
@@ -57,6 +61,8 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
   deatiledVueData:LINK_PREVIEW;
 
   ngOnInit(): void {
+    this.currentVueHistoryPosition = {start:0, end:this.currentVueHistoryLength};
+
     this.vue_backgorund_url = this.appDataShareService.vue_background;
     this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
     this.appDataShareService.vueHistoryPageInfo ? this.fetchMore = this.appDataShareService.vueHistoryPageInfo.hasNextPage : null;
@@ -78,8 +84,7 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
       this.getVueHistory();
     }
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
-    .subscribe(result =>{
+    this.appDataShareService.currentSelectedInterest.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       if (this.detailedVueOpened) this.openDetailedVue(false);
 
       this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
@@ -92,9 +97,20 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
     let element = scrollEvent.target;
 
     if ((element.offsetHeight+element.scrollTop) > (element.scrollHeight - 59)){
-      if (this.fetchMore && !this.interestSelected && !this.isVueHistoryFetching){
-        this.isVueHistoryFetching = true;
-        this.getVueHistory(true);
+      if (!this.updatingCurrentVueHistoryPosition && !this.isVueHistoryFetching){
+
+        if (this.currentVueHistoryPosition.end < this.vueHistoryArray.length){
+          this.updatingCurrentVueHistoryPosition = true;
+
+          this.currentVueHistoryPosition = {
+            start: 0,
+            end: this.currentVueHistoryPosition.end+this.currentVueHistoryLength
+          }
+        }
+        else if (this.fetchMore && !this.interestSelected){
+          this.isVueHistoryFetching = true;
+          this.getVueHistory(true);
+        }
       }
     }
   }
@@ -158,7 +174,12 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
                 }
               }
               else{
-                this.createVueArray(result.data.vueOpened.pageInfo, result.data.vueOpened.edges);
+                if (fetchMore){
+                  this.createVueArray(result.data.vueOpened.pageInfo, result.data.vueOpened.edges, true);
+                }
+                else{
+                  this.createVueArray(result.data.vueOpened.pageInfo, result.data.vueOpened.edges);
+                }
               }
             },
             error =>{
@@ -192,7 +213,7 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
     })();
   }
 
-  createVueArray(pageInfo:PAGE_INFO, vueHistory){
+  createVueArray(pageInfo:PAGE_INFO, vueHistory, fetchMore=false){
     this.appDataShareService.vueHistoryPageInfo = pageInfo;
     this.fetchMore = this.appDataShareService.vueHistoryPageInfo.hasNextPage;
     const user_obj = this.userDataService.getItem({userObject:true}).userObject;
@@ -281,6 +302,13 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
     this.loading = false;
     this.vueEmpty = false;
     this.noMatch();
+
+    if (fetchMore){
+      this.currentVueHistoryPosition = {
+        start: 0,
+        end: this.vueHistoryArray.length
+      }
+    }
   }
 
   arrangeVueHistoryArray(){
@@ -309,6 +337,7 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
 
   masonryLoaded(){
     this.fetchMoreLoading = false;
+    this.updatingCurrentVueHistoryPosition = false;
     this.isVueHistoryFetching = false;
     this.masonryLoading = false;
   }
@@ -334,7 +363,8 @@ export class VueHistoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
     this.appDataShareService.isVueConstructed.next(false);
   }
 

@@ -12,13 +12,12 @@ export class AppDataShareService {
     isDevMode() ? this.vue_background="url('assets/svg/topography.svg')" : this.vue_background="url("+dev_prod.staticUrl_prod+'assets/svg/topography.svg'+")";
   }
 
-  initialSetup = new BehaviorSubject<boolean>(null);
 
   interestOption = new BehaviorSubject<string>(null);
   contactOption = new  BehaviorSubject<number>(null);
   settingsOption = new BehaviorSubject<string>(null);
 
-  studentInterest:INTEREST_KEYWORD[] = []
+  studentInterest:INTEREST_KEYWORD[] = [];
   currentSelectedInterestArray:INTEREST_KEYWORD[] = [];
 
   // ------------------------------------------------  Selected Interest Subject --------------------------------------------------
@@ -40,6 +39,7 @@ export class AppDataShareService {
   changeContactSection = new Subject<number>();
   // --------------------------------------------------Change Contact Section Subject----------------------------------------
 
+  
   // --------------------------------------------------Update User Data Subject---------------------------------------
   updateUserData = new Subject<boolean>();
   // --------------------------------------------------Update User Data Subject----------------------------------------
@@ -256,7 +256,6 @@ export class AppDataShareService {
   
 
   reset(){
-    this.initialSetup.next(null);
     this.interestOption.next(null);
     this.contactOption.next(null);
     this.settingsOption.next(null);

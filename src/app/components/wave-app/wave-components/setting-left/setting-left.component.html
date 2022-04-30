@@ -7,7 +7,11 @@
 
       <div class="d-flex flex-column w-100">
         <span class="mat-title mb-0">Interest</span>
-        <span class="mat-caption mb-0">Car, Plans, Computers</span>
+        <div class="d-flex">
+          <span class="mat-caption mb-0 mr-1" *ngFor="let interest of studentInterest; let i = last">
+            {{interest}}{{i ? null : ','}}
+          </span>
+        </div>
       </div>
     </div>
 

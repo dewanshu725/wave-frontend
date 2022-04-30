@@ -12,7 +12,7 @@ export class LoginGuard {
 
     const authenticated = await this.authenticationService.isAuthenticated();
     if (authenticated) {
-      this.router.navigate(['/app']);
+      this.router.navigate(['/']);
       return false;
     }
     else{

@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppDataShareService } from 'src/app/_services/app-data-share.service';
 
 @Component({
@@ -11,11 +12,12 @@ export class ContactRightComponent implements OnInit, OnDestroy {
 
   constructor(private appDataShareService:AppDataShareService) { }
 
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
   contactOption:number;
-  contactOptionUnsub: Subscription;
 
   ngOnInit(): void {
-    this.contactOptionUnsub = this.appDataShareService.contactOption.subscribe(result => this.contactOption = result);
+    this.appDataShareService.contactOption.pipe(takeUntil(this.destroy$)).subscribe(result => this.contactOption = result);
 
     this.appDataShareService.appActivePath.contact.active = true;
     this.appDataShareService.appActivePath.contact.notification = false;
@@ -23,8 +25,9 @@ export class ContactRightComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.contactOptionUnsub.unsubscribe();
     this.appDataShareService.appActivePath.contact.active = false;
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

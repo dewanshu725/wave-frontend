@@ -1,47 +1,5 @@
 import gql from 'graphql-tag';
 
-export const IMAGE_UPLOAD_MUTATION = gql`
-mutation imageupload($image:Upload){
-    imageUpload(imgFile:$image){
-      imgUrl
-    }
-  }
-`
-
-export const ALL_BOARD_NAME_SEARCH = gql`
-query allboard($name_Istartswith:String){
-  allBoard(first:10,name_Istartswith:$name_Istartswith){
-    edges{
-      node{
-        id
-        uid
-        name
-        logo
-        abbreviation
-        boardType
-      }
-    }
-  }
-}
-`
-
-export const ALL_BOARD_ABBREVIATION_SEARCH = gql`
-query allboard($abbreviation_Istartswith:String){
-  allBoard(first:10,abbreviation_Istartswith:$abbreviation_Istartswith){
-    edges{
-      node{
-        id
-        uid
-        name
-        logo
-        abbreviation
-        boardType
-      }
-    }
-  }
-}
-`
-
 
 // ------------------------------------------------------ ACCOUNT ----------------------------------------------------------
 
@@ -349,33 +307,6 @@ mutation Refresh_Token($refresh_token:String!){
   }
 `
 
-export const RESEND_ACTIVATION_EMAIL = gql`
-mutation email($email:String!) {
-  resendActivationEmail(
-    input: {
-      email:$email
-    }
-  ) {
-    success,
-    errors
-
-  }
-}
-`
-
-export const PASSWORD_RESET_EMAIL = gql`
-mutation email($email:String!) {
-  sendPasswordResetEmail(
-    input: {
-      email: $email
-    }
-  ) {
-    success,
-    errors
-  }
-}
-`
-
 export const PASSWORD_CHANGE = gql`
 mutation passChange(
   $currentPassword: String!,
@@ -415,56 +346,34 @@ mutation username($username:String!){
 }
 `
 
-export const USER_REGISTRATION_WITHOUT_PROFILE_PICTURE = gql`
-mutation user_registration(
-  $username:String!,
-  $email:String!,
-  $password1:String!,
-  $password2:String!,
-  $sex:String!,
-  $dob:String!,
-  $fullName:String!,
-  $location_json:String!,
-){
-  userRegistration(input:{
-    username:$username
-    email:$email
-    password1:$password1
-    password2:$password2
-    fullName:$fullName
-    sex:$sex
-    dob:$dob
-    locationJson:$location_json
+export const SEND_PASSWORD_RESET_OTP_FOR_USERNAME = gql`
+mutation sendPasswordResetOtp($username: String){
+  sendPasswordResetOtp(input:{
+    username: $username
   }){
-    user
+    key
   }
 }
 `
 
-export const USER_REGISTRATION_WITH_PROFILE_PICTURE = gql`
-mutation user_registration(
-  $username:String!,
-  $email:String!,
-  $password1:String!,
-  $password2:String!,
-  $sex:String!,
-  $dob:String!,
-  $profilePic:Upload,
-  $fullName:String!,
-  $location_json:String!,
-){
-  userRegistration(input:{
-    username:$username
-    email:$email
-    password1:$password1
-    password2:$password2
-    profilePic:$profilePic
-    fullName:$fullName
-    sex:$sex
-    dob:$dob
-    locationJson:$location_json
+export const SEND_PASSWORD_RESET_OTP_FOR_EMAIL = gql`
+mutation sendPasswordResetOtp($email: String){
+  sendPasswordResetOtp(input:{
+    email: $email
   }){
-    user
+    key
+  }
+}
+`
+
+export const RESET_PASSSWORD = gql`
+mutation passwordReset($key: String!, $verificationCode: Int!, $password: String!){
+  passwordReset(input:{
+    key: $key
+    verificationCode: $verificationCode
+    password: $password
+  }){
+    result
   }
 }
 `
@@ -526,7 +435,7 @@ mutation update($fullName:String){
 `
 
 export const UPDATE_PROFILE_PIC = gql`
-mutation updateProfilePic($profilePic: Upload!){
+mutation updateProfilePic($profilePic: Upload){
   updateProfilePic(input:{
     profilePic: $profilePic
   }){
@@ -601,9 +510,9 @@ query{
 `
 
 export const INTEREST_KEYWORD_MUTATION = gql`
-mutation save_interest($selected_keyword:String!){
+mutation save_interest($selectedInterests:[ID]!){
   interestKeywordMutation(input:{
-    selectedInterests:$selected_keyword
+    selectedInterests:$selectedInterests
   }){
     result
   }
@@ -639,7 +548,7 @@ mutation{
 // ------------------------------------------------------ INTEREST ----------------------------------------------------------
 
 
-// ------------------------------------------------------ VUE ----------------------------------------------------------
+// ------------------------------------------------------ VUE ---------------------------------------------------------------
 
 export const VUE_PUBLISH = gql`
 mutation vuePublish($vueJson:String!){
@@ -1240,6 +1149,7 @@ query allInteractionExplorers{
           edges{
             node{
               id
+              startedInteraction
               acceptedConnection
               blockedInteraction
               student{
@@ -1256,11 +1166,12 @@ query allInteractionExplorers{
                 profilePictureUrl
                 region
                 country
+                countryCode
               }
             }
           }
         }
-        chatmessageSet(first:10){
+        chatmessageSet(first:20){
           pageInfo{
             hasNextPage
             startCursor
@@ -1386,7 +1297,7 @@ query allInteractionExplorers{
             }
           }
         }
-        conversemessageSet(first:3){
+        conversemessageSet(first:5){
           pageInfo{
             hasNextPage
             startCursor
@@ -1797,66 +1708,10 @@ mutation deleteChatMessage($chatMessageId: ID!){
 `
 
 export const CHAT_MESSAGE_CREATED = gql`
-subscription chatMessageCreated($token: String!){
-  chatMessageCreated(token: $token){
-    id
-    attachementType
-    image{
-      id
-      image
-      imageUrl
-      thumnail
-      thumnailUrl
-      width
-      height
-    }
-    link{
-      id
-      image{
-        id
-        image
-        thumnail
-        thumnailUrl
-        width
-        height
-      }
-      title
-      description
-      url
-      domain{
-        domainUrl
-        domainName
-        siteName
-      }
-    }
-    vue{
-      id
-      title
-      description
-      url
-      image{
-        id
-        image
-        thumnail
-        thumnailUrl
-        width
-        height
-      }
-      domain{
-        domainUrl
-        domainName
-        siteName
-      }
-    }
-    body
-    created
-    seen
-    deleted
-    sender{
-      id
-    }
-    context{
-      id
+subscription{
+  chatMessageCreated{
+    chatMessage{
+			id
       attachementType
       image{
         id
@@ -1912,35 +1767,97 @@ subscription chatMessageCreated($token: String!){
       sender{
         id
       }
+      context{
+        id
+        attachementType
+        image{
+          id
+          image
+          imageUrl
+          thumnail
+          thumnailUrl
+          width
+          height
+        }
+        link{
+          id
+          image{
+            id
+            image
+            thumnail
+            thumnailUrl
+            width
+            height
+          }
+          title
+          description
+          url
+          domain{
+            domainUrl
+            domainName
+            siteName
+          }
+        }
+        vue{
+          id
+          title
+          description
+          url
+          image{
+            id
+            image
+            thumnail
+            thumnailUrl
+            width
+            height
+          }
+          domain{
+            domainUrl
+            domainName
+            siteName
+          }
+        }
+        body
+        created
+        seen
+        deleted
+        sender{
+          id
+        }
+      }
     }
   }
 }
 `
 
 export const CHAT_MESSAGE_UPDATED = gql`
-subscription chatMessageUpdated($token: String!){
-  chatMessageUpdated(token: $token){
-    id
-    seen
-    deleted
-    interaction{
-      id
-    }
-    sender{
-      id
+subscription{
+  chatMessageUpdated{
+    chatMessage{
+     	id
+      seen
+      deleted
+      interaction{
+        id
+      }
+      sender{
+        id
+      } 
     }
   }
 }
 `
 
 export const TYPING_STATUS_UPDATED = gql`
-subscription typingStatusUpdated($token: String!){
-  typingStatusUpdated(token: $token){
-    id
-    interaction{
-      id
+subscription{
+  typingStatus{
+    studentInteraction{
+     	id
+      interaction{
+        id
+      }
+      typing 
     }
-    typing
   }
 }
 `
@@ -1976,6 +1893,7 @@ query allInteractionConverse{
             author{
               id
               region
+              countryCode
               age
             }
             domain{
@@ -1989,6 +1907,7 @@ query allInteractionConverse{
           edges{
             node{
               id
+              startedInteraction
               acceptedConnection
               blockedInteraction
               student{
@@ -1996,11 +1915,14 @@ query allInteractionConverse{
                 nickname
                 lastSeen
                 deleted
+                region
+                country
+                countryCode
               }
             }
           }
         }
-        conversemessageSet(first:3){
+        conversemessageSet(first:5){
           pageInfo{
             hasNextPage
             startCursor
@@ -2114,26 +2036,29 @@ mutation explorers($userInteractionId: ID!){
     studentInteractionId: $userInteractionId
   }){
     result
+    explorer
   }
 }
 `
 
 export const CONVERSE_MESSAGE_UPDATED = gql`
-subscription converseMessageUpdated($token: String!){
-  converseMessageUpdated(token: $token){
-    id
-    messageType
-    created
-    seen
-    opened
-    body
-    interaction{
-      id
-      explorers
-      converse
-    }
-    sender{
-      id
+subscription{
+  converseMessageUpdated{
+    converseMessage{
+     	id
+      messageType
+      created
+      seen
+      opened
+      body
+      sender{
+        id
+      }
+      interaction{
+        id
+        explorers
+        converse
+      } 
     }
   }
 }
@@ -2179,6 +2104,7 @@ query allInteractionDraftConverse{
             author{
               id
               region
+              countryCode
               age
             }
             domain{
@@ -2192,6 +2118,7 @@ query allInteractionDraftConverse{
           edges{
             node{
               id
+              startedInteraction
               acceptedConnection
               blockedInteraction
               student{
@@ -2200,6 +2127,9 @@ query allInteractionDraftConverse{
                 newConversationDisabled
                 lastSeen
                 deleted
+                region
+                country
+                countryCode
               }
             }
           }
@@ -2283,6 +2213,14 @@ mutation connectInstitution($institutionUid: String!, $email: String!){
 }
 `
 
+export const DISCONNECT_INSTITUTION = gql`
+mutation{
+  disconnectInstitution(input:{}){
+    result
+  }
+}
+`
+
 export const RESEND_OTP_CONNECT_INSTITUTION = gql`
 mutation resendOtpConnectInstitution($key: String!){
   resendOtpConnectInstitution(input:{
@@ -2307,11 +2245,25 @@ mutation verifyConnectInstitution($key: String!, $verificationCode: Int!){
 // ------------------------------------------------------ INSTITUTION --------------------------------------------------------
 
 export const ONLINE_STATUS_UPDATED = gql`
-subscription online($token: String!){
-  onlineStatus(token: $token){
-    id
-    lastSeen
-    online
+subscription{
+  onlineStatus{
+    studentProfile{
+      id
+      lastSeen
+      online
+    }
+  }
+}
+`
+
+export const PROFILE_STATUS = gql`
+subscription{
+  profileStatus{
+    studentProfile{
+      refreshConnection
+      newConversationDisabled
+      conversationPoints
+    }
   }
 }
 `
@@ -2350,7 +2302,69 @@ mutation startConverse($vueId: ID!){
   startConversation(input:{
     vueId: $vueId
   }){
-    result
+    result{
+      id
+      expire
+      blocked
+      conversecontext{
+        contextType
+        vue{
+          id
+          title
+          description
+          url
+          image{
+            id
+            image
+            thumnail
+            thumnailUrl
+            width
+            height
+          }
+          author{
+            id
+            region
+            countryCode
+            age
+          }
+          domain{
+            domainUrl
+            domainName
+            siteName
+          }
+        }
+      }
+      studentinteractionSet{
+        edges{
+          node{
+            id
+            acceptedConnection
+            blockedInteraction
+            student{
+              id
+              nickname
+              newConversationDisabled
+              lastSeen
+              deleted
+              region
+              country
+              countryCode
+            }
+          }
+        }
+      }
+      draftconversemessageSet{
+        edges{
+          node{
+            id
+            messageType
+            inTransit
+            body
+            updated
+          }
+        }
+      }
+    }
   }
 }
 `
@@ -2382,6 +2396,97 @@ mutation restartInteraction($studentInteractionId: ID!){
     studentInteractionId: $studentInteractionId
   }){
     result
+  }
+}
+`
+
+export const GET_INTERACTION = gql`
+query getInteraction($interactionId: ID!){
+  interaction(id: $interactionId){
+    id
+    explorers
+    converse
+    expire
+    blocked
+    conversecontext{
+      contextType
+      vue{
+        id
+        title
+        description
+        url
+        image{
+          id
+          image
+          thumnail
+          thumnailUrl
+          width
+          height
+        }
+        author{
+          id
+          region
+          countryCode
+          age
+        }
+        domain{
+          domainUrl
+          domainName
+          siteName
+        }
+      }
+    }
+    studentinteractionSet{
+      edges{
+        node{
+          id
+          startedInteraction
+          acceptedConnection
+          blockedInteraction
+          student{
+            id
+            nickname
+            lastSeen
+            deleted
+            region
+            country
+            countryCode
+          }
+        }
+      }
+    }
+    conversemessageSet(first:5){
+      pageInfo{
+        hasNextPage
+        startCursor
+        endCursor
+      }
+      edges{
+        cursor
+        node{
+          id
+          messageType
+          created
+          seen
+          opened
+          body
+          sender{
+            id
+          }
+        }
+      }
+    }
+    draftconversemessageSet{
+      edges{
+        node{
+          id
+          messageType
+          inTransit
+          body
+          updated
+        }
+      }
+    }
   }
 }
 `

@@ -4,13 +4,43 @@
     <mat-divider></mat-divider>
   </div>
   <div class="model-content d-flex align-items-center justify-content-center">
-    <p class="mat-subheading-2">{{data.message}}</p>
+    <ng-container *ngIf="data.conversationPointInfo === true">
+      <div class="w-100">
+        <ul>
+          <li class="mat-subheading-2">
+            You can only Start/Receive a new conversation from those users whose conversation point is within the range of 
+            <Strong>[{{data.conversationPoint >= 30 ? '30' : data.conversationPoint}} – {{data.conversationPoint+10 < 100 ? data.conversationPoint+10 : '100'}}]</Strong>
+            (Based on your current converse point)
+          </li>
+  
+          <li class="mat-subheading-2">When you send a conversation you gain <strong>1</strong> point</li>
+  
+          <li class="mat-subheading-2">When you receive a conversation you lose <strong>1</strong> point</li>
+  
+          <li class="mat-subheading-2">If you neither reply to a conversation nor decline it before it expires, you lose <strong>10</strong> points</li>
+        </ul>
+  
+        <div class="text-highlight mb-2">
+          <span class="mat-subheading-2 mb-0">
+            If you don’t wish to continue a conversation, it's recommended to decline it using 
+            <mat-icon class="pointer ml-1 gray-color-text text-highlight-symbol">block</mat-icon>
+          </span>
+        </div>
+      </div>
+    </ng-container>
+
+    <p *ngIf="data.message != null" class="mat-subheading-2">{{data.message}}</p>
   </div>
-  <div class="mt-2 d-flex justify-content-center align-items-center">
+  <div *ngIf="!data.singleAction" class="mt-2 d-flex justify-content-center align-items-center">
     <button *ngIf="!data.singleAction" mat-stroked-button disableRipple class="model-button-style-2 w-50" [mat-dialog-close]="false" 
     style="height: 2.5rem; border-radius: 0px 0px 0px 10px;">Cancel</button>
 
     <button mat-stroked-button disableRipple class="model-button-style-1 w-50" style="height: 2.5rem; border-radius: 0px 0px 10px 0px;"
+    [mat-dialog-close]="true">{{data.actionName}}</button>
+  </div>
+
+  <div *ngIf="data.singleAction" class="mt-2 d-flex justify-content-center align-items-center">
+    <button mat-stroked-button disableRipple class="model-button-style-1 w-100" style="height: 2.5rem; border-radius: 0px 0px 10px 10px;"
     [mat-dialog-close]="true">{{data.actionName}}</button>
   </div>
 </div>

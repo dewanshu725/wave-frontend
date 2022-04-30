@@ -33,6 +33,13 @@
     <app-profile-left *ngIf="navProfileState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
     </app-profile-left>
 
+    <!---
+    <div [hidden]="!navInterestState" style="height:calc(100% - 59px);">
+      <app-interest-left class="component-style custom-scrollbar h-100">
+      </app-interest-left>
+    </div>
+    -->
+
     <app-interest-left *ngIf="navInterestState" class="component-style custom-scrollbar" style="height:calc(100% - 59px);">
     </app-interest-left>
 
@@ -47,6 +54,13 @@
   <div #appRightContainer class="align-container right-container">
     <app-profile-right *ngIf="navProfileState" class="d-block h-100">
     </app-profile-right>
+
+    <!--
+    <div [hidden]="!navInterestState" class="h-100">
+      <app-interest-right class="d-block h-100">
+      </app-interest-right>
+    </div>
+    -->
 
     <app-interest-right *ngIf="navInterestState" class="d-block h-100">
     </app-interest-right>

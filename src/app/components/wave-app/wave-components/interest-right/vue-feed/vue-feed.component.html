@@ -1,7 +1,7 @@
 <mat-toolbar class="mat-elevation-z0 app-status-bar justify-content-between">
   <div class="d-flex align-items-center">
     <span class="mat-subheading-1 space-gray-color-text mb-0"><strong>Vue Feed</strong></span>
-    <span class="mat-caption space-gray-color-text mb-0 ml-2 mr-2">|</span>
+    <div class="dot ml-2 mr-2"></div>
     <span class="mat-subheading-1 rich-black-color-text mb-0"><strong>{{vueFeedArray.length}}</strong></span>
   </div>
   
@@ -74,8 +74,8 @@
       style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
       >
         <app-vue ngxMasonryItem class="mb-5" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
-        *ngFor="let VueData of vueFeedArray" (openDetailedVue)="openDetailedVue($event, VueData)"
-        >
+        *ngFor="let VueData of vueFeedArray | slice: currentVueFeedPosition.start:currentVueFeedPosition.end"
+        (openDetailedVue)="openDetailedVue($event, VueData)">
         </app-vue>
       </ngx-masonry>
   
@@ -104,7 +104,7 @@
   </ng-template>
 </div>
 
-<div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur" 
+<div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur w-100" 
 style="z-index: 1; position: absolute; top: 59px; height: calc(100% - 59px);">
   <app-display-vue style="width: 95%; height: 75%;" [mode]="{create: false, edit: false, display: true}"
   [linkPreview]="deatiledVueData" [vueDisplayContext]="vueDisplayContext" (closeDetailedVue)="openDetailedVue($event)">

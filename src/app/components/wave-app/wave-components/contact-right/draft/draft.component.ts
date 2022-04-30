@@ -2,13 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { identicon } from 'minidenticons';
-import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 import { DRAFT_EDITOR_CONTEXT, INTERACTION, NOTIFY_DATA, USER_OBJ } from 'src/app/_helpers/constents';
 import { modifyDateByDay, timeAfterInHours } from 'src/app/_helpers/functions.utils';
 import { REMOVE_CONVERSATION, SEND_CONVERSATION } from 'src/app/_helpers/graphql.query';
 import { AppDataShareService } from 'src/app/_services/app-data-share.service';
 import { GraphqlService } from 'src/app/_services/graphql.service';
+import { NotificationService } from 'src/app/_services/notification.service';
 import { UserDataService } from 'src/app/_services/user-data.service';
 
 @Component({
@@ -20,23 +21,26 @@ export class DraftComponent implements OnInit, OnDestroy {
 
   constructor(
     private appDataShareService:AppDataShareService,
+    private notificationService:NotificationService,
     private userDataService: UserDataService,
     private domSanitizer: DomSanitizer,
     private graphqlService: GraphqlService,
     private snackBar: MatSnackBar,
-    ) { }
+  ) { }
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   bodyContainerWidthNumber:number;
   bodyContainerHeightNumber:number;
 
   userObject:USER_OBJ;
-  userDataUnsub:Subscription;
 
   interaction:INTERACTION = null;
-  contactChangedUnsub: Subscription;
 
   notifyData:NOTIFY_DATA;
   notify = false;
+
+  displayVue = false;
 
   draftEditor = false;
   draftEditorContext:DRAFT_EDITOR_CONTEXT = {converseId:null, converseView:false, draftView:false, edit:true, converse:false};
@@ -52,12 +56,11 @@ export class DraftComponent implements OnInit, OnDestroy {
 
     this.userObject = this.userDataService.getItem({userObject:true}).userObject;
 
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.userObject = this.userDataService.getItem({userObject:true}).userObject;
     });
 
-    this.contactChangedUnsub = this.appDataShareService.changeContact
-    .subscribe(result => {
+    this.appDataShareService.changeContact.pipe(takeUntil(this.destroy$)).subscribe(result => {
       const Index = this.appDataShareService.allInteraction.draft_converse.findIndex(obj => obj.id === result);
       if (Index > -1){
         this.draftEditor = false;
@@ -105,6 +108,7 @@ export class DraftComponent implements OnInit, OnDestroy {
 
           if (tokenStatus){
             const startConversation = await this.startConversation();
+            await this.notificationService.reconnect();
 
             if (startConversation){
               this.changeNewConversationCount();
@@ -221,7 +225,7 @@ export class DraftComponent implements OnInit, OnDestroy {
       this.notifyData = {
         notify_context: "SEND",
         title: "CONFIRM",
-        body: "Starting a new conversation with " + this.interaction.student_interaction.profile.nickname +"." + " once send, it can not be taken back.",
+        body: "Starting a new conversation with " + this.interaction.student_interaction.profile.nickname +"." + " once sent, it can't be taken back.",
         singleAction: false,
         action: "Send",
         actionLoading: false
@@ -286,9 +290,9 @@ export class DraftComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    this.userDataUnsub.unsubscribe();
-    this.contactChangedUnsub.unsubscribe();
     this.appDataShareService.appActivePath.contact.draft.active = false;
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
   }
 
 }

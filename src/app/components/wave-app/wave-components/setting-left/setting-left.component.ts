@@ -1,5 +1,6 @@
 import { AppDataShareService } from './../../../../_services/app-data-share.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { INTEREST_KEYWORD } from 'src/app/_helpers/constents';
 
 @Component({
   selector: 'app-setting-left',
@@ -10,12 +11,24 @@ export class SettingLeftComponent implements OnInit, OnDestroy {
 
   constructor(private appDataShareService:AppDataShareService) { }
 
+
   nav = {
     interest: false,
     preference: false
   }
 
+  studentInterest:string[] = [];
+
   ngOnInit(): void {
+    for (let [index, interest] of this.appDataShareService.studentInterest.entries()){
+      if (index < 3){
+        this.studentInterest.push(interest.name);
+      }
+      else{
+        break;
+      }
+    }
+
     this.navStateChange('Interest');
   }
 
@@ -37,7 +50,6 @@ export class SettingLeftComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-
   }
 
 }

@@ -1,324 +1,140 @@
-<div class="row account-form-vertical-position  justify-content-center">
-  <div *ngIf="(currentPath['fragment'] != 'emailActivation' && currentPath['fragment'] != 'passwordReset' && currentPath['fragment'] != 'registrationSuccessful')" class="col-xl-5 col-lg-6 col-md-8 pr-0 pl-0">
-      <mat-card class="box-shadow-none">
-        <mat-tab-group *ngIf="currentPath['fragment'] != 'emailActivation' && currentPath['fragment'] != 'passwordReset'" [(selectedIndex)]="accountTab" (selectedTabChange)="accountTabChange(tabRaf.selectedIndex)" disableRipple animationDuration="200ms" mat-align-tabs="center" #tabRaf>
-            <mat-tab label="Login">
-              <ng-template matTabContent>
-                <form novalidate [formGroup]="loginForm" (ngSubmit)="onLoginFormSubmit()" #login="ngForm">
-                    <mat-grid-list cols="1" rowHeight="80px">
-                        <mat-grid-tile>
-                            <mat-form-field class="w-100">
-                                <mat-label><strong>Email / Username</strong></mat-label>
-                                <input matInput formControlName="emailOrUsername" type="text" (input)="FormChange()">
-                                <mat-error *ngIf="loginForm.get('emailOrUsername').hasError('required')">
-                                Email or Username is <strong class="my-mat-error">required</strong>
-                                </mat-error>
-                            </mat-form-field>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
-                            <mat-form-field class="w-100">
-                                <mat-label><strong>Password</strong></mat-label>
-                                <input matInput formControlName="password" type="password" (input)="FormChange()">
-                                <mat-error *ngIf="loginForm.get('password').hasError('required')">
-                                    Password is <strong class="my-mat-error">required</strong>
-                                </mat-error>
-                                <mat-hint *ngIf="loginFormError" [innerHtml]="loginFormErrorMessage" class="my-mat-error">
-                                </mat-hint>
-                                <!--
-                                <mat-hint align="end" *ngIf="loginFormErrorCode!='not_verified'" class="my-mat-link"
-                                routerLink="/account" fragment="passwordReset">
-                                    <strong>Forgot Password?</strong>&nbsp;
-                                </mat-hint>
-                                <mat-hint align="end" *ngIf="loginFormError && loginFormErrorCode==='not_verified'" class="my-mat-link"
-                                routerLink="/account" fragment="emailActivation">
-                                    <strong>Verify Your Email -></strong>&nbsp;
-                                </mat-hint>
-                                -->
-                            </mat-form-field>
-                        </mat-grid-tile>
-                    </mat-grid-list>
-                    <mat-grid-list cols="1" rowHeight="60px">
-                        <mat-grid-tile>
-                            <mat-slide-toggle formControlName="trustedDevice">
-                              <span class="mat-caption">keep me <strong>Logged In</strong></span>
-                            </mat-slide-toggle>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
-                          <button [disabled]="login.invalid" class="button-style-1 button-load-style w-50" type="submit"
-                          mat-raised-button disableRipple>
-                            <mat-spinner *ngIf="loginLoadStatus; else loginNotLoading" class="button-loading-spinner white-loading-spinner">
-                            </mat-spinner>
-                            <ng-template #loginNotLoading>
-                              Login
-                            </ng-template>
-                          </button>
-                        </mat-grid-tile>
-                    </mat-grid-list>
-                </form>
-              </ng-template>
-            </mat-tab>
+<mat-progress-bar [style.visibility]="loading ? 'visible' : 'hidden'" mode="indeterminate" class="loading-bar"></mat-progress-bar>
 
-            <mat-tab label="Signup">
-              <ng-template matTabContent>
-                <form novalidate [formGroup]="signupForm" (ngSubmit)="onSignupFormSubmit()" #signup="ngForm">
-                    <mat-horizontal-stepper id="signup-stepper">
-                        <mat-step formGroupName="personalDetails" [stepControl]="signupForm.get('personalDetails')">
-                            <div class="row justify-content-center" style="margin-top: 10px;">
-                                <app-image-upload-widget [smallWidget]="true" borderRadius="50%" (croppedImg)="profileImg($event)">
-                                </app-image-upload-widget>
-                            </div>
-                            <mat-grid-list cols="1" rowHeight="80px">
-                              <mat-grid-tile>
-                                  <mat-form-field class="w-100">
-                                    <mat-label><strong>Full Name</strong></mat-label>
-                                    <input matInput formControlName="fullname" type="text">
-                                    <mat-error *ngIf="signupForm.get('personalDetails.fullname').hasError('pattern') && !signupForm.get('personalDetails.fullname').hasError('required')">
-                                        Only Alphabets are <strong class="my-mat-error">allowed</strong>
-                                    </mat-error>
-                                    <mat-error *ngIf="signupForm.get('personalDetails.fullname').hasError('maxlength') && !signupForm.get('personalDetails.fullname').hasError('pattern')">
-                                        Only 50 chractors are <strong class="my-mat-error">allowed</strong>
-                                    </mat-error>
-                                    <mat-error *ngIf="signupForm.get('personalDetails.fullname').hasError('required')">
-                                        Firstname is <strong class="my-mat-error">required</strong>
-                                    </mat-error>
-                                  </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                    <mat-form-field class="w-100">
-                                        <mat-label><strong>Your Birthday</strong></mat-label>
-                                        <input matInput [disabled]="true" [matDatepicker]="picker" formControlName="dob">
-                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                        <mat-datepicker touchUi [disabled]="false" startView="multi-year" [startAt]="startDate" #picker></mat-datepicker>
-                                        <mat-error *ngIf="signupForm.get('personalDetails.dob').hasError('required')">
-                                            Birth Date is <strong class="my-mat-error">required</strong>
-                                        </mat-error>
-                                        <mat-hint>
-                                        Use <strong>Calender Icon</strong> to pick Date.
-                                        </mat-hint>
-                                    </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                    <mat-form-field class="w-100">
-                                        <mat-label><strong>Gender</strong></mat-label>
-                                        <mat-select formControlName="sex" disableRipple>
-                                            <mat-option value="male">Male</mat-option>
-                                            <mat-option value="female">Female</mat-option>
-                                            <mat-option value="non-binary">Non-Binary</mat-option>
-                                        </mat-select>
-                                        <mat-error *ngIf="signupForm.get('personalDetails.sex').hasError('required')">
-                                            Gender is <strong class="my-mat-error">required</strong>
-                                        </mat-error>
-                                    </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                    <mat-form-field class="w-100">
-                                        <mat-label *ngIf="loadSpinner.location === true">Get your location...</mat-label>
-                                        <mat-label *ngIf="loadSpinner.location === false"><strong>{{locationData?.region.name}}</strong>, <strong>{{locationData?.state}}</strong>, <strong>{{locationData?.country_code}}</strong></mat-label>
-                                        <mat-label *ngIf="loadSpinner.location === null">unable to find the location</mat-label>
-                                        <input matInput formControlName="location" type="text" placeholder="pincode">
-                                        <mat-spinner *ngIf="loadSpinner.location === true"
-                                        class="form-field-loading-spinner blue-loading-spinner" matSuffix
-                                        >
-                                        </mat-spinner>
-                                        <button *ngIf="loadSpinner.location === false" style="height: 2rem; width: 2rem;" type="button" matSuffix mat-icon-button (click)="getGPSLocation()" [disabled]="!accessGPSPermisson">
-                                          <mat-icon style="font-size: 21px;">gps_fixed</mat-icon>
-                                        </button>
-                                        <button *ngIf="loadSpinner.location === null" style="height: 2rem; width: 2rem;" type="button" matSuffix mat-icon-button (click)="retryToGetLocation()">
-                                          <mat-icon style="font-size: 21px;">share_location</mat-icon>
-                                        </button>
-                                        <mat-error *ngIf="signupForm.get('personalDetails.location').hasError('pincodeCheck') && !signupForm.get('personalDetails.location').hasError('pattern')">
-                                            Postalcode is <strong class="my-mat-error">Invalide.</strong>
-                                        </mat-error>
-                                        <mat-error *ngIf="signupForm.get('personalDetails.location').hasError('pattern')">
-                                            Only <strong class="my-mat-error">Numbers</strong> are allowed.
-                                        </mat-error>
-                                        <mat-hint *ngIf="loadSpinner.location === false">
-                                          if your location is inaccurate, <strong>click <mat-icon style="vertical-align: bottom; font-size: 13px;">gps_fixed</mat-icon></strong>
-                                        </mat-hint>
-                                        <mat-hint *ngIf="loadSpinner.location === null">
-                                          <strong class="my-mat-error">click <mat-icon style="vertical-align: bottom; font-size: 13px;">share_location</mat-icon></strong>  to try again.
-                                        </mat-hint>
-                                    </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile class="stepper-form-next-button">
-                                    <button [disabled]="signupForm.get('personalDetails').invalid || loadSpinner.location != false"
-                                    mat-raised-button disableRipple type="button"
-                                    class="button-style-1" matStepperNext>
-                                        Next
-                                    </button>
-                                </mat-grid-tile>
-                            </mat-grid-list>
-                        </mat-step>
+<section class="login-container">
+    <a class="link" [href]="home_url">
+        <img class="pointer" width="80px" [src]="wave_long_logo_url">
+    </a>
+    <p class="mat-title d-flex align-items-center mb-0 mt-3 poppins-font">
+        <ng-container *ngIf="stepper.selectedIndex === 0">
+            Login to Wave
+        </ng-container>
+        <ng-container *ngIf="stepper.selectedIndex === 1">
+            <button mat-flat-button matRippleColor="#498299" class="category-button poppins-font" type="button"
+            (click)="!loading ? stepper.previous() : null">
+                {{accountForm.get('login.username/email').value}}
+            </button>
+        </ng-container>
+        <ng-container *ngIf="stepper.selectedIndex === 2">
+            Reset Password
+        </ng-container>
+    </p>
 
-                        <mat-step formGroupName="loginDetails" [stepControl]="signupForm.get('loginDetails')">
-                            <mat-grid-list cols="1" rowHeight="80px">
-                                <mat-grid-tile>
-                                    <mat-form-field class="w-100">
-                                        <mat-label><strong>Username</strong></mat-label>
-                                        <input matInput formControlName="username" type="text" (input)="FormChange()">
-                                        <mat-spinner *ngIf="loadSpinner.username === true"
-                                        class="form-field-loading-spinner blue-loading-spinner" matSuffix
-                                        >
-                                        </mat-spinner>
-                                        <mat-icon class="my-mat-success" *ngIf="loadSpinner.username === false" matSuffix>done_outline</mat-icon>
-                                        <mat-icon class="my-mat-error" *ngIf="loadSpinner.username === null" matSuffix>error_outline</mat-icon>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.username').hasError('required')">
-                                            Username is <strong class="my-mat-error">required</strong>
-                                        </mat-error>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.username').hasError('pattern') && !signupForm.get('loginDetails.username').hasError('required')">
-                                            only letters and numbers are allowed <strong class="my-mat-error">without any space.</strong>
-                                        </mat-error>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.username').hasError('usernameCheck') && !signupForm.get('loginDetails.username').hasError('pattern')">
-                                            This Username is <strong class="my-mat-error">Taken.</strong>
-                                        </mat-error>
-                                    </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                    <mat-form-field class="w-100">
-                                        <mat-label><strong>Email</strong></mat-label>
-                                        <input matInput formControlName="email" type="email" (input)="FormChange()">
-                                        <mat-spinner *ngIf="loadSpinner.email === true"
-                                        class="form-field-loading-spinner blue-loading-spinner" matSuffix
-                                        >
-                                        </mat-spinner>
-                                        <mat-icon class="my-mat-success" *ngIf="loadSpinner.email === false" matSuffix>done_outline</mat-icon>
-                                        <mat-icon class="my-mat-error" *ngIf="loadSpinner.email === null" matSuffix>error_outline</mat-icon>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.email').hasError('required')">
-                                            Email is <strong class="my-mat-error">required</strong>
-                                        </mat-error>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.email').hasError('emailFormatCheck') && !signupForm.get('loginDetails.email').hasError('required')">
-                                            Enter <strong class="my-mat-error">valid Email.</strong>
-                                        </mat-error>
-                                        <mat-error *ngIf="signupForm.get('loginDetails.email').hasError('emailCheck') && !signupForm.get('loginDetails.email').hasError('email')">
-                                            This Email is <strong class="my-mat-error">already registered</strong> with us.
-                                        </mat-error>
-                                    </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                  <mat-form-field class="w-100">
-                                      <mat-label><strong>Password</strong></mat-label>
-                                      <input matInput formControlName="password" type="password">
-                                      <mat-error *ngIf="signupForm.get('loginDetails.password').hasError('required')">
-                                          Password is <strong class="my-mat-error">required</strong>
-                                      </mat-error>
-                                      <mat-error *ngIf="signupForm.get('loginDetails.password').hasError('pattern') && !signupForm.get('loginDetails.password').hasError('required')">
-                                        password must be atlest <strong class="my-mat-error">8 chractors long</strong> containg one <strong class="my-mat-error">digit</strong>, <strong class="my-mat-error">symbol</strong>, <strong class="my-mat-error">uppercase</strong>, and <strong class="my-mat-error">lowercase</strong> letters.
-                                      </mat-error>
-                                  </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile>
-                                  <mat-form-field class="w-100">
-                                      <mat-label><strong>Confirm Password</strong></mat-label>
-                                      <input matInput formControlName="confirmPassword" type="password">
-                                      <mat-hint *ngIf="signupForm.get('loginDetails').hasError('misMatch') && !signupForm.get('loginDetails.confirmPassword').hasError('required')">
-                                          Password <strong class="my-mat-error">Does Not Match</strong>
-                                      </mat-hint>
-                                      <mat-error *ngIf="signupForm.get('loginDetails.confirmPassword').hasError('required')">
-                                          Confirm Password is <strong class="my-mat-error">required.</strong>
-                                      </mat-error>
-                                  </mat-form-field>
-                                </mat-grid-tile>
-                                <mat-grid-tile class="stepper-form-navigate-button">
-                                  <button mat-icon-button disableRipple type="button" class="button-style-2" matStepperPrevious>
-                                      <mat-icon>arrow_back_ios_new</mat-icon>
-                                  </button>
-                                  <button [disabled]="signup.invalid || loadSpinner.username !=false || loadSpinner.email !=false"
-                                  class="button-style-1" type="submit" mat-raised-button disableRipple
-                                  >
-                                    Signup
-                                  </button>
-                                </mat-grid-tile>
-                            </mat-grid-list>
-                        </mat-step>
+    <form novalidate class="form-container" [formGroup]="accountForm">
+        <mat-horizontal-stepper #stepper id="account-stepper">
+            <mat-step formGroupName="login" [stepControl]="accountForm.get('login')">
+                <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>Username or Email</mat-label>
+                    <input matInput formControlName="username/email" type="text" maxlength="50" spellcheck="false">
+                    <mat-hint *ngIf="!accountInvalid">Enter your Username or Email to login</mat-hint>
 
-                    </mat-horizontal-stepper>
-                </form>
-              </ng-template>
-            </mat-tab>
-        </mat-tab-group>
-      </mat-card>
-    </div>
+                    <mat-hint *ngIf="accountInvalid">
+                        Account is <strong class="my-mat-error">Invalid</strong>
+                    </mat-hint>
 
-    <div *ngIf="!(currentPath['fragment'] != 'emailActivation' && currentPath['fragment'] != 'passwordReset' && currentPath['fragment'] != 'registrationSuccessful') && currentPath['fragment'] != 'registrationSuccessful'" class="col-xl-5 col-lg-6 col-md-8">
-    <mat-card class="box-shadow-none">
-      <mat-card-subtitle class="d-flex justify-content-between" style="background-color: var(--sliver);">
-        <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" (click)="backToLogin()">
-          <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
-        </button>
+                    <mat-error *ngIf="accountForm.get('login.username/email').hasError('required')">
+                        This Field is <strong class="my-mat-error">required</strong>
+                    </mat-error>
+                </mat-form-field>
 
-        <p *ngIf="currentPath['fragment'] === 'emailActivation'" class="mat-caption space-gray-color-text mb-0"><strong>Email Verification</strong></p>
-        <p *ngIf="currentPath['fragment'] === 'passwordReset'" class="mat-caption space-gray-color-text mb-0"><strong>Password Reset</strong></p>
-      </mat-card-subtitle>
+                <div class="d-flex justify-content-between align-items-center" style="margin-top: 24px;">
+                    <a class="link" [href]="create_account_url">
+                        <button mat-flat-button matRippleColor="#498299" class="back-button poppins-font" type="button">
+                            Create Account
+                        </button>
+                    </a>
+                    <button mat-raised-button disableRipple class="action-button" type="button"
+                    [disabled]="accountForm.get('login.username/email').invalid" (click)="verifyAccount(stepper)">
+                        Next
+                    </button>
+                </div>
+            </mat-step>
 
-      <mat-grid-list *ngIf="currentPath['fragment'] === 'emailActivation'"
-      cols="1" rowHeight="80px"
-      >
-          <form novalidate [formGroup]="emailActivationForm" (ngSubmit)="onEmailActivationFormSubmit()" #activation="ngForm">
-              <mat-grid-tile>
-                  <mat-form-field class="w-100">
-                      <mat-label><strong>Email</strong></mat-label>
-                      <input matInput formControlName="email" type="text" (input)="FormChange()">
-                      <mat-error *ngIf="emailActivationForm.get('email').hasError('required')">
-                          Email is <strong class="my-mat-error">required.</strong>
-                      </mat-error>
-                      <mat-error *ngIf="emailActivationForm.get('email').hasError('email') && !emailActivationForm.get('email').hasError('required')">
-                          Enter <strong class="my-mat-error">valid Email.</strong>
-                      </mat-error>
-                      <mat-hint *ngIf="emailActivationSuccess">
-                          Activation link is send <strong class="my-mat-success">successfully.</strong>
-                      </mat-hint>
-                      <mat-hint *ngIf="emailActivationError" [innerHtml]="emailActivationErrorMessage" class="my-mat-error">
-                      </mat-hint>
-                  </mat-form-field>
-              </mat-grid-tile>
-              <mat-grid-tile>
-                  <button [disabled]="activation.invalid" class="button-style-1" type="submit"
-                  mat-raised-button disableRipple>
-                      Send
-                  </button>
-              </mat-grid-tile>
-          </form>
-      </mat-grid-list>
+            <mat-step formGroupName="login" [stepControl]="accountForm.get('login')">
+                <mat-form-field class="w-100" appearance="outline" style="padding-bottom: 1.34375em;">
+                    <mat-label>Password</mat-label>
+                    <input matInput formControlName="password" type="password" maxlength="100" spellcheck="false">
+                    <mat-hint *ngIf="accountNotActivated && !accountForm.get('login.password').hasError('required')" class="my-mat-error">
+                        Please activate your account by clicking the activation link sent on your registered email, then login
+                    </mat-hint>
 
-      <mat-grid-list *ngIf="currentPath['fragment'] === 'passwordReset'"
-      cols="1" rowHeight="80px"
-      >
-          <form novalidate [formGroup]="passwordResetForm" (ngSubmit)="onPasswordRestFormSubmit()" #passwordReset="ngForm">
-              <mat-grid-tile>
-                  <mat-form-field class="w-100">
-                      <mat-label><strong>Email</strong></mat-label>
-                      <input matInput formControlName="email" type="text" (input)="FormChange()">
-                      <mat-error *ngIf="passwordResetForm.get('email').hasError('required')">
-                          Email is <strong class="my-mat-error">required.</strong>
-                      </mat-error>
-                      <mat-error *ngIf="passwordResetForm.get('email').hasError('email') && !passwordResetForm.get('email').hasError('required')">
-                          Enter <strong class="my-mat-error">valid Email.</strong>
-                      </mat-error>
-                      <mat-hint *ngIf="passwordResetSuccess">
-                          Password reset link is send <strong class="my-mat-success">successfully.</strong>
-                      </mat-hint>
-                      <mat-hint *ngIf="passwordResetError" [innerHtml]="passwordResetErrorMessage" class="my-mat-error">
-                      </mat-hint>
-                  </mat-form-field>
-              </mat-grid-tile>
-              <mat-grid-tile>
-                  <button [disabled]="passwordReset.invalid" class="button-style-1" type="submit"
-                  mat-raised-button disableRipple>
-                      Send
-                  </button>
-              </mat-grid-tile>
-          </form>
-      </mat-grid-list>
-    </mat-card>
-  </div>
+                    <mat-hint *ngIf="accountInvalidCredentials && !accountForm.get('login.password').hasError('required')">
+                        Please enter <Strong class="my-mat-error">Correct Password</Strong>
+                    </mat-hint>
 
-  <div *ngIf="currentPath['fragment'] === 'registrationSuccessful'" class="d-flex flex-column align-items-center col-lg-8" style="text-align: center;">
-      <img [src]="message_send_url" width="160px">
-      <span class="mat-headline mt-3" style="font-family: Poppins;">
-        Thank you for showing interest in our platform, but it’s under development.
-      </span>
-      <span class="mat-headline mt-3">
-        <strong>We will keep you updated as we go!</strong>
-      </span>
-  </div>
-</div>
+                    <mat-error *ngIf="accountForm.get('login.password').hasError('required')">
+                        This Field is <strong class="my-mat-error">required</strong>
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-checkbox disableRipple formControlName="keepMeLogined" style="padding-left: 0.5rem;">Remember Me</mat-checkbox>
+
+
+                <div class="d-flex justify-content-between align-items-center" style="margin-top: 24px;">
+                    <button mat-flat-button matRippleColor="#498299" class="back-button poppins-font" type="button"
+                    (click)="sendPasswordResetOtp(stepper)">
+                        Forgot Password?
+                    </button>
+                    <button mat-raised-button disableRipple class="action-button" type="button"
+                    [disabled]="accountForm.get('login.password').invalid" (click)="loginFormSubmit()">
+                        Login
+                    </button>
+                </div>
+            </mat-step>
+
+            <mat-step formGroupName="resetPassword" [stepControl]="accountForm.get('resetPassword')">
+                <mat-form-field class="w-100" appearance="outline" style="padding-bottom: 1.34375em;">
+                    <mat-label>OTP</mat-label>
+                    <input matInput formControlName="otp" type="number" maxlength="6" spellcheck="false">
+                    <mat-hint *ngIf="!otpInvalid">
+                        Please enter the OTP sent to your registered email for verifying your identity. OTP expires in 15 minutes.
+                    </mat-hint>
+
+                    <mat-hint *ngIf="otpInvalid" class="my-mat-error">Please enter a valid OTP</mat-hint>
+
+                    <mat-error *ngIf="accountForm.get('resetPassword.otp').hasError('required')">
+                        OTP is <strong class="my-mat-error">required</strong>
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="w-100" appearance="outline" style="padding-bottom: 1.34375em;">
+                    <mat-label>New Password</mat-label>
+                    <input matInput formControlName="password" type="password" maxlength="100" spellcheck="false">
+                    <mat-hint>Create a new password by using 8 or more characters with a mix of letters, numbers & symbols</mat-hint>
+
+                    <mat-error *ngIf="accountForm.get('resetPassword.password').hasError('pattern') && !accountForm.get('resetPassword.password').hasError('required')">
+                        password must be 8 or more characters long with a mix of <strong class="my-mat-error">letters, numbers & symbols</strong>
+                    </mat-error>
+
+                    <mat-error *ngIf="accountForm.get('resetPassword.password').hasError('required')">
+                        Password is <strong class="my-mat-error">required</strong>
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="w-100" appearance="outline" style="padding-bottom: 1.34375em;">
+                    <mat-label>Confirm Password</mat-label>
+                    <input matInput formControlName="confirmPassword" [type]="confirmPasswordHidden ? 'password' : 'text'" maxlength="100" spellcheck="false">
+                    <button mat-icon-button matSuffix type="button" (click)="confirmPasswordHidden = !confirmPasswordHidden">
+                        <mat-icon>{{confirmPasswordHidden ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+
+                    <mat-hint *ngIf="accountForm.get('resetPassword').hasError('misMatch') && !accountForm.get('resetPassword.confirmPassword').hasError('required')">
+                        Password <strong class="my-mat-error">Does Not Match</strong>
+                    </mat-hint>
+                    <mat-error *ngIf="accountForm.get('resetPassword.confirmPassword').hasError('required')">
+                        Confirm Password is <strong class="my-mat-error">required</strong>
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="d-flex justify-content-between align-items-center" style="margin-top: 24px;">
+                    <button mat-icon-button matRippleColor="#498299" (click)="!loading ? stepper.previous() : null" 
+                    class="back-button poppins-font" type="button">
+                        <mat-icon>keyboard_backspace</mat-icon>
+                    </button>
+                    <button mat-raised-button disableRipple class="action-button" type="button" (click)="resetPassword(stepper)"
+                    [disabled]="accountForm.get('resetPassword').invalid">Reset Password</button>
+                </div>
+            </mat-step>
+        </mat-horizontal-stepper>
+    </form>
+</section>
+

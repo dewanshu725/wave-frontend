@@ -1,19 +1,20 @@
 <mat-toolbar class="mat-elevation-z0 app-status-bar justify-content-between">
   <ng-container *ngIf="navCreatedVuesState">
-    <p class="mat-subheading-1 space-gray-color-text mb-0"><strong>Your Vues</strong></p>
-    <p class="mat-caption rich-black-color-text mb-0"><strong>{{myVueArrayLength}}</strong></p>
+    <div class="d-flex align-items-center">
+      <p class="mat-subheading-1 space-gray-color-text mb-0"><strong>Your Vues</strong></p>
+      <div class="dot ml-2 mr-2"></div>
+      <p class="mat-subheading-1 rich-black-color-text mb-0"><strong>{{myVueArrayLength}}</strong></p>
+    </div>
+
     <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" (click)="navStateChange('createvue')"
-    [style.visibility]="myVueEmpty === false ? 'visible' : 'hidden' "
-    >
+    [style.visibility]="myVueEmpty === false ? 'visible' : 'hidden' ">
       <mat-icon style="line-height: 22px;">add</mat-icon>
     </button>
   </ng-container>
 
   <ng-container *ngIf="navCreateVueState">
     <div>
-      <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" (click)="backToMyvue()">
-        <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
-      </button>
+      <button mat-icon-button disableRipple (click)="backToMyvue()"><mat-icon>keyboard_backspace</mat-icon></button>
       &nbsp;&nbsp;<span class="mat-body-2 space-gray-color-text mb-0"><strong>Create Your Vue</strong></span>
     </div>
 

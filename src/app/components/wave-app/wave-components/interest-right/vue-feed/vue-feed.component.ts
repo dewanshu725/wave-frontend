@@ -2,8 +2,8 @@ import { UserDataService } from './../../../../../_services/user-data.service';
 import { NgxMasonryOptions } from 'ngx-masonry';
 import { isConversationStarted, isVueConverseDisable, locationName, modifyDateByDay, timeSince } from 'src/app/_helpers/functions.utils';
 import { LINK_PREVIEW, INTEREST_KEYWORD, USER_PREFERENCE, IMAGE, dev_prod, USER_OBJ } from './../../../../../_helpers/constents';
-import { take } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { GET_VUE_FEED_FROM_IDS, VUE_FEED_IDS } from './../../../../../_helpers/graphql.query';
 import { Component, OnInit, OnDestroy, isDevMode } from '@angular/core';
 import { AppDataShareService } from './../../../../../_services/app-data-share.service';
@@ -20,7 +20,9 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     private appDataShareService: AppDataShareService,
     private graphqlService: GraphqlService,
     private userDataService: UserDataService
-    ) { }
+  ) { }
+  
+  destroy$: Subject<boolean> = new Subject<boolean>();
 
   vue_backgorund_url:string;
   vueDisplayContext = 'vues';
@@ -34,7 +36,11 @@ export class VueFeedComponent implements OnInit, OnDestroy {
   fetchMoreLoading = false;
   fetchMoreError = false;
 
-  vueFeedLength = 3;
+  currentVueFeedPosition:{start:number, end:number};
+  updatingCurrentVueFeedPosition = false;
+  currentVueFeedLength = 10;
+  
+  vueFeedLength = 20;
   vueFeedArray:LINK_PREVIEW[] = [];
   vueFeedLocationPreferance:string;
   currentVueFeedIdsToFetch = [];
@@ -46,8 +52,6 @@ export class VueFeedComponent implements OnInit, OnDestroy {
 
   masonryLoading = true;
 
-  selectedInterestUnsub:Subscription;
-
   masonryOption: NgxMasonryOptions = {
     gutter: 80,
     horizontalOrder: true,
@@ -56,12 +60,13 @@ export class VueFeedComponent implements OnInit, OnDestroy {
   };
 
   userObj:USER_OBJ;
-  userDataUnsub:Subscription;
 
   detailedVueOpened = false;
   deatiledVueData:LINK_PREVIEW;
 
   ngOnInit(): void {
+    this.currentVueFeedPosition = {start:0, end:this.currentVueFeedLength};
+
     this.appDataShareService.appActivePath.interest.vue_feed.active = true;
     this.appDataShareService.appActivePath.interest.vue_feed.notification = false;
 
@@ -70,7 +75,7 @@ export class VueFeedComponent implements OnInit, OnDestroy {
 
     this.userObj = this.userDataService.getItem({userObject:true}).userObject;
 
-    this.userDataUnsub = this.appDataShareService.updateUserData.subscribe(() => {
+    this.appDataShareService.updateUserData.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.userObj = this.userDataService.getItem({userObject:true}).userObject;
     });
 
@@ -101,8 +106,7 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     }
 
 
-    this.selectedInterestUnsub = this.appDataShareService.currentSelectedInterest
-    .subscribe(result =>{
+    this.appDataShareService.currentSelectedInterest.pipe(takeUntil(this.destroy$)).subscribe(result =>{
       if (this.detailedVueOpened) this.openDetailedVue(false);
 
       this.selectedInterest = this.appDataShareService.currentSelectedInterestArray;
@@ -115,9 +119,20 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     let element = scrollEvent.target;
 
     if ((element.offsetHeight+element.scrollTop) > (element.scrollHeight - 59)){
-      if (this.fetchMore && !this.interestSelected && !this.isVueFeedFetching){
-        this.isVueFeedFetching = true;
-        this.getVueFeedFromIds(true);
+      if (!this.updatingCurrentVueFeedPosition && !this.isVueFeedFetching){
+
+        if (this.currentVueFeedPosition.end < this.vueFeedArray.length){
+          this.updatingCurrentVueFeedPosition = true;
+  
+          this.currentVueFeedPosition = {
+            start: 0, 
+            end: this.currentVueFeedPosition.end+this.currentVueFeedLength
+          }
+        }
+        else if (this.fetchMore && !this.interestSelected){
+          this.isVueFeedFetching = true;
+          this.getVueFeedFromIds(true);
+        }
       }
     }
   }
@@ -214,7 +229,12 @@ export class VueFeedComponent implements OnInit, OnDestroy {
                 }
               }
               else{
-                this.createVueArray(result.data.getVueFeedFromIds.vueFeedObjs);
+                if (fetchMore){
+                  this.createVueArray(result.data.getVueFeedFromIds.vueFeedObjs, true);
+                }
+                else{
+                  this.createVueArray(result.data.getVueFeedFromIds.vueFeedObjs);
+                }
               }
             },
             error =>{
@@ -262,7 +282,7 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     })();
   }
 
-  createVueArray(vueFeed){
+  createVueArray(vueFeed, fetchMore=false){
     const user_obj = this.userObj;
     const userPreference:USER_PREFERENCE = {
       country: user_obj.location.country_name,
@@ -349,6 +369,13 @@ export class VueFeedComponent implements OnInit, OnDestroy {
     this.loading = false;
     this.vueEmpty = false;
     this.noMatch();
+
+    if (fetchMore){
+      this.currentVueFeedPosition = {
+        start: 0,
+        end: this.vueFeedArray.length
+      }
+    }
   }
 
   arrangeVueFeedArray(){
@@ -377,6 +404,7 @@ export class VueFeedComponent implements OnInit, OnDestroy {
 
   masonryLoaded(){
     this.fetchMoreLoading = false;
+    this.updatingCurrentVueFeedPosition = false;
     this.isVueFeedFetching = false;
     this.masonryLoading = false;
   }
@@ -402,8 +430,8 @@ export class VueFeedComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
-    if (this.selectedInterestUnsub) this.selectedInterestUnsub.unsubscribe();
-    this.userDataUnsub.unsubscribe();
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
     this.appDataShareService.isVueConstructed.next(false);
     this.appDataShareService.appActivePath.interest.vue_feed.active = false;
   }

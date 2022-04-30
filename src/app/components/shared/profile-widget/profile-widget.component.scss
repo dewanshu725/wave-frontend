@@ -1,9 +1,11 @@
 .circle {
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-  }
-  .circle img {
-    border-radius: 50%;
-    object-fit: cover;
-  }
+  border: solid 1px var(--rich-gray);
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle img {
+  border-radius: 50%;
+  object-fit: cover;
+}

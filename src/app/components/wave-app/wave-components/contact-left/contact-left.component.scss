@@ -3,3 +3,14 @@
   height: 20px;
   font-size: 20px;
 }
+
+.help{
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+  color: var(--gray-text);
+}
+
+.help:hover{
+  color: black;
+}

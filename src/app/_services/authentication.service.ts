@@ -35,140 +35,137 @@ export class AuthenticationService{
   ) { }
   
 
-  private loginFormErrorSubject = new Subject();
+  loginErrorCodeSubject:string;
 
-  public getLoginFormResult(): Observable<any> {
-    return this.loginFormErrorSubject.asObservable();
-  }
-
-  private loginFormErrorCodeSubject = new Subject();
-
-  public getLoginFormErrorCode(): Observable<any> {
-    return this.loginFormErrorCodeSubject.asObservable();
-  }
-
-  public login(emailOrUsername:string, password:string, usernamePresent:boolean, trustedDevice:boolean){
-    const mutationArrgs = {
-      "password":password
-    }
-    let LOGIN_MUTATION_TYPE;
-
-    if (usernamePresent){
-      mutationArrgs['username'] = emailOrUsername;
-      LOGIN_MUTATION_TYPE = USERNAME_LOGIN_MUTATION;
-    }
-    else{
-      mutationArrgs['email'] = emailOrUsername;
-      LOGIN_MUTATION_TYPE = EMAIL_LOGIN_MUTATION;
-    }
-
-    this.graphqlService.graphqlMutation(LOGIN_MUTATION_TYPE, mutationArrgs).pipe(take(1))
-    .subscribe(
-      (auth_result:any) => {
-        if(!auth_result.data.tokenAuth.errors){
-
-          if (trustedDevice === true){
-            localStorage.setItem(TRUSTED_DEVICE, "true");
-          }
-
-          const tokenAuth:any = auth_result.data.tokenAuth;
-          const user = tokenAuth.user;
-          const token = tokenAuth.token;
-          const refreshToken = tokenAuth.refreshToken;
-          let profilePicture:IMAGE = null;
-
-          this.userDataService.setItem({
-            accessToken:token,
-            refreshToken:refreshToken
-          });
-
-          if (user.profilePicture != null){
-            profilePicture = {
-              id: user.profilePicture.id,
-              image: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.image : user.profilePicture.imageUrl,
-              thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.thumnail : user.profilePicture.thumnailUrl,
-              width: user.profilePicture.width,
-              height: user.profilePicture.height
-            }
-          }
-
-          const user_obj:USER_OBJ = {
-            student_profile_id: user.studentprofile.id,
-            uid: user.uid,
-            email: user.email,
-            username: user.username,
-            fullName: user.firstName,
-            nickname: user.studentprofile.nickname,
-            sex: (user.sex).toLowerCase(),
-            dob: user.dob,
-            age: user.age,
-            profilePicture: profilePicture,
-            institution: user.studentprofile.studentinstitution != null ? createInstitution(user.studentprofile.studentinstitution.institution, user.studentprofile.studentinstitution.verified) : null,
-            location: {
-              postal_code: user.location.code === 0 ? null : user.location.code,
-              region: user.location.region.name,
-              state_or_province: user.location.region.stateOrProvince.name,
-              country_code: user.location.region.stateOrProvince.country.code,
-              country_name: user.location.region.stateOrProvince.country.name
-            },
-            locationPreference: user.studentprofile.locationPreference,
-            agePreference: Number(user.studentprofile.agePreference),
-            conversationPoints: Number(user.studentprofile.conversationPoints),
-            newConversationDisabled: user.studentprofile.newConversationDisabled,
-            newConversationCount: Number(user.studentprofile.newConversationCount),
-            newConversationTime: new Date(user.studentprofile.newConversationTime)
-          }
-
-          this.userDataService.setItem({
-            userObject:user_obj,
-            studentState:user.studentprofile.state
-          });
-
-          user.studentprofile.relatedstudentinterestkeywordSet.edges.forEach(element => {
-            this.appDataShareService.studentInterest.push({
-              id: element.node.interest.id,
-              name: element.node.interest.word,
-              selected: false,
-              saved: element.node.saved,
-              count: element.node.count,
-              average_percent: element.node.averagePercentage
-            });
-          });
-
-
-          (async () => {
-            const allInterestCategory = await this.graphqlService.getAllInterestCategory();
-            const allMyVue = await this.graphqlService.getAllMyVue();
-            const allMyDiscovery = await this.graphqlService.getAllMyDiscovery();
-            const allDraftInteraction = await this.graphqlService.getContact(ALL_INTERACTION_DRAFT_CONVERSE);
-            const allConverseInteraction = await this.graphqlService.getContact(ALL_INTERACTION_CONVERSE);
-            const allExplorerInteraction = await this.graphqlService.getContact(ALL_INTERACTION_EXPLORERS);
-            if (allInterestCategory && allMyVue && allMyDiscovery && allDraftInteraction && allConverseInteraction && allExplorerInteraction){
-              this.graphqlService.onLoginChange(true);
-              this.graphqlService.initialTokenRefresh = false;
-              this.loginFormErrorSubject.next(false);
-              this.graphqlService.studentInterestSnapshot();
-              this.websocketService.online().subscribe(() =>{});
-            }
-            else{
-              this.loginFormErrorSubject.next(true);
-              this.userDataService.removeItem();
-            }
-          })();
-        }
-        else{
-          this.loginFormErrorSubject.next(true);
-          this.loginFormErrorCodeSubject.next(auth_result.data.tokenAuth.errors.nonFieldErrors[0].code);
-          this.userDataService.removeItem();
-        }
-
-      },
-      error =>{
-        this.loginFormErrorSubject.next(true);
-        this.snackBar.open("something went Wrong!", "Try Again");
-        this.userDataService.removeItem();
+  login(emailOrUsername:string, password:string, usernamePresent:boolean, trustedDevice:boolean): Promise<boolean>{
+    return new Promise<boolean>((resolve, reject) => {
+      const mutationArrgs = {
+        "password":password
       }
-    );
+      let LOGIN_MUTATION_TYPE;
+  
+      if (usernamePresent){
+        mutationArrgs['username'] = emailOrUsername;
+        LOGIN_MUTATION_TYPE = USERNAME_LOGIN_MUTATION;
+      }
+      else{
+        mutationArrgs['email'] = emailOrUsername;
+        LOGIN_MUTATION_TYPE = EMAIL_LOGIN_MUTATION;
+      }
+
+      this.graphqlService.graphqlMutation(LOGIN_MUTATION_TYPE, mutationArrgs).pipe(take(1))
+      .subscribe(
+        (auth_result:any) => {
+          if(!auth_result.data.tokenAuth.errors){
+
+            if (trustedDevice === true){
+              localStorage.setItem(TRUSTED_DEVICE, "true");
+            }
+
+            const tokenAuth = auth_result.data.tokenAuth;
+            const user = tokenAuth.user;
+            const token = tokenAuth.token;
+            const refreshToken = tokenAuth.refreshToken;
+            let profilePicture:IMAGE = null;
+
+            this.userDataService.setItem({
+              accessToken:token,
+              refreshToken:refreshToken
+            });
+
+
+            if (user.profilePicture != null){
+              profilePicture = {
+                id: user.profilePicture.id,
+                image: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.image : user.profilePicture.imageUrl,
+                thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ user.profilePicture.thumnail : user.profilePicture.thumnailUrl,
+                width: user.profilePicture.width,
+                height: user.profilePicture.height
+              }
+            }
+
+            const user_obj:USER_OBJ = {
+              student_profile_id: user.studentprofile.id,
+              uid: user.uid,
+              email: user.email,
+              username: user.username,
+              fullName: user.firstName,
+              nickname: user.studentprofile.nickname,
+              sex: (user.sex).toLowerCase(),
+              dob: user.dob,
+              age: user.age,
+              profilePicture: profilePicture,
+              institution: user.studentprofile.studentinstitution != null ? createInstitution(user.studentprofile.studentinstitution.institution, user.studentprofile.studentinstitution.verified) : null,
+              location: {
+                postal_code: user.location.code === 0 ? null : user.location.code,
+                region: user.location.region.name,
+                state_or_province: user.location.region.stateOrProvince.name,
+                country_code: user.location.region.stateOrProvince.country.code,
+                country_name: user.location.region.stateOrProvince.country.name
+              },
+              locationPreference: user.studentprofile.locationPreference,
+              agePreference: Number(user.studentprofile.agePreference),
+              conversationPoints: Number(user.studentprofile.conversationPoints),
+              newConversationDisabled: user.studentprofile.newConversationDisabled,
+              newConversationCount: Number(user.studentprofile.newConversationCount),
+              newConversationTime: new Date(user.studentprofile.newConversationTime)
+            }
+
+            this.userDataService.setItem({
+              userObject:user_obj,
+              studentState:user.studentprofile.state
+            });
+
+            user.studentprofile.relatedstudentinterestkeywordSet.edges.forEach(element => {
+              this.appDataShareService.studentInterest.push({
+                id: element.node.interest.id,
+                name: element.node.interest.word,
+                selected: false,
+                saved: element.node.saved,
+                count: element.node.count,
+                average_percent: element.node.averagePercentage
+              });
+            });
+
+
+            (async () => {
+              const allInterestCategory = await this.graphqlService.getAllInterestCategory();
+              const allMyVue = await this.graphqlService.getAllMyVue();
+              const allMyDiscovery = await this.graphqlService.getAllMyDiscovery();
+              const allContact = await Promise.all([
+                this.graphqlService.getContact(ALL_INTERACTION_DRAFT_CONVERSE),
+                this.graphqlService.getContact(ALL_INTERACTION_CONVERSE),
+                this.graphqlService.getContact(ALL_INTERACTION_EXPLORERS)
+              ]);
+
+              if (allInterestCategory && allMyVue && allMyDiscovery && !allContact.includes(false)){
+                this.graphqlService.initialTokenRefresh = false;
+                this.graphqlService.studentInterestSnapshot();
+                this.websocketService.online().subscribe(() =>{});
+                this.graphqlService.resetApolloClient();
+                this.graphqlService.onLoginChange(true);
+                this.router.navigate(['/']);
+              }
+              else{
+                this.userDataService.removeItem();
+                resolve(false);
+              }
+            })();
+          }
+          else{
+            this.loginErrorCodeSubject = auth_result.data.tokenAuth.errors.nonFieldErrors[0].code;
+            this.userDataService.removeItem();
+            resolve(false);
+          }
+
+        },
+        error =>{
+          this.snackBar.open("something went Wrong!", "Try Again", {duration:2000});
+          this.userDataService.removeItem();
+          resolve(false);
+        }
+      );
+    });
   }
 
   public logout(){
@@ -179,7 +176,8 @@ export class AuthenticationService{
     .subscribe(
       (result:any) => {
       this.graphqlService.onLoginChange(false);
-      this.router.navigate(['/logout']);
+      this.router.navigate(['/login']);
+      this.snackBar.open("Logged Out", "Successfully", {duration:2000});
       },
       error =>{
         this.snackBar.open("Failed to loggout", "Try Again");

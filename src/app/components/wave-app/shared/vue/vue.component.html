@@ -108,18 +108,15 @@
 
     <div class="d-flex">
       <button mat-icon-button (click)="vueConversationUpdate()"
-      [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation' " matTooltipShowDelay="500"
-      >
+      [matTooltip]="linkPreview.conversation_disabled ? 'Enable Conversation' : 'Disable Conversation'">
         <mat-icon class="vue-action-icon">{{linkPreview.conversation_disabled ? 'speaker_notes_off' : 'chat'}}</mat-icon>
       </button>
 
-      <button mat-icon-button (click)="vuePublicUpdate()"
-      [matTooltip]="linkPreview.public ? 'Make Private' : 'Make Public' " matTooltipShowDelay="500"
-      >
+      <button mat-icon-button (click)="vuePublicUpdate()" [matTooltip]="linkPreview.public ? 'Make Private' : 'Make Public'">
         <mat-icon class="vue-action-icon">{{linkPreview.public ? 'public' : 'public_off'}}</mat-icon>
       </button>
 
-      <button *ngIf="!vueDeleteLoading" mat-icon-button (click)="vueDelete()" matTooltip="Delete Vue" matTooltipShowDelay="500">
+      <button *ngIf="!vueDeleteLoading" mat-icon-button (click)="vueDelete()" matTooltip="Delete Vue">
         <mat-icon class="vue-action-icon">delete_outline</mat-icon>
       </button>
 
@@ -127,9 +124,7 @@
       *ngIf="vueDeleteLoading" [ngClass]="linkPreview.conversation_disabled ? 'blue-loading-spinner' : 'white-loading-spinner' ">
       </mat-spinner>
 
-      <button *ngIf="linkPreview.url" mat-icon-button (click)="openVue(linkPreview.url)" type="button"
-      matTooltip="Open Vue" matTooltipShowDelay="500"
-      >
+      <button *ngIf="linkPreview.url" mat-icon-button (click)="openVue(linkPreview.url)" type="button" matTooltip="Open Vue">
         <mat-icon class="vue-action-icon">open_in_new</mat-icon>
       </button>
 
@@ -146,7 +141,7 @@
     <div>
       <ng-container *ngIf="!profileVue">
         <button *ngIf="!linkPreview.conversation_disabled && !linkPreview.conversation_started && !vueStartConversationLoading" 
-        mat-icon-button matTooltip="Start Conversation" matTooltipShowDelay="500" (click)="startConversation()"
+        mat-icon-button matTooltip="Start Conversation" (click)="startConversation()"
         >
           <mat-icon class="vue-action-icon">chat</mat-icon>
         </button>
@@ -156,16 +151,13 @@
         >
         </mat-spinner>
 
-        <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button [matTooltip]="vueSaved ? 'saved' : 'Save'" matTooltipShowDelay="500"
-        (click)="updateVueFeed(false, true, false)"
-        >
+        <button *ngIf="vueDisplayContext != 'savedvue'" mat-icon-button [matTooltip]="vueSaved ? 'saved' : 'Save'"
+        (click)="updateVueFeed(false, true, false)">
           <mat-icon class="vue-action-icon">{{vueSaved ? 'favorite' : 'favorite_border'}}</mat-icon>
         </button>
 
         <ng-container *ngIf="vueDisplayContext === 'savedvue'">
-          <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" matTooltipShowDelay="500"
-          (click)="removeSavedVue()"
-          >
+          <button *ngIf="!removeSavedVueLoading" mat-icon-button matTooltip="remove" (click)="removeSavedVue()">
             <mat-icon class="vue-action-icon">remove_circle_outline</mat-icon>
           </button>
 
@@ -174,9 +166,7 @@
           </mat-spinner>
         </ng-container>
 
-        <button *ngIf="linkPreview.url" mat-icon-button matTooltip="go to link" matTooltipShowDelay="500"
-        (click)="openVue(linkPreview.url)"
-        >
+        <button *ngIf="linkPreview.url" mat-icon-button matTooltip="go to link" (click)="openVue(linkPreview.url)">
           <mat-icon class="vue-action-icon">open_in_new</mat-icon>
         </button>
 
@@ -187,9 +177,7 @@
         </button>
       </ng-container>
       
-      <button *ngIf="linkPreview.url && profileVue" mat-icon-button matTooltip="go to link" matTooltipShowDelay="500"
-      (click)="openVue(linkPreview.url)"
-      >
+      <button *ngIf="linkPreview.url && profileVue" mat-icon-button matTooltip="go to link" (click)="openVue(linkPreview.url)">
         <mat-icon class="vue-action-icon">open_in_new</mat-icon>
       </button>
     </div>

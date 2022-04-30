@@ -1,9 +1,7 @@
-<mat-toolbar class="mat-elevation-z0 app-status-bar justify-content-between">
+<mat-toolbar class="mat-elevation-z0 app-status-bar">
   <p class="mat-subheading-1 space-gray-color-text mb-0"><strong>Vue History</strong></p>
-  <p class="mat-caption rich-black-color-text mb-0"><strong>{{vueHistoryArray.length}}</strong></p>
-  <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2" style="visibility: hidden;">
-    <mat-icon style="line-height: 22px;">add</mat-icon>
-  </button>
+  <div class="dot ml-2 mr-2"></div>
+  <p class="mat-subheading-1 rich-black-color-text mb-0"><strong>{{vueHistoryArray.length}}</strong></p>
 </mat-toolbar>
 
 
@@ -54,8 +52,8 @@
       style="margin: 0 auto;" [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
       >
         <app-vue ngxMasonryItem class="mb-5" [linkPreview]="VueData" [vueDisplayContext]="vueDisplayContext"
-        *ngFor="let VueData of vueHistoryArray" (openDetailedVue)="openDetailedVue($event, VueData)"
-        >
+        *ngFor="let VueData of vueHistoryArray | slice: currentVueHistoryPosition.start:currentVueHistoryPosition.end" 
+        (openDetailedVue)="openDetailedVue($event, VueData)">
         </app-vue>
       </ngx-masonry>
   
@@ -84,7 +82,7 @@
   </ng-template>
 </div>
 
-<div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur" 
+<div *ngIf="detailedVueOpened" class="d-flex justify-content-center align-items-center frosted-glass-blur w-100" 
 style="z-index: 1; position: absolute; top: 59px; height: calc(100% - 59px);">
   <app-display-vue style="width: 95%; height: 75%;" [mode]="{create: false, edit: false, display: true}"
   [linkPreview]="deatiledVueData" [vueDisplayContext]="vueDisplayContext" (closeDetailedVue)="openDetailedVue($event)">

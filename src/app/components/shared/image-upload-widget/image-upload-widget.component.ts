@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, EventEmitter, Output, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { dataURLtoFile } from './../../../_helpers/functions.utils';
 
 
@@ -10,25 +10,33 @@ import { dataURLtoFile } from './../../../_helpers/functions.utils';
 })
 export class ImageUploadWidgetComponent implements OnInit {
 
-  constructor(private _cd: ChangeDetectorRef) { }
+  constructor() { }
 
   @Input() smallWidget = true;
   @Input() imgToCrop = false;
+  @Input() imgToDelete = false;
+  @Input() imgDeleting = false;
   @Input() borderRadius:string;
   @Input() imgURL:any = null;
+
   @Output() imgFile = new EventEmitter();
+  @Output() imgDelete = new EventEmitter();
 
   imgPickOverlay = false;
 
   ngOnInit(): void {}
 
-  openCropperDialog(event: Event, files) {
+  openCropperDialog(files) {
     const reader = new FileReader();
     reader.readAsDataURL(files[0]);
     reader.onload = (_event) => {
       this.imgURL = reader.result;
       this.imgFile.emit(dataURLtoFile(this.imgURL, files[0].name));
     }
+  }
+
+  deleteImage(){
+
   }
 
 }

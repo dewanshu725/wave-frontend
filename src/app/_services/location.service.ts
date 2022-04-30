@@ -44,71 +44,71 @@ export class LocationService {
 
   }
 
-getLocationFromCoordinate(latitude:string,longitude:string, region?:string): Promise<boolean>{
-  return new Promise<boolean>((resolve, reject) => {
-    this.http.get('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&zoom=14&lat='+latitude+'&lon='+longitude).pipe(take(1))
-    .subscribe(
-      (result:any) =>{
-        const address = result.address;
-        if (address.hamlet){
-          this.location.region.name = address.hamlet;
-          this.location.region.hamlet = true;
-        }
-        else if (address.village){
-          this.location.region.name = address.village;
-          this.location.region.village = true;
-        }
-        else if (address.town){
-          this.location.region.name = address.town;
-          this.location.region.town = true;
-        }
-        else if (address.city){
-          this.location.region.name = address.city;
-          this.location.region.city = true;
-        }
-        else if (address.county){
-          this.location.region.name = address.county;
-          this.location.region.unknown = true;
-        }
-        else if (address.district){
-          this.location.region.name = address.district;
-          this.location.region.unknown = true;
-        }
-        else if (address.municipality){
-          this.location.region.name = address.municipality;
-          this.location.region.unknown = true;
-        }
-        else if (address.suburb){
-          this.location.region.name = address.suburb;
-          this.location.region.unknown = true;
-        }
+  getLocationFromCoordinate(latitude:string,longitude:string, region?:string): Promise<boolean>{
+    return new Promise<boolean>((resolve, reject) => {
+      this.http.get('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&zoom=14&lat='+latitude+'&lon='+longitude).pipe(take(1))
+      .subscribe(
+        (result:any) =>{
+          const address = result.address;
+          if (address.hamlet){
+            this.location.region.name = address.hamlet;
+            this.location.region.hamlet = true;
+          }
+          else if (address.village){
+            this.location.region.name = address.village;
+            this.location.region.village = true;
+          }
+          else if (address.town){
+            this.location.region.name = address.town;
+            this.location.region.town = true;
+          }
+          else if (address.city){
+            this.location.region.name = address.city;
+            this.location.region.city = true;
+          }
+          else if (address.county){
+            this.location.region.name = address.county;
+            this.location.region.unknown = true;
+          }
+          else if (address.district){
+            this.location.region.name = address.district;
+            this.location.region.unknown = true;
+          }
+          else if (address.municipality){
+            this.location.region.name = address.municipality;
+            this.location.region.unknown = true;
+          }
+          else if (address.suburb){
+            this.location.region.name = address.suburb;
+            this.location.region.unknown = true;
+          }
 
-        if (address.state){
-          this.location.state = address.state;
-        }
-        else if (address.province){
-          this.location.state = address.province;
-        }
-        else{
-          this.location.state = region;
-        }
+          if (address.state){
+            this.location.state = address.state;
+          }
+          else if (address.province){
+            this.location.state = address.province;
+          }
+          else{
+            this.location.state = region;
+          }
 
-        if (address.postcode){
-          this.location.postal_code = address.postcode;
-        }
+          if (address.postcode){
+            this.location.postal_code = address.postcode;
+          }
 
-        this.location.country_code = address.country_code.toUpperCase();
-        this.location.coordinate = {
-          latitude:latitude,
-          longitude: longitude
+          this.location.country_code = address.country_code.toUpperCase();
+          this.location.coordinate = {
+            latitude:latitude,
+            longitude: longitude
+          }
+          resolve(true);
+        },
+        error =>{
+          resolve(false);
         }
-        resolve(true);
-      },
-      error =>{
-        resolve(false);
-      }
-    );
-  });
+      );
+    });
   }
 
 

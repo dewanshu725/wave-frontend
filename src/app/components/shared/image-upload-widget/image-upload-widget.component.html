@@ -1,16 +1,21 @@
-<input style="display: none" #file type="file" accept='image/*' (change)="openCropperDialog($event, file.files)" />
+<input style="display: none" #file type="file" accept='image/*' (change)="openCropperDialog(file.files)" />
 
-
+<div *ngIf="imgToDelete && imgURL != null" class="delete-profile-pic pointer" (click)="imgDelete.emit(true)">
+    <mat-spinner *ngIf="imgDeleting"class="small-button-loading-spinner white-loading-spinner">
+    </mat-spinner>
+    <mat-icon *ngIf="!imgDeleting" style="color: white;">delete</mat-icon>
+</div>
 
 <div class="circle"
- [style.width]="smallWidget ? '80px' : '160px'"
- [style.height]="smallWidget ? '80px' : '160px'"
- (click)="file.click(); imgPickOverlay = false"
- [style.background-color]="imgURL ? 'none' : 'var(--creme-white)'"
- [style.border-radius]="borderRadius"
- (mouseenter)="imgPickOverlay = true"
- (mouseleave)="imgPickOverlay = false"
- >
+[style.width]="smallWidget ? '80px' : '160px'"
+[style.height]="smallWidget ? '80px' : '160px'"
+(click)="file.click(); imgPickOverlay = false"
+[style.background-color]="imgURL ? 'none' : 'var(--creme-white)'"
+[style.border-radius]="borderRadius"
+(mouseenter)="imgPickOverlay = true"
+(mouseleave)="imgPickOverlay = false"
+>
+
     <img *ngIf="imgURL"
     [style.width]="smallWidget ? '80px' : '160px'"
     [style.height]="smallWidget ? '80px' : '160px'"

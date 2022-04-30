@@ -1,24 +1,23 @@
 import { 
   ALL_INTERACTION, CHAT, CONVERSE, dev_prod, IMAGE, INTERACTION, INTEREST_KEYWORD, LINK, LINK_PREVIEW, USER_PREFERENCE, 
-  VUE_DISCOVERY, DISCOVERY, INSTITUTION 
+  VUE_DISCOVERY, DISCOVERY, INSTITUTION, STUDENT_INTERACTION, CONVERSE_CONTEXT, DRAFT_CONVERSE 
 } from './constents';
 import { FormGroup } from '@angular/forms';
 import { isDevMode } from '@angular/core';
 
 // Converts Base64 dataURL to Image file
 export function dataURLtoFile(dataurl, filename) {
+  var arr = dataurl.split(','),
+      mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
 
-    var arr = dataurl.split(','),
-        mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]),
-        n = bstr.length,
-        u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
 
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
-    }
-
-    return new File([u8arr], filename, {type:mime});
+  return new File([u8arr], filename, {type:mime});
 }
 
 
@@ -186,8 +185,9 @@ export function timeAfter(date:Date) {
     }
   }
 
-  return " time ended";
+  return false;
 }
+
 
 export function timeAfterInHours(date:Date){
   var seconds = Math.floor((date.valueOf() - new Date().valueOf()) / 1000);
@@ -202,7 +202,6 @@ export function timeAfterInHours(date:Date){
 }
 
 
-
 export function threeDaysLeft(date:Date){
   var seconds = Math.floor((date.valueOf() - new Date().valueOf()) / 1000);
 
@@ -213,6 +212,7 @@ export function threeDaysLeft(date:Date){
 
   return false;
 }
+
 
 export function modifyDateByDay(date:Date, days:number, add=false){
   let modifiedDate;
@@ -225,6 +225,7 @@ export function modifyDateByDay(date:Date, days:number, add=false){
 
   return modifiedDate
 }
+
 
 export function abbreviateNumber(value) {
   var newValue = value;
@@ -243,6 +244,7 @@ export function abbreviateNumber(value) {
   return newValue;
 }
 
+
 export function truncate(str:string,charLength:number){
   let length = charLength;
   let ending = '...';
@@ -259,6 +261,7 @@ export function truncate(str:string,charLength:number){
     return '';
   }
 }
+
 
 export function removeValidators(form: FormGroup) {
   for (const key in form.controls) {
@@ -290,8 +293,10 @@ export function isVueConverseDisable(user_preference:USER_PREFERENCE, author_pre
     author_preference.region === user_preference.region && author_preference.country === user_preference.country ? locationCheckPassed = true : null;
   }
   else if (author_preference.locationPreference === 'INSTITUTION'){
-    if (author_preference.institution.uid === user_preference.institution.uid && user_preference.institution.verified){
-      locationCheckPassed = true;
+    if (user_preference.institution != null){
+      if (author_preference.institution.uid === user_preference.institution.uid && user_preference.institution.verified){
+        locationCheckPassed = true;
+      }
     }
   }
   else{
@@ -321,23 +326,21 @@ export function isVueConverseDisable(user_preference:USER_PREFERENCE, author_pre
   }
 
   if (user_conversation_point > author_conversation_point){
-    higher_conversation_point = user_conversation_point;
-    lower_conversation_point = author_conversation_point;
+    if (author_conversation_point >= 30){
+      conversationCheckPassed = true;
+    }
   }
   else if (author_conversation_point > user_conversation_point){
-    higher_conversation_point = author_conversation_point;
-    lower_conversation_point = user_conversation_point;
+    if (author_conversation_point-user_conversation_point <= 10){
+      conversationCheckPassed = true;
+    }
   }
   else{
     conversationCheckPassed = true;
   }
 
-  if (!conversationCheckPassed){
-    if (higher_conversation_point-lower_conversation_point <= 10 || higher_conversation_point-(lower_conversation_point+10) <= 10){
-      conversationCheckPassed = true;
-    }
-  }
 
+  
   if (locationCheckPassed && ageCheckPassed && conversationCheckPassed){
     return true;
   }
@@ -370,9 +373,11 @@ export function locationName(user_preference:USER_PREFERENCE, author_preference:
   }
 }
 
+
 export function placeholderImage(width:number, height:number){
   return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${width} ${height}'%3E%3C/svg%3E`
 }
+
 
 export function isVisible(ele, container){
 
@@ -392,6 +397,7 @@ export function isVisible(ele, container){
     return (eleTop < containerTop && containerTop < eleBottom) || (eleTop < containerBottom && containerBottom < eleBottom);
   }
 }
+
 
 export function createVueObj(linkPreview:LINK_PREVIEW, vueFeedId:string): LINK_PREVIEW{
   const vue_obj:LINK_PREVIEW = {
@@ -419,6 +425,7 @@ export function createVueObj(linkPreview:LINK_PREVIEW, vueFeedId:string): LINK_P
 
   return vue_obj;
 }
+
 
 export function createMyVueObj(myVue){
   const vue_interest_tags:INTEREST_KEYWORD[] = [];
@@ -476,6 +483,7 @@ export function createMyVueObj(myVue){
   return myVueObj
 }
 
+
 export function createMyDiscoveryObj(myDiscovery, myVue:LINK_PREVIEW[]){
   let myDiscoveryObj:DISCOVERY;
   let vueDiscovery:VUE_DISCOVERY[] = [];
@@ -519,6 +527,7 @@ export function createMyDiscoveryObj(myDiscovery, myVue:LINK_PREVIEW[]){
 
   return myDiscoveryObj
 }
+
 
 export function createChatMessage(chatMessage, interaction:INTERACTION){
   let chat_link:LINK = null;
@@ -668,6 +677,7 @@ export function createChatMessage(chatMessage, interaction:INTERACTION){
   return chat_obj;
 }
 
+
 export function createConverseMessage(converseMessage, interaction:INTERACTION){
   const converse_obj:CONVERSE = {
     curser: null,
@@ -684,6 +694,130 @@ export function createConverseMessage(converseMessage, interaction:INTERACTION){
 
   return converse_obj
 }
+
+
+export function createInteraction(interactionObj, studentProfileId:string, queryType:string){
+  let interaction:INTERACTION;
+  let user_interaction:STUDENT_INTERACTION;
+  let student_interaction:STUDENT_INTERACTION;
+  let converse_context:CONVERSE_CONTEXT;
+  let draft_converse:DRAFT_CONVERSE;
+
+  interactionObj.studentinteractionSet.edges.forEach(studentInteractionElement => {
+
+    if (studentProfileId === studentInteractionElement.node.student.id){
+      user_interaction = {
+        id: studentInteractionElement.node.id,
+        started_interaction: studentInteractionElement.node.startedInteraction,
+        accepted_connection: studentInteractionElement.node.acceptedConnection,
+        blocked: studentInteractionElement.node.blockedInteraction,
+        new_conversation_disabled: studentInteractionElement.node.student.newConversationDisabled,
+        typing: false,
+        profile:{
+          id: studentInteractionElement.node.student.id,
+          nickname: studentInteractionElement.node.student.nickname,
+          last_seen: new Date(studentInteractionElement.node.student.lastSeen),
+          inactive: new Date(studentInteractionElement.node.student.lastSeen) >= modifyDateByDay(new Date, 10) ? false : true,
+          deleted: false
+        }
+      }
+
+      if (queryType === 'allInteractionExplorers'){
+        user_interaction.profile.fullname = studentInteractionElement.node.student.fullName;
+        user_interaction.profile.online = studentInteractionElement.node.student.online;
+      }
+    }
+    else{
+      student_interaction = {
+        id: studentInteractionElement.node.id,
+        started_interaction: studentInteractionElement.node.startedInteraction,
+        accepted_connection: studentInteractionElement.node.acceptedConnection,
+        blocked: studentInteractionElement.node.blockedInteraction,
+        new_conversation_disabled: studentInteractionElement.node.student.newConversationDisabled,
+        typing: false,
+        profile:{
+          id: studentInteractionElement.node.student.id,
+          nickname: studentInteractionElement.node.student.nickname,
+          last_seen: new Date(studentInteractionElement.node.student.lastSeen),
+          inactive: new Date(studentInteractionElement.node.student.lastSeen) >= modifyDateByDay(new Date, 10) ? false : true,
+          deleted: studentInteractionElement.node.student.deleted
+        }
+      }
+
+      if (!studentInteractionElement.node.student.deleted){
+        if (queryType === 'allInteractionExplorers'){
+          student_interaction.profile.fullname = studentInteractionElement.node.student?.fullName;
+          student_interaction.profile.online = studentInteractionElement.node.student.online;
+          student_interaction.profile.sex = studentInteractionElement.node.student?.sex.toLowerCase();
+          student_interaction.profile.dob = studentInteractionElement.node.student?.dob;
+          student_interaction.profile.age = studentInteractionElement.node.student?.age;
+          student_interaction.profile.profile_picture = {
+            id:null,
+            width: null,
+            height: null,
+            image: studentInteractionElement.node.student.profilePicture != null ? isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ studentInteractionElement.node.student?.profilePicture : studentInteractionElement.node.student?.profilePictureUrl : null,
+            thumnail:null
+          }
+          student_interaction.profile.public_vues = [];
+          student_interaction.profile.discovery = [];
+        }
+
+        student_interaction.profile.region = studentInteractionElement.node.student?.region;
+        student_interaction.profile.country = studentInteractionElement.node.student?.countryCode;
+      }
+    }
+    
+  });
+
+  converse_context = {
+    type: interactionObj.conversecontext.contextType,
+    vue_context: interactionObj.conversecontext.vue === null ? null : {
+      id: interactionObj.conversecontext.vue.id,
+      author_id: interactionObj.conversecontext.vue.author?.id,
+      image: interactionObj.conversecontext.vue.image === null ? null : {
+        id: interactionObj.conversecontext.vue.image.id,
+        image: interactionObj.conversecontext.vue.image.image,
+        thumnail: isDevMode() ? dev_prod.httpServerUrl_dev +'static/'+ interactionObj.conversecontext.vue.image.thumnail : interactionObj.conversecontext.vue.image.thumnailUrl,
+        width: interactionObj.conversecontext.vue.image.width,
+        height: interactionObj.conversecontext.vue.image.height
+      },
+      title: interactionObj.conversecontext.vue.title,
+      description: interactionObj.conversecontext.vue.description,
+      url: interactionObj.conversecontext.vue.url,
+      site_name: interactionObj.conversecontext.vue.domain?.siteName,
+      domain_name: interactionObj.conversecontext.vue.domain?.domainName,
+      location: `${interactionObj.conversecontext.vue.author?.region}, ${interactionObj.conversecontext.vue.author?.countryCode}`,
+      age: interactionObj.conversecontext.vue.author?.age,
+      active: true
+    }
+  }
+
+  draft_converse = {
+    id: interactionObj.draftconversemessageSet.edges[0].node.id,
+    type: interactionObj.draftconversemessageSet.edges[0].node.messageType,
+    in_transit: interactionObj.draftconversemessageSet.edges[0].node.inTransit,
+    body: interactionObj.draftconversemessageSet.edges[0].node.body,
+    updated: new Date(interactionObj.draftconversemessageSet.edges[0].node.updated)
+  }
+
+  interaction = {
+    id: interactionObj.id,
+    expire: interactionObj.expire != null ? new Date(interactionObj.expire) : null,
+    converse_context: converse_context,
+    user_interaction: user_interaction,
+    student_interaction: student_interaction,
+    draft_converse: draft_converse,
+    converse_page_info: null,
+    converse: [],
+    chat_page_info: null,
+    chat: [],
+    selected: false,
+    blocked: interactionObj.blocked
+  }
+
+  return interaction;
+}
+
 
 export function createInstitution(institutionObj, verified){
   const institution:INSTITUTION = {
@@ -713,6 +847,18 @@ export function createInstitution(institutionObj, verified){
   return institution;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* polyfills */
 
 export function composedPath (el) {
@@ -721,17 +867,17 @@ export function composedPath (el) {
 
   while (el) {
 
-      path.push(el);
+    path.push(el);
 
-      if (el.tagName === 'HTML') {
+    if (el.tagName === 'HTML') {
 
-          path.push(document);
-          path.push(window);
+      path.push(document);
+      path.push(window);
 
-          return path;
-     }
+      return path;
+    }
 
-     el = el.parentElement;
+    el = el.parentElement;
   }
 }
 

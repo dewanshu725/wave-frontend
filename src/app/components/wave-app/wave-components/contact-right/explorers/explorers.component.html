@@ -14,8 +14,8 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur d
     <ng-container *ngIf="studentProfileVisible">
         <mat-toolbar class="mat-elevation-z0 app-status-bar" style="top: 0px;">
             <div class="pointer" (click)="studentProfileToggle()">
-                <button mat-icon-button disableRipple class="button-style-1 mat-elevation-z2">
-                    <mat-icon style="line-height: 20px; margin-right: 2.5px;">arrow_back_ios_new</mat-icon>
+                <button mat-icon-button disableRipple>
+                    <mat-icon>keyboard_backspace</mat-icon>
                 </button>
                 &nbsp;&nbsp;<span class="mat-subheading-1 space-gray-color-text mb-0"><strong>Profile</strong></span>
             </div>
@@ -66,25 +66,25 @@ class="d-flex flex-column justify-content-center align-items-center glass-blur d
                 </div>
             </div>
 
-            <app-discovery *ngIf="interaction.student_interaction.profile.discovery.length > 0" class="d-block w-100 mb-5"
-            [editMode]="false" [studentDiscoveryArray]="interaction.student_interaction.profile.discovery"
-            (openDetailedVue)="openDetailedVue(true, $event)"></app-discovery>
-
-            <ngx-masonry [options]="masonryOption" [ordered]="true" (layoutComplete)="masonryLoaded()" style="margin: 0 auto;"
-            [style.visibility]="masonryLoading ? 'hidden' : 'visible'"
-            >
-                <app-vue ngxMasonryItem class="mb-5" [linkPreview]="vue" [profileVue]="true" *ngFor="let vue of studentPublicVueArray"
-                (openDetailedVue)="openDetailedVue($event, vue)"></app-vue>
-            </ngx-masonry>
-
-            <div [style.visibility]="(fetchMoreLoading || !fetchMore) && masonryLoading === false ? 'visible' : 'hidden'"
-            style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4"
-            >
-                <app-loading *ngIf="fetchMoreLoading"></app-loading>
-                <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
-                    <strong>That's All</strong>
-                </span>
-            </div>
+            <ng-container *ngIf="interaction.student_interaction.profile.public_vues.length > 0">
+                <app-discovery *ngIf="interaction.student_interaction.profile.discovery.length > 0" class="d-block w-100 mb-5"
+                [editMode]="false" [studentDiscoveryArray]="interaction.student_interaction.profile.discovery"
+                (openDetailedVue)="openDetailedVue(true, $event)"></app-discovery>
+    
+                <ngx-masonry [options]="masonryOption" [ordered]="true" (layoutComplete)="masonryLoaded()" style="margin: 0 auto;"
+                [style.visibility]="masonryLoading ? 'hidden' : 'visible'">
+                    <app-vue ngxMasonryItem class="mb-5" [linkPreview]="vue" [profileVue]="true" *ngFor="let vue of studentPublicVueArray"
+                    (openDetailedVue)="openDetailedVue($event, vue)"></app-vue>
+                </ngx-masonry>
+    
+                <div [style.visibility]="(fetchMoreLoading || !fetchMore) && masonryLoading === false ? 'visible' : 'hidden'"
+                style="height: 40px;" class="d-flex justify-content-center align-items-center mt-4">
+                    <app-loading *ngIf="fetchMoreLoading"></app-loading>
+                    <span *ngIf="!fetchMore && !fetchMoreLoading" class="mat-caption gray-color-text" style="font-family: Poppins;">
+                        <strong>That's All</strong>
+                    </span>
+                </div>
+            </ng-container>
         </div>
     </ng-container>
 
